@@ -1,0 +1,144 @@
+import { useState } from "react";
+import { Search, MapPin, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Course {
+  id: number;
+  name: string;
+  city: string;
+  state_or_province: string;
+  country: string;
+}
+
+const CourseSearch = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('search-courses', {
+        body: { query: searchQuery },
+      });
+
+      if (error) throw error;
+
+      setCourses(data.courses || []);
+      
+      if (!data.courses || data.courses.length === 0) {
+        toast({
+          title: "No courses found",
+          description: "Try a different search term",
+        });
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        title: "Search failed",
+        description: "Could not search for courses. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectCourse = async (course: Course) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-course-details', {
+        body: { courseId: course.id },
+      });
+
+      if (error) throw error;
+
+      // Navigate to round tracking with course data
+      navigate('/round', { state: { course: data } });
+    } catch (error) {
+      console.error('Error fetching course details:', error);
+      toast({
+        title: "Failed to load course",
+        description: "Could not load course details. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
+      <div className="max-w-md mx-auto px-4 pt-8">
+        {/* Header */}
+        <div className="mb-6 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/')}
+            className="text-foreground"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-2xl font-bold text-foreground">Find Course</h1>
+        </div>
+
+        {/* Search */}
+        <div className="mb-6">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search for a golf course..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="pl-10"
+              />
+            </div>
+            <Button onClick={handleSearch} disabled={isLoading}>
+              {isLoading ? "Searching..." : "Search"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Results */}
+        <div className="space-y-3">
+          {courses.map((course) => (
+            <Card
+              key={course.id}
+              className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+              onClick={() => handleSelectCourse(course)}
+            >
+              <h3 className="font-semibold text-foreground mb-1">{course.name}</h3>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <MapPin className="w-4 h-4" />
+                <span>
+                  {course.city}, {course.state_or_province}, {course.country}
+                </span>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {courses.length === 0 && !isLoading && (
+          <Card className="p-8 text-center">
+            <Search className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+            <p className="text-muted-foreground">
+              Search for a golf course to start your round
+            </p>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default CourseSearch;
