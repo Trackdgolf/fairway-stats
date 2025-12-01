@@ -76,17 +76,17 @@ const NumberStepper = ({
         <button
           type="button"
           onClick={handleDecrement}
-          className="w-14 h-14 rounded-full bg-[hsl(var(--round-accent))] hover:bg-[hsl(var(--round-accent-hover))] text-white flex items-center justify-center transition-colors shadow-lg"
+          className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 dark:bg-[hsl(var(--round-accent))] dark:hover:bg-[hsl(var(--round-accent-hover))] text-white dark:text-primary-foreground flex items-center justify-center transition-colors shadow-lg"
         >
           <Minus className="w-6 h-6" />
         </button>
-        <div className="w-24 h-16 bg-[hsl(var(--round-input))] border border-[hsl(var(--round-border))] rounded-2xl flex items-center justify-center">
-          <span className="text-4xl font-bold text-white">{value || 0}</span>
+        <div className="w-24 h-16 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-2xl flex items-center justify-center">
+          <span className="text-4xl font-bold text-foreground">{value || 0}</span>
         </div>
         <button
           type="button"
           onClick={handleIncrement}
-          className="w-14 h-14 rounded-full bg-[hsl(var(--round-accent))] hover:bg-[hsl(var(--round-accent-hover))] text-white flex items-center justify-center transition-colors shadow-lg"
+          className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 dark:bg-[hsl(var(--round-accent))] dark:hover:bg-[hsl(var(--round-accent-hover))] text-white dark:text-primary-foreground flex items-center justify-center transition-colors shadow-lg"
         >
           <Plus className="w-6 h-6" />
         </button>
@@ -114,8 +114,8 @@ const ToggleButton = ({
       className={cn(
         "flex-1 h-12 rounded-xl font-medium transition-all",
         selected 
-          ? "bg-[hsl(var(--round-border))] text-white" 
-          : "bg-[hsl(var(--round-input))] text-muted-foreground border border-[hsl(var(--round-border))]",
+          ? "bg-primary/20 text-primary border-2 border-primary dark:bg-[hsl(var(--round-border))] dark:text-foreground dark:border-[hsl(var(--round-border))]" 
+          : "bg-muted text-muted-foreground border border-border dark:bg-[hsl(var(--round-input))] dark:border-[hsl(var(--round-border))]",
         className
       )}
     >
@@ -157,7 +157,7 @@ const Round = () => {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-[hsl(var(--round-bg))] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center p-6">
           <p className="text-muted-foreground mb-4">No course selected</p>
           <Button onClick={() => navigate('/course-search')}>
@@ -169,24 +169,24 @@ const Round = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--round-bg))] pb-20">
+    <div className="min-h-screen bg-background dark:bg-[hsl(var(--round-bg))] pb-20">
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-8 pb-6">
           <button
             onClick={() => navigate('/')}
-            className="p-2 -ml-2 text-white hover:text-muted-foreground transition-colors"
+            className="p-2 -ml-2 text-foreground hover:text-muted-foreground transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
           <div className="text-center flex-1">
-            <h1 className="text-lg font-semibold text-white">
+            <h1 className="text-lg font-semibold text-foreground">
               {course.course_name || course.club_name}
             </h1>
           </div>
           <button
             onClick={() => navigate('/')}
-            className="p-2 -mr-2 text-white hover:text-muted-foreground transition-colors"
+            className="p-2 -mr-2 text-foreground hover:text-muted-foreground transition-colors"
           >
             <Check className="w-6 h-6" />
           </button>
@@ -194,25 +194,25 @@ const Round = () => {
 
         {/* Hole Info & Progress */}
         <div className="px-4 mb-6">
-          <div className="bg-[hsl(var(--round-card))] rounded-2xl p-6">
+          <div className="bg-card dark:bg-[hsl(var(--round-card))] rounded-2xl p-6 border border-border shadow-sm">
             <div className="flex items-center justify-around mb-6">
               <div className="text-center">
                 <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Hole</div>
-                <div className="text-5xl font-bold text-white">
+                <div className="text-5xl font-bold text-foreground">
                   {currentHoleIndex + 1}
                 </div>
               </div>
-              <div className="w-px h-16 bg-[hsl(var(--round-border))]" />
+              <div className="w-px h-16 bg-border dark:bg-[hsl(var(--round-border))]" />
               <div className="text-center">
                 <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Par</div>
-                <div className="text-5xl font-bold text-white">
+                <div className="text-5xl font-bold text-foreground">
                   {currentHole?.par}
                 </div>
               </div>
-              <div className="w-px h-16 bg-[hsl(var(--round-border))]" />
+              <div className="w-px h-16 bg-border dark:bg-[hsl(var(--round-border))]" />
               <div className="text-center">
                 <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Yards</div>
-                <div className="text-3xl font-semibold text-white">
+                <div className="text-3xl font-semibold text-foreground">
                   {currentHole?.length_meters}
                 </div>
               </div>
@@ -224,10 +224,10 @@ const Round = () => {
                   className={cn(
                     "h-1.5 flex-1 rounded-full transition-colors",
                     idx === currentHoleIndex
-                      ? "bg-[hsl(var(--round-accent))]"
+                      ? "bg-primary dark:bg-[hsl(var(--round-accent))]"
                       : holeStats[idx]?.score !== null
-                      ? "bg-[hsl(var(--round-accent))]/40"
-                      : "bg-[hsl(var(--round-border))]"
+                      ? "bg-primary/40 dark:bg-[hsl(var(--round-accent))]/40"
+                      : "bg-border dark:bg-[hsl(var(--round-border))]"
                   )}
                 />
               ))}
@@ -334,15 +334,15 @@ const Round = () => {
               value={currentStats?.teeClub || ""}
               onValueChange={(value) => updateHoleStats("teeClub", value)}
             >
-              <SelectTrigger className="h-14 bg-[hsl(var(--round-input))] border-[hsl(var(--round-border))] rounded-xl text-white">
+              <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
                 <SelectValue placeholder="Select Club" />
               </SelectTrigger>
-              <SelectContent className="bg-[hsl(var(--round-card))] border-[hsl(var(--round-border))]">
+              <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
                 {CLUBS.map((club) => (
                   <SelectItem 
                     key={club} 
                     value={club}
-                    className="text-white focus:bg-[hsl(var(--round-input))] focus:text-white"
+                    className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
                   >
                     {club}
                   </SelectItem>
@@ -360,15 +360,15 @@ const Round = () => {
               value={currentStats?.approachClub || ""}
               onValueChange={(value) => updateHoleStats("approachClub", value)}
             >
-              <SelectTrigger className="h-14 bg-[hsl(var(--round-input))] border-[hsl(var(--round-border))] rounded-xl text-white">
+              <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
                 <SelectValue placeholder="Select Club" />
               </SelectTrigger>
-              <SelectContent className="bg-[hsl(var(--round-card))] border-[hsl(var(--round-border))]">
+              <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
                 {CLUBS.map((club) => (
                   <SelectItem 
                     key={club} 
                     value={club}
-                    className="text-white focus:bg-[hsl(var(--round-input))] focus:text-white"
+                    className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
                   >
                     {club}
                   </SelectItem>
@@ -383,7 +383,7 @@ const Round = () => {
           <button
             onClick={() => setCurrentHoleIndex(Math.max(0, currentHoleIndex - 1))}
             disabled={currentHoleIndex === 0}
-            className="flex-1 h-14 rounded-xl bg-[hsl(var(--round-card))] border border-[hsl(var(--round-border))] text-white font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:bg-[hsl(var(--round-input))] flex items-center justify-center gap-2"
+            className="flex-1 h-14 rounded-xl bg-card dark:bg-[hsl(var(--round-card))] border border-border dark:border-[hsl(var(--round-border))] text-foreground font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:bg-muted dark:hover:bg-[hsl(var(--round-input))] flex items-center justify-center gap-2"
           >
             <ChevronLeft className="w-5 h-5" />
             Previous
@@ -396,7 +396,7 @@ const Round = () => {
                 setCurrentHoleIndex(Math.min(totalHoles - 1, currentHoleIndex + 1));
               }
             }}
-            className="flex-1 h-14 rounded-xl bg-[hsl(var(--round-accent))] hover:bg-[hsl(var(--round-accent-hover))] text-white font-medium transition-all flex items-center justify-center gap-2"
+            className="flex-1 h-14 rounded-xl bg-primary hover:bg-primary/90 dark:bg-[hsl(var(--round-accent))] dark:hover:bg-[hsl(var(--round-accent-hover))] text-white font-medium transition-all flex items-center justify-center gap-2"
           >
             {currentHoleIndex === totalHoles - 1 ? "Finish Round" : "Next"}
             {currentHoleIndex !== totalHoles - 1 && <ChevronRight className="w-5 h-5" />}

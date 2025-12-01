@@ -1,6 +1,7 @@
 import { Activity, Target, TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const ClubPerformance = () => {
   const clubs = [
@@ -16,9 +17,12 @@ const ClubPerformance = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
       <div className="max-w-md mx-auto px-4 pt-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Club Performance</h1>
-          <p className="text-muted-foreground">Analyze your club statistics</p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Club Performance</h1>
+            <p className="text-muted-foreground">Analyze your club statistics</p>
+          </div>
+          <ThemeToggle />
         </div>
 
         {/* Summary Cards */}

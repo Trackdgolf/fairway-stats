@@ -1,15 +1,19 @@
 import { TrendingUp, Target, Award, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Stats = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
       <div className="max-w-md mx-auto px-4 pt-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Statistics</h1>
-          <p className="text-muted-foreground">Track your progress over time</p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Statistics</h1>
+            <p className="text-muted-foreground">Track your progress over time</p>
+          </div>
+          <ThemeToggle />
         </div>
 
         {/* Overview Stats */}
