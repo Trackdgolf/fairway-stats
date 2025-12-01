@@ -1,68 +1,217 @@
-import { TrendingUp, Target, Award, Calendar } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { useState } from "react";
+import { Trophy, Award, Target, TrendingUp, Navigation, MapPin, Flag, Circle } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import StatsChart from "@/components/StatsChart";
+import StatTile from "@/components/StatTile";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+
+type StatType = "totalRounds" | "bestScore" | "avgScore" | "avgOverPar" | "avgPutts" | "firPercent" | "girPercent" | "scramblePercent";
+type TimeRange = "3M" | "6M" | "1Y" | "MAX";
 
 const Stats = () => {
+  const [selectedStat, setSelectedStat] = useState<StatType>("avgOverPar");
+  const [timeRange, setTimeRange] = useState<TimeRange>("MAX");
+  const [courseFilter, setCourseFilter] = useState("all");
+
+  // Mock data for demonstration
+  const generateMockData = (stat: StatType, range: TimeRange) => {
+    const dataPoints: { [key in TimeRange]: number } = {
+      "3M": 3,
+      "6M": 6,
+      "1Y": 12,
+      "MAX": 24
+    };
+
+    const points = dataPoints[range];
+    const data = [];
+
+    for (let i = points; i > 0; i--) {
+      const monthsAgo = i;
+      const date = new Date();
+      date.setMonth(date.getMonth() - monthsAgo);
+      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+
+      let value = 0;
+      
+      switch (stat) {
+        case "totalRounds":
+          value = Math.floor(Math.random() * 3) + 1;
+          break;
+        case "bestScore":
+          value = Math.floor(Math.random() * 10) + 80;
+          break;
+        case "avgScore":
+          value = Math.floor(Math.random() * 8) + 82;
+          break;
+        case "avgOverPar":
+          value = Math.random() * 8 + 10;
+          break;
+        case "avgPutts":
+          value = Math.random() * 0.8 + 1.4;
+          break;
+        case "firPercent":
+          value = Math.random() * 30 + 30;
+          break;
+        case "girPercent":
+          value = Math.random() * 20 + 20;
+          break;
+        case "scramblePercent":
+          value = Math.random() * 30 + 30;
+          break;
+      }
+
+      data.push({
+        date: `${monthName}`,
+        value: parseFloat(value.toFixed(1)),
+      });
+    }
+
+    return data;
+  };
+
+  const chartData = generateMockData(selectedStat, timeRange);
+
+  const getChartTitle = () => {
+    const titles: { [key in StatType]: string } = {
+      totalRounds: "Total Rounds Over Time",
+      bestScore: "Best Score Over Time",
+      avgScore: "Average Score Over Time",
+      avgOverPar: "Score to Par Over Time",
+      avgPutts: "Average Putts Over Time",
+      firPercent: "FIR % Over Time",
+      girPercent: "GIR % Over Time",
+      scramblePercent: "Scramble % Over Time",
+    };
+    return titles[selectedStat];
+  };
+
+  const stats = [
+    {
+      id: "totalRounds" as StatType,
+      icon: Trophy,
+      value: "2",
+      label: "Total Rounds",
+      iconColor: "bg-muted",
+    },
+    {
+      id: "bestScore" as StatType,
+      icon: Award,
+      value: "84",
+      label: "Best Score",
+      iconColor: "bg-muted",
+    },
+    {
+      id: "avgScore" as StatType,
+      icon: Target,
+      value: "85",
+      label: "Average Score",
+      iconColor: "bg-muted",
+    },
+    {
+      id: "avgOverPar" as StatType,
+      icon: TrendingUp,
+      value: "+13.5",
+      label: "Avg Over Par",
+      iconColor: "bg-accent/10",
+    },
+    {
+      id: "avgPutts" as StatType,
+      icon: Navigation,
+      value: "1.7",
+      label: "Avg Putts",
+      iconColor: "bg-muted",
+    },
+    {
+      id: "firPercent" as StatType,
+      icon: MapPin,
+      value: "37%",
+      label: "FIR %",
+      iconColor: "bg-muted",
+    },
+    {
+      id: "girPercent" as StatType,
+      icon: Flag,
+      value: "26%",
+      label: "GIR %",
+      iconColor: "bg-muted",
+    },
+    {
+      id: "scramblePercent" as StatType,
+      icon: Circle,
+      value: "41%",
+      label: "Scramble %",
+      iconColor: "bg-accent/10",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
       <div className="max-w-md mx-auto px-4 pt-8">
         {/* Header */}
-        <div className="mb-8 flex items-start justify-between">
+        <div className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Statistics</h1>
-            <p className="text-muted-foreground">Track your progress over time</p>
+            <h1 className="text-3xl font-bold text-foreground">Statistics</h1>
           </div>
           <ThemeToggle />
         </div>
 
-        {/* Overview Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-5 h-5 text-accent" />
-              <span className="text-sm text-muted-foreground">Avg Score</span>
-            </div>
-            <p className="text-2xl font-bold text-foreground">--</p>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Target className="w-5 h-5 text-accent" />
-              <span className="text-sm text-muted-foreground">Fairways Hit</span>
-            </div>
-            <p className="text-2xl font-bold text-foreground">--</p>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Award className="w-5 h-5 text-accent" />
-              <span className="text-sm text-muted-foreground">GIR</span>
-            </div>
-            <p className="text-2xl font-bold text-foreground">--</p>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="w-5 h-5 text-accent" />
-              <span className="text-sm text-muted-foreground">Total Rounds</span>
-            </div>
-            <p className="text-2xl font-bold text-foreground">0</p>
-          </Card>
+        {/* Chart */}
+        <StatsChart
+          data={chartData}
+          title={getChartTitle()}
+          yAxisLabel="Value"
+        />
+
+        {/* Course Filter */}
+        <div className="mb-4 flex items-center gap-3">
+          <span className="text-sm font-medium text-foreground">Course:</span>
+          <Select value={courseFilter} onValueChange={setCourseFilter}>
+            <SelectTrigger className="flex-1 bg-card border-border">
+              <SelectValue placeholder="Select course" />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border z-50">
+              <SelectItem value="all">All Courses</SelectItem>
+              <SelectItem value="course1">Pebble Beach</SelectItem>
+              <SelectItem value="course2">Augusta National</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Performance Chart Placeholder */}
-        <Card className="p-6 mb-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Score Trends</h3>
-          <div className="h-48 flex items-center justify-center bg-muted rounded-lg">
-            <p className="text-muted-foreground">Chart will appear after playing rounds</p>
-          </div>
-        </Card>
+        {/* Time Range Buttons */}
+        <div className="flex gap-2 mb-6">
+          {(["3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+            <Button
+              key={range}
+              onClick={() => setTimeRange(range)}
+              variant={timeRange === range ? "default" : "outline"}
+              className={timeRange === range ? "" : "bg-muted text-muted-foreground hover:bg-muted/80"}
+            >
+              {range}
+            </Button>
+          ))}
+        </div>
 
-        {/* Round History */}
-        <div>
-          <h3 className="text-lg font-semibold text-foreground mb-3">Round History</h3>
-          <Card className="p-6 text-center">
-            <p className="text-muted-foreground">No rounds recorded yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Start tracking to see your history</p>
-          </Card>
+        {/* Stat Tiles Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {stats.map((stat) => (
+            <StatTile
+              key={stat.id}
+              icon={stat.icon}
+              value={stat.value}
+              label={stat.label}
+              isSelected={selectedStat === stat.id}
+              onClick={() => setSelectedStat(stat.id)}
+              iconColor={stat.iconColor}
+            />
+          ))}
         </div>
       </div>
 
