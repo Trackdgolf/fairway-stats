@@ -35,9 +35,11 @@ const Round = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{course.name}</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              {course.course_name || course.club_name}
+            </h1>
             <p className="text-sm text-muted-foreground">
-              {course.city}, {course.state_or_province}
+              {course.location?.city}, {course.location?.state}
             </p>
           </div>
         </div>
@@ -77,7 +79,7 @@ const Round = () => {
                       Hole {hole.hole_number}
                     </span>
                     <div className="text-sm text-muted-foreground mt-1">
-                      Par {hole.par} • {hole.length_meters}m
+                      Par {hole.par} • {hole.length_meters} yards
                     </div>
                   </div>
                   <div className="text-right">

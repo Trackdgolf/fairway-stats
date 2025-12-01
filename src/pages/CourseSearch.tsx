@@ -7,12 +7,17 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+interface CourseLocation {
+  city: string;
+  state: string;
+  country: string;
+}
+
 interface Course {
   id: number;
-  name: string;
-  city: string;
-  state_or_province: string;
-  country: string;
+  club_name: string;
+  course_name: string;
+  location: CourseLocation;
 }
 
 const CourseSearch = () => {
@@ -61,8 +66,22 @@ const CourseSearch = () => {
 
       if (error) throw error;
 
-      // Navigate to round tracking with course data
-      navigate('/round', { state: { course: data } });
+      // Extract course data and map holes from the API response
+      const courseData = data.course;
+      const holes = courseData.tees?.male?.[0]?.holes || [];
+      
+      const mappedCourse = {
+        ...courseData,
+        holes: holes.map((hole: any, index: number) => ({
+          hole_number: index + 1,
+          par: hole.par,
+          length_meters: hole.yardage, // API returns yardage
+          stroke_index: hole.handicap,
+        })),
+      };
+
+      // Navigate to round tracking with mapped course data
+      navigate('/round', { state: { course: mappedCourse } });
     } catch (error) {
       console.error('Error fetching course details:', error);
       toast({
@@ -117,11 +136,13 @@ const CourseSearch = () => {
               className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
               onClick={() => handleSelectCourse(course)}
             >
-              <h3 className="font-semibold text-foreground mb-1">{course.name}</h3>
+              <h3 className="font-semibold text-foreground mb-1">
+                {course.course_name || course.club_name}
+              </h3>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4" />
                 <span>
-                  {course.city}, {course.state_or_province}, {course.country}
+                  {course.location.city}, {course.location.state}, {course.location.country}
                 </span>
               </div>
             </Card>
