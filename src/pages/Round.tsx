@@ -1,11 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -13,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface HoleStats {
   score: number | null;
@@ -45,6 +42,87 @@ const CLUBS = [
   "LW",
   "Putter",
 ];
+
+// Number Stepper Component
+const NumberStepper = ({ 
+  label, 
+  value, 
+  onChange, 
+  min = 0, 
+  max = 15 
+}: { 
+  label: string; 
+  value: number | null; 
+  onChange: (val: number | null) => void;
+  min?: number;
+  max?: number;
+}) => {
+  const handleDecrement = () => {
+    const current = value || 0;
+    if (current > min) onChange(current - 1);
+  };
+
+  const handleIncrement = () => {
+    const current = value || 0;
+    if (current < max) onChange(current + 1);
+  };
+
+  return (
+    <div className="space-y-3">
+      <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+        {label}
+      </label>
+      <div className="flex items-center justify-center gap-4">
+        <button
+          type="button"
+          onClick={handleDecrement}
+          className="w-14 h-14 rounded-full bg-[hsl(var(--round-accent))] hover:bg-[hsl(var(--round-accent-hover))] text-white flex items-center justify-center transition-colors shadow-lg"
+        >
+          <Minus className="w-6 h-6" />
+        </button>
+        <div className="w-24 h-16 bg-[hsl(var(--round-input))] border border-[hsl(var(--round-border))] rounded-2xl flex items-center justify-center">
+          <span className="text-4xl font-bold text-white">{value || 0}</span>
+        </div>
+        <button
+          type="button"
+          onClick={handleIncrement}
+          className="w-14 h-14 rounded-full bg-[hsl(var(--round-accent))] hover:bg-[hsl(var(--round-accent-hover))] text-white flex items-center justify-center transition-colors shadow-lg"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Toggle Button Component
+const ToggleButton = ({ 
+  selected, 
+  onClick, 
+  children,
+  className
+}: { 
+  selected: boolean; 
+  onClick: () => void; 
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex-1 h-12 rounded-xl font-medium transition-all",
+        selected 
+          ? "bg-[hsl(var(--round-border))] text-white" 
+          : "bg-[hsl(var(--round-input))] text-muted-foreground border border-[hsl(var(--round-border))]",
+        className
+      )}
+    >
+      {children}
+    </button>
+  );
+};
 
 const Round = () => {
   const location = useLocation();
@@ -79,241 +157,250 @@ const Round = () => {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center">
-        <Card className="p-6 text-center">
-          <p className="text-muted-foreground">No course selected</p>
-          <Button onClick={() => navigate('/course-search')} className="mt-4">
+      <div className="min-h-screen bg-[hsl(var(--round-bg))] flex items-center justify-center">
+        <div className="text-center p-6">
+          <p className="text-muted-foreground mb-4">No course selected</p>
+          <Button onClick={() => navigate('/course-search')}>
             Select a Course
           </Button>
-        </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
-      <div className="max-w-md mx-auto px-4 pt-8">
+    <div className="min-h-screen bg-[hsl(var(--round-bg))] pb-20">
+      <div className="max-w-md mx-auto">
         {/* Header */}
-        <div className="mb-6 flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
+        <div className="flex items-center justify-between px-4 pt-8 pb-6">
+          <button
             onClick={() => navigate('/')}
-            className="text-foreground"
+            className="p-2 -ml-2 text-white hover:text-muted-foreground transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold text-foreground">
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <div className="text-center flex-1">
+            <h1 className="text-lg font-semibold text-white">
               {course.course_name || course.club_name}
             </h1>
-            <p className="text-xs text-muted-foreground">
-              {course.location?.city}, {course.location?.state}
-            </p>
+          </div>
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 -mr-2 text-white hover:text-muted-foreground transition-colors"
+          >
+            <Check className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Hole Info & Progress */}
+        <div className="px-4 mb-6">
+          <div className="bg-[hsl(var(--round-card))] rounded-2xl p-6">
+            <div className="flex items-center justify-around mb-6">
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Hole</div>
+                <div className="text-5xl font-bold text-white">
+                  {currentHoleIndex + 1}
+                </div>
+              </div>
+              <div className="w-px h-16 bg-[hsl(var(--round-border))]" />
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Par</div>
+                <div className="text-5xl font-bold text-white">
+                  {currentHole?.par}
+                </div>
+              </div>
+              <div className="w-px h-16 bg-[hsl(var(--round-border))]" />
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Yards</div>
+                <div className="text-3xl font-semibold text-white">
+                  {currentHole?.length_meters}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-1">
+              {Array.from({ length: totalHoles }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "h-1.5 flex-1 rounded-full transition-colors",
+                    idx === currentHoleIndex
+                      ? "bg-[hsl(var(--round-accent))]"
+                      : holeStats[idx]?.score !== null
+                      ? "bg-[hsl(var(--round-accent))]/40"
+                      : "bg-[hsl(var(--round-border))]"
+                  )}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Hole Progress */}
-        <Card className="p-4 mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <div className="text-sm text-muted-foreground">Hole</div>
-              <div className="text-3xl font-bold text-foreground">
-                {currentHoleIndex + 1}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-muted-foreground">Par</div>
-              <div className="text-3xl font-bold text-foreground">
-                {currentHole?.par}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-muted-foreground">Yards</div>
-              <div className="text-2xl font-semibold text-foreground">
-                {currentHole?.length_meters}
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-1 mt-4">
-            {Array.from({ length: totalHoles }).map((_, idx) => (
-              <div
-                key={idx}
-                className={`h-1 flex-1 rounded ${
-                  idx === currentHoleIndex
-                    ? "bg-primary"
-                    : holeStats[idx]?.score !== null
-                    ? "bg-primary/50"
-                    : "bg-muted"
-                }`}
-              />
-            ))}
-          </div>
-        </Card>
-
         {/* Stats Entry */}
-        <Card className="p-6 mb-6">
-          <div className="space-y-6">
-            {/* Score */}
-            <div className="space-y-2">
-              <Label htmlFor="score" className="text-foreground">Score</Label>
-              <Input
-                id="score"
-                type="number"
-                min="1"
-                max="15"
-                value={currentStats?.score || ""}
-                onChange={(e) => updateHoleStats("score", e.target.value ? parseInt(e.target.value) : null)}
-                placeholder="Enter score"
-                className="text-lg"
-              />
+        <div className="px-4 space-y-8">
+          {/* Score */}
+          <NumberStepper
+            label="Score"
+            value={currentStats?.score}
+            onChange={(val) => updateHoleStats("score", val)}
+            min={1}
+            max={15}
+          />
+
+          {/* FIR & GIR Row */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                FIR
+              </label>
+              <div className="flex gap-2">
+                <ToggleButton
+                  selected={currentStats?.fir === true}
+                  onClick={() => updateHoleStats("fir", true)}
+                >
+                  Yes
+                </ToggleButton>
+                <ToggleButton
+                  selected={currentStats?.fir === false}
+                  onClick={() => updateHoleStats("fir", false)}
+                >
+                  No
+                </ToggleButton>
+              </div>
             </div>
 
-            {/* FIR - Fairway in Regulation */}
-            <div className="space-y-2">
-              <Label className="text-foreground">Fairway in Regulation (FIR)</Label>
-              <RadioGroup
-                value={currentStats?.fir === null ? "" : currentStats?.fir ? "yes" : "no"}
-                onValueChange={(value) => updateHoleStats("fir", value === "yes")}
-              >
-                <div className="flex gap-4">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="yes" id="fir-yes" />
-                    <Label htmlFor="fir-yes" className="font-normal">Yes</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="no" id="fir-no" />
-                    <Label htmlFor="fir-no" className="font-normal">No</Label>
-                  </div>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* GIR - Green in Regulation */}
-            <div className="space-y-2">
-              <Label className="text-foreground">Green in Regulation (GIR)</Label>
-              <RadioGroup
-                value={currentStats?.gir === null ? "" : currentStats?.gir ? "yes" : "no"}
-                onValueChange={(value) => updateHoleStats("gir", value === "yes")}
-              >
-                <div className="flex gap-4">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="yes" id="gir-yes" />
-                    <Label htmlFor="gir-yes" className="font-normal">Yes</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="no" id="gir-no" />
-                    <Label htmlFor="gir-no" className="font-normal">No</Label>
-                  </div>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Scramble */}
-            <div className="space-y-2">
-              <Label className="text-foreground">Scramble</Label>
-              <RadioGroup
-                value={currentStats?.scramble || ""}
-                onValueChange={(value) => updateHoleStats("scramble", value as 'yes' | 'no' | 'n/a')}
-              >
-                <div className="flex gap-4">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="yes" id="scramble-yes" />
-                    <Label htmlFor="scramble-yes" className="font-normal">Yes</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="no" id="scramble-no" />
-                    <Label htmlFor="scramble-no" className="font-normal">No</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="n/a" id="scramble-na" />
-                    <Label htmlFor="scramble-na" className="font-normal">N/A</Label>
-                  </div>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Putts */}
-            <div className="space-y-2">
-              <Label htmlFor="putts" className="text-foreground">Putts</Label>
-              <Input
-                id="putts"
-                type="number"
-                min="0"
-                max="10"
-                value={currentStats?.putts || ""}
-                onChange={(e) => updateHoleStats("putts", e.target.value ? parseInt(e.target.value) : null)}
-                placeholder="Number of putts"
-              />
-            </div>
-
-            {/* Tee Club */}
-            <div className="space-y-2">
-              <Label htmlFor="tee-club" className="text-foreground">Tee Club</Label>
-              <Select
-                value={currentStats?.teeClub || ""}
-                onValueChange={(value) => updateHoleStats("teeClub", value)}
-              >
-                <SelectTrigger id="tee-club">
-                  <SelectValue placeholder="Select club" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CLUBS.map((club) => (
-                    <SelectItem key={club} value={club}>
-                      {club}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Approach Club */}
-            <div className="space-y-2">
-              <Label htmlFor="approach-club" className="text-foreground">Approach Club</Label>
-              <Select
-                value={currentStats?.approachClub || ""}
-                onValueChange={(value) => updateHoleStats("approachClub", value)}
-              >
-                <SelectTrigger id="approach-club">
-                  <SelectValue placeholder="Select club" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CLUBS.map((club) => (
-                    <SelectItem key={club} value={club}>
-                      {club}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                GIR
+              </label>
+              <div className="flex gap-2">
+                <ToggleButton
+                  selected={currentStats?.gir === true}
+                  onClick={() => updateHoleStats("gir", true)}
+                >
+                  Yes
+                </ToggleButton>
+                <ToggleButton
+                  selected={currentStats?.gir === false}
+                  onClick={() => updateHoleStats("gir", false)}
+                >
+                  No
+                </ToggleButton>
+              </div>
             </div>
           </div>
-        </Card>
+
+          {/* Scramble */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Scramble %
+            </label>
+            <div className="flex gap-2">
+              <ToggleButton
+                selected={currentStats?.scramble === 'yes'}
+                onClick={() => updateHoleStats("scramble", 'yes')}
+              >
+                Yes
+              </ToggleButton>
+              <ToggleButton
+                selected={currentStats?.scramble === 'no'}
+                onClick={() => updateHoleStats("scramble", 'no')}
+              >
+                No
+              </ToggleButton>
+              <ToggleButton
+                selected={currentStats?.scramble === 'n/a'}
+                onClick={() => updateHoleStats("scramble", 'n/a')}
+              >
+                N/A
+              </ToggleButton>
+            </div>
+          </div>
+
+          {/* Putts */}
+          <NumberStepper
+            label="Putts"
+            value={currentStats?.putts}
+            onChange={(val) => updateHoleStats("putts", val)}
+            min={0}
+            max={10}
+          />
+
+          {/* Tee Club */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Tee Club
+            </label>
+            <Select
+              value={currentStats?.teeClub || ""}
+              onValueChange={(value) => updateHoleStats("teeClub", value)}
+            >
+              <SelectTrigger className="h-14 bg-[hsl(var(--round-input))] border-[hsl(var(--round-border))] rounded-xl text-white">
+                <SelectValue placeholder="Select Club" />
+              </SelectTrigger>
+              <SelectContent className="bg-[hsl(var(--round-card))] border-[hsl(var(--round-border))]">
+                {CLUBS.map((club) => (
+                  <SelectItem 
+                    key={club} 
+                    value={club}
+                    className="text-white focus:bg-[hsl(var(--round-input))] focus:text-white"
+                  >
+                    {club}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Approach Club */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Approach Club
+            </label>
+            <Select
+              value={currentStats?.approachClub || ""}
+              onValueChange={(value) => updateHoleStats("approachClub", value)}
+            >
+              <SelectTrigger className="h-14 bg-[hsl(var(--round-input))] border-[hsl(var(--round-border))] rounded-xl text-white">
+                <SelectValue placeholder="Select Club" />
+              </SelectTrigger>
+              <SelectContent className="bg-[hsl(var(--round-card))] border-[hsl(var(--round-border))]">
+                {CLUBS.map((club) => (
+                  <SelectItem 
+                    key={club} 
+                    value={club}
+                    className="text-white focus:bg-[hsl(var(--round-input))] focus:text-white"
+                  >
+                    {club}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         {/* Navigation */}
-        <div className="flex gap-3 mb-6">
-          <Button
-            variant="outline"
-            className="flex-1"
+        <div className="px-4 mt-8 mb-6 flex gap-3">
+          <button
             onClick={() => setCurrentHoleIndex(Math.max(0, currentHoleIndex - 1))}
             disabled={currentHoleIndex === 0}
+            className="flex-1 h-14 rounded-xl bg-[hsl(var(--round-card))] border border-[hsl(var(--round-border))] text-white font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:bg-[hsl(var(--round-input))] flex items-center justify-center gap-2"
           >
-            <ChevronLeft className="w-4 h-4 mr-2" />
+            <ChevronLeft className="w-5 h-5" />
             Previous
-          </Button>
-          <Button
-            className="flex-1"
+          </button>
+          <button
             onClick={() => {
               if (currentHoleIndex === totalHoles - 1) {
-                // Finish round logic here
                 navigate('/');
               } else {
                 setCurrentHoleIndex(Math.min(totalHoles - 1, currentHoleIndex + 1));
               }
             }}
+            className="flex-1 h-14 rounded-xl bg-[hsl(var(--round-accent))] hover:bg-[hsl(var(--round-accent-hover))] text-white font-medium transition-all flex items-center justify-center gap-2"
           >
             {currentHoleIndex === totalHoles - 1 ? "Finish Round" : "Next"}
-            {currentHoleIndex !== totalHoles - 1 && <ChevronRight className="w-4 h-4 ml-2" />}
-          </Button>
+            {currentHoleIndex !== totalHoles - 1 && <ChevronRight className="w-5 h-5" />}
+          </button>
         </div>
       </div>
     </div>
