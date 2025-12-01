@@ -2,8 +2,11 @@ import { Play, Trophy, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
       <div className="max-w-md mx-auto px-4 pt-8">
@@ -25,6 +28,7 @@ const Home = () => {
           <Button 
             size="lg" 
             className="w-full bg-card text-card-foreground hover:bg-card/90 shadow-md"
+            onClick={() => navigate('/course-search')}
           >
             <Play className="w-5 h-5 mr-2" />
             Start New Round
