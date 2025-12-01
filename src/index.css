@@ -100,6 +100,14 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Round stats tracking colors */
+    --round-bg: 222 47% 11%;
+    --round-card: 217 33% 17%;
+    --round-input: 215 28% 17%;
+    --round-border: 217 19% 27%;
+    --round-accent: 142 76% 36%;
+    --round-accent-hover: 142 71% 45%;
   }
 }
 
