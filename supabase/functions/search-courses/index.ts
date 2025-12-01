@@ -19,8 +19,14 @@ serve(async (req) => {
     }
 
     console.log('Searching courses with query:', query);
+    console.log('API key present:', apiKey ? 'Yes' : 'No');
+    console.log('API key length:', apiKey?.length);
 
-    const response = await fetch(`https://api.golfcourseapi.com/v1/search?search_query=${encodeURIComponent(query)}&api_key=${apiKey}`);
+    const response = await fetch(`https://api.golfcourseapi.com/v1/search?search_query=${encodeURIComponent(query)}`, {
+      headers: {
+        'Authorization': `Key ${apiKey}`,
+      },
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
