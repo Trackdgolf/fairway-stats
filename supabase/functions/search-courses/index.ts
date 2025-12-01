@@ -20,9 +20,9 @@ serve(async (req) => {
 
     console.log('Searching courses with query:', query);
 
-    const response = await fetch(`https://api.golfcourseapi.com/courses?name=${encodeURIComponent(query)}`, {
+    const response = await fetch(`https://api.golfcourseapi.com/v1/search?search_query=${encodeURIComponent(query)}`, {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'X-API-Key': apiKey,
       },
     });
 
