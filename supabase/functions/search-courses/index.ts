@@ -20,11 +20,7 @@ serve(async (req) => {
 
     console.log('Searching courses with query:', query);
 
-    const response = await fetch(`https://api.golfcourseapi.com/v1/search?search_query=${encodeURIComponent(query)}`, {
-      headers: {
-        'X-API-Key': apiKey,
-      },
-    });
+    const response = await fetch(`https://api.golfcourseapi.com/v1/search?search_query=${encodeURIComponent(query)}&api_key=${apiKey}`);
 
     if (!response.ok) {
       const errorText = await response.text();

@@ -20,11 +20,7 @@ serve(async (req) => {
 
     console.log('Fetching course details for ID:', courseId);
 
-    const response = await fetch(`https://api.golfcourseapi.com/v1/courses/${courseId}`, {
-      headers: {
-        'X-API-Key': apiKey,
-      },
-    });
+    const response = await fetch(`https://api.golfcourseapi.com/v1/courses/${courseId}?api_key=${apiKey}`);
 
     if (!response.ok) {
       const errorText = await response.text();
