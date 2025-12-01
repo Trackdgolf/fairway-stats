@@ -20,9 +20,9 @@ serve(async (req) => {
 
     console.log('Fetching course details for ID:', courseId);
 
-    const response = await fetch(`https://api.golfcourseapi.com/courses/${courseId}`, {
+    const response = await fetch(`https://api.golfcourseapi.com/v1/courses/${courseId}`, {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'X-API-Key': apiKey,
       },
     });
 
