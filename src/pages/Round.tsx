@@ -324,11 +324,6 @@ const Round = () => {
                   No
                 </ToggleButton>
               </div>
-              <ShotDirectionSelector
-                options={FIR_DIRECTIONS}
-                selectedValue={currentStats?.firDirection}
-                onSelect={(value) => updateHoleStats("firDirection", value)}
-              />
             </div>
 
             <div className="space-y-3">
@@ -349,11 +344,6 @@ const Round = () => {
                   No
                 </ToggleButton>
               </div>
-              <ShotDirectionSelector
-                options={GIR_DIRECTIONS}
-                selectedValue={currentStats?.girDirection}
-                onSelect={(value) => updateHoleStats("girDirection", value)}
-              />
             </div>
           </div>
 
@@ -417,6 +407,11 @@ const Round = () => {
                 ))}
               </SelectContent>
             </Select>
+            <ShotDirectionSelector
+              options={FIR_DIRECTIONS}
+              selectedValue={currentStats?.firDirection}
+              onSelect={(value) => updateHoleStats("firDirection", value)}
+            />
           </div>
 
           {/* Approach Club */}
@@ -443,6 +438,11 @@ const Round = () => {
                 ))}
               </SelectContent>
             </Select>
+            <ShotDirectionSelector
+              options={GIR_DIRECTIONS}
+              selectedValue={currentStats?.girDirection}
+              onSelect={(value) => updateHoleStats("girDirection", value)}
+            />
           </div>
         </div>
 
