@@ -333,7 +333,10 @@ const Round = () => {
               <div className="flex gap-2">
                 <ToggleButton
                   selected={currentStats?.gir === true}
-                  onClick={() => updateHoleStats("gir", true)}
+                  onClick={() => {
+                    updateHoleStats("gir", true);
+                    updateHoleStats("scramble", 'n/a');
+                  }}
                 >
                   Yes
                 </ToggleButton>
@@ -347,32 +350,34 @@ const Round = () => {
             </div>
           </div>
 
-          {/* Scramble */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Scramble %
-            </label>
-            <div className="flex gap-2">
-              <ToggleButton
-                selected={currentStats?.scramble === 'yes'}
-                onClick={() => updateHoleStats("scramble", 'yes')}
-              >
-                Yes
-              </ToggleButton>
-              <ToggleButton
-                selected={currentStats?.scramble === 'no'}
-                onClick={() => updateHoleStats("scramble", 'no')}
-              >
-                No
-              </ToggleButton>
-              <ToggleButton
-                selected={currentStats?.scramble === 'n/a'}
-                onClick={() => updateHoleStats("scramble", 'n/a')}
-              >
-                N/A
-              </ToggleButton>
+          {/* Scramble - only show when GIR is not Yes */}
+          {currentStats?.gir !== true && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Scramble %
+              </label>
+              <div className="flex gap-2">
+                <ToggleButton
+                  selected={currentStats?.scramble === 'yes'}
+                  onClick={() => updateHoleStats("scramble", 'yes')}
+                >
+                  Yes
+                </ToggleButton>
+                <ToggleButton
+                  selected={currentStats?.scramble === 'no'}
+                  onClick={() => updateHoleStats("scramble", 'no')}
+                >
+                  No
+                </ToggleButton>
+                <ToggleButton
+                  selected={currentStats?.scramble === 'n/a'}
+                  onClick={() => updateHoleStats("scramble", 'n/a')}
+                >
+                  N/A
+                </ToggleButton>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Putts */}
           <NumberStepper
