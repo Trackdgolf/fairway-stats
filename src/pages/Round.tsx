@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Circle, Minus, Plus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +11,15 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
+type FirDirection = 'hit' | 'left' | 'right' | 'short' | null;
+type GirDirection = 'hit' | 'left' | 'right' | 'long' | 'short' | null;
+
 interface HoleStats {
   score: number | null;
   fir: boolean | null;
+  firDirection: FirDirection;
   gir: boolean | null;
+  girDirection: GirDirection;
   scramble: 'yes' | 'no' | 'n/a' | null;
   putts: number | null;
   teeClub: string;
@@ -41,6 +46,21 @@ const CLUBS = [
   "SW",
   "LW",
   "Putter",
+];
+
+const FIR_DIRECTIONS: { icon: typeof Circle; value: FirDirection; label: string }[] = [
+  { icon: Circle, value: 'hit', label: 'Hit' },
+  { icon: ArrowDown, value: 'short', label: 'Short' },
+  { icon: ArrowLeft, value: 'left', label: 'Left' },
+  { icon: ArrowRight, value: 'right', label: 'Right' },
+];
+
+const GIR_DIRECTIONS: { icon: typeof Circle; value: GirDirection; label: string }[] = [
+  { icon: Circle, value: 'hit', label: 'Hit' },
+  { icon: ArrowDown, value: 'short', label: 'Short' },
+  { icon: ArrowUp, value: 'long', label: 'Long' },
+  { icon: ArrowLeft, value: 'left', label: 'Left' },
+  { icon: ArrowRight, value: 'right', label: 'Right' },
 ];
 
 // Number Stepper Component
@@ -124,6 +144,42 @@ const ToggleButton = ({
   );
 };
 
+// Shot Direction Selector Component
+const ShotDirectionSelector = <T extends string | null>({ 
+  options, 
+  selectedValue, 
+  onSelect 
+}: { 
+  options: { icon: typeof Circle; value: T; label: string }[];
+  selectedValue: T;
+  onSelect: (value: T) => void;
+}) => {
+  return (
+    <div className="flex justify-center gap-3 mt-3">
+      {options.map((option) => {
+        const Icon = option.icon;
+        const isSelected = selectedValue === option.value;
+        return (
+          <button
+            key={option.value as string}
+            type="button"
+            onClick={() => onSelect(option.value)}
+            className={cn(
+              "w-12 h-12 rounded-full flex items-center justify-center transition-all",
+              isSelected
+                ? "bg-primary text-primary-foreground border-2 border-primary dark:bg-[hsl(var(--round-accent))] dark:border-[hsl(var(--round-accent))]"
+                : "bg-muted text-muted-foreground border border-border dark:bg-[hsl(var(--round-input))] dark:border-[hsl(var(--round-border))] hover:bg-muted/80 dark:hover:bg-[hsl(var(--round-input))]/80"
+            )}
+            title={option.label}
+          >
+            <Icon className="w-5 h-5" />
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 const Round = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -134,7 +190,9 @@ const Round = () => {
     course?.holes?.map(() => ({
       score: null,
       fir: null,
+      firDirection: null,
       gir: null,
+      girDirection: null,
       scramble: null,
       putts: null,
       teeClub: "",
@@ -266,6 +324,11 @@ const Round = () => {
                   No
                 </ToggleButton>
               </div>
+              <ShotDirectionSelector
+                options={FIR_DIRECTIONS}
+                selectedValue={currentStats?.firDirection}
+                onSelect={(value) => updateHoleStats("firDirection", value)}
+              />
             </div>
 
             <div className="space-y-3">
@@ -286,6 +349,11 @@ const Round = () => {
                   No
                 </ToggleButton>
               </div>
+              <ShotDirectionSelector
+                options={GIR_DIRECTIONS}
+                selectedValue={currentStats?.girDirection}
+                onSelect={(value) => updateHoleStats("girDirection", value)}
+              />
             </div>
           </div>
 
