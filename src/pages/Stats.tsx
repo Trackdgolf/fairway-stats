@@ -99,56 +99,72 @@ const Stats = () => {
       icon: Trophy,
       value: "2",
       label: "Total Rounds",
-      iconColor: "bg-muted",
+      iconColor: "bg-amber-100 dark:bg-amber-900/30",
+      iconTextColor: "text-amber-500",
+      isSelectable: false,
     },
     {
       id: "bestScore" as StatType,
       icon: Award,
       value: "84",
       label: "Best Score",
-      iconColor: "bg-muted",
+      iconColor: "bg-yellow-100 dark:bg-yellow-900/30",
+      iconTextColor: "text-yellow-500",
+      isSelectable: false,
     },
     {
       id: "avgScore" as StatType,
       icon: Target,
       value: "85",
       label: "Average Score",
-      iconColor: "bg-muted",
+      iconColor: "bg-blue-100 dark:bg-blue-900/30",
+      iconTextColor: "text-blue-500",
+      isSelectable: true,
     },
     {
       id: "avgOverPar" as StatType,
       icon: TrendingUp,
       value: "+13.5",
       label: "Avg Over Par",
-      iconColor: "bg-accent/10",
+      iconColor: "bg-red-100 dark:bg-red-900/30",
+      iconTextColor: "text-red-500",
+      isSelectable: true,
     },
     {
       id: "avgPutts" as StatType,
       icon: Navigation,
       value: "1.7",
       label: "Avg Putts",
-      iconColor: "bg-muted",
+      iconColor: "bg-purple-100 dark:bg-purple-900/30",
+      iconTextColor: "text-purple-500",
+      isSelectable: true,
     },
     {
       id: "firPercent" as StatType,
       icon: MapPin,
       value: "37%",
       label: "FIR %",
-      iconColor: "bg-muted",
+      iconColor: "bg-green-100 dark:bg-green-900/30",
+      iconTextColor: "text-green-500",
+      isSelectable: true,
     },
     {
       id: "girPercent" as StatType,
       icon: Flag,
       value: "26%",
       label: "GIR %",
-      iconColor: "bg-muted",
+      iconColor: "bg-emerald-100 dark:bg-emerald-900/30",
+      iconTextColor: "text-emerald-500",
+      isSelectable: true,
     },
     {
       id: "scramblePercent" as StatType,
       icon: Circle,
       value: "41%",
       label: "Scramble %",
-      iconColor: "bg-accent/10",
+      iconColor: "bg-orange-100 dark:bg-orange-900/30",
+      iconTextColor: "text-orange-500",
+      isSelectable: true,
     },
   ];
 
@@ -210,6 +226,8 @@ const Stats = () => {
               isSelected={selectedStat === stat.id}
               onClick={() => setSelectedStat(stat.id)}
               iconColor={stat.iconColor}
+              iconTextColor={stat.iconTextColor}
+              isSelectable={stat.isSelectable}
             />
           ))}
         </div>
