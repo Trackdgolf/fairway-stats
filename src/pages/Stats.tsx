@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trophy, Award, Target, TrendingUp, Navigation, MapPin, Flag, Circle } from "lucide-react";
+import { Trophy, Award, Target, TrendingUp, Grip, MapPin, Flag, Circle } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import StatsChart from "@/components/StatsChart";
@@ -132,7 +132,7 @@ const Stats = () => {
     },
     {
       id: "avgPutts" as StatType,
-      icon: Navigation,
+      icon: Grip,
       value: "1.7",
       label: "Avg Putts",
       iconColor: "bg-purple-100 dark:bg-purple-900/30",
@@ -153,8 +153,8 @@ const Stats = () => {
       icon: Flag,
       value: "26%",
       label: "GIR %",
-      iconColor: "bg-emerald-100 dark:bg-emerald-900/30",
-      iconTextColor: "text-emerald-500",
+      iconColor: "bg-pink-100 dark:bg-pink-900/30",
+      iconTextColor: "text-pink-500",
       isSelectable: true,
     },
     {
