@@ -1,77 +1,110 @@
-import { Activity, Target, TrendingUp } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import FairwayDispersion from "@/components/FairwayDispersion";
+import GreenDispersion from "@/components/GreenDispersion";
+
+type TabType = "teeShots" | "approach";
 
 const ClubPerformance = () => {
-  const clubs = [
-    { name: "Driver", avgDistance: "--", accuracy: "--" },
-    { name: "3 Wood", avgDistance: "--", accuracy: "--" },
-    { name: "5 Iron", avgDistance: "--", accuracy: "--" },
-    { name: "7 Iron", avgDistance: "--", accuracy: "--" },
-    { name: "9 Iron", avgDistance: "--", accuracy: "--" },
-    { name: "Pitching Wedge", avgDistance: "--", accuracy: "--" },
-  ];
+  const [activeTab, setActiveTab] = useState<TabType>("teeShots");
+  const [selectedClub, setSelectedClub] = useState<string>("all");
+
+  // Mock clubs used - would come from actual round data
+  const teeClubs = ["All Clubs", "Driver", "3 Wood", "5 Iron"];
+  const approachClubs = ["All Clubs", "5 Iron", "6 Iron", "7 Iron", "8 Iron", "9 Iron", "PW", "SW"];
+
+  const clubs = activeTab === "teeShots" ? teeClubs : approachClubs;
+
+  // Mock dispersion data - would be calculated from actual round data
+  const teeDispersion = {
+    total: 27,
+    fwHit: 37,
+    left: 37,
+    right: 26,
+    short: 0,
+  };
+
+  const approachDispersion = {
+    total: 35,
+    onGreen: 34,
+    long: 3,
+    left: 6,
+    right: 6,
+    short: 51,
+  };
+
+  const shotCount = activeTab === "teeShots" ? teeDispersion.total : approachDispersion.total;
+  const shotType = activeTab === "teeShots" ? "tee shots" : "approach shots";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
       <div className="max-w-md mx-auto px-4 pt-8">
         {/* Header */}
-        <div className="mb-8 flex items-start justify-between">
+        <div className="mb-6 flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Club Performance</h1>
-            <p className="text-muted-foreground">Analyze your club statistics</p>
+            <p className="text-muted-foreground">Shot dispersion analysis</p>
           </div>
           <ThemeToggle />
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-5 h-5 text-accent" />
-              <span className="text-sm text-muted-foreground">Most Used</span>
-            </div>
-            <p className="text-lg font-bold text-foreground">--</p>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Target className="w-5 h-5 text-accent" />
-              <span className="text-sm text-muted-foreground">Best Club</span>
-            </div>
-            <p className="text-lg font-bold text-foreground">--</p>
-          </Card>
-        </div>
+        {/* Tab Navigation */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="mb-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="teeShots">Tee Shots</TabsTrigger>
+            <TabsTrigger value="approach">Approach</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-        {/* Club List */}
-        <div>
-          <h3 className="text-lg font-semibold text-foreground mb-3">Your Clubs</h3>
-          <div className="space-y-3">
-            {clubs.map((club, index) => (
-              <Card key={index} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-foreground mb-2">{club.name}</h4>
-                    <div className="flex gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Avg: {club.avgDistance}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Target className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Accuracy: {club.accuracy}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
+        {/* Shot Count */}
+        <p className="text-sm text-muted-foreground text-center mb-4">
+          Based on {shotCount} {shotType}
+        </p>
+
+        {/* Club Filter */}
+        <ScrollArea className="w-full whitespace-nowrap mb-6">
+          <div className="flex gap-2 pb-2">
+            {clubs.map((club) => {
+              const clubKey = club === "All Clubs" ? "all" : club;
+              return (
+                <Button
+                  key={club}
+                  variant={selectedClub === clubKey ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedClub(clubKey)}
+                  className="flex-shrink-0"
+                >
+                  {club}
+                </Button>
+              );
+            })}
           </div>
-        </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
 
-        <Card className="p-6 text-center mt-6">
-          <p className="text-muted-foreground">Track shots to see performance data</p>
-        </Card>
+        {/* Dispersion Graphic */}
+        <div className="bg-card rounded-xl p-4 shadow-sm">
+          {activeTab === "teeShots" ? (
+            <FairwayDispersion
+              fwHit={teeDispersion.fwHit}
+              left={teeDispersion.left}
+              right={teeDispersion.right}
+              short={teeDispersion.short}
+            />
+          ) : (
+            <GreenDispersion
+              onGreen={approachDispersion.onGreen}
+              long={approachDispersion.long}
+              left={approachDispersion.left}
+              right={approachDispersion.right}
+              short={approachDispersion.short}
+            />
+          )}
+        </div>
       </div>
 
       <BottomNav />
