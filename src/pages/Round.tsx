@@ -303,7 +303,7 @@ const Round = () => {
                   <div className="flex gap-2">
                     <ToggleButton
                       selected={currentStats?.fir === true}
-                      onClick={() => updateHoleStats({ fir: true })}
+                      onClick={() => updateHoleStats({ fir: true, firDirection: 'hit' })}
                     >
                       Yes
                     </ToggleButton>
@@ -325,7 +325,7 @@ const Round = () => {
                   <div className="flex gap-2">
                     <ToggleButton
                       selected={currentStats?.gir === true}
-                      onClick={() => updateHoleStats({ gir: true, scramble: 'n/a' })}
+                      onClick={() => updateHoleStats({ gir: true, scramble: 'n/a', girDirection: 'hit' })}
                     >
                       Yes
                     </ToggleButton>
