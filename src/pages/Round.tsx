@@ -1,6 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Circle, Minus, Plus } from "lucide-react";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -183,9 +185,11 @@ const ShotDirectionSelector = <T extends string | null>({
 const Round = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const course = location.state?.course;
   
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
   const [holeStats, setHoleStats] = useState<HoleStats[]>(
     course?.holes?.map(() => ({
       score: null,
@@ -462,17 +466,73 @@ const Round = () => {
             Previous
           </button>
           <button
-            onClick={() => {
+            onClick={async () => {
               if (currentHoleIndex === totalHoles - 1) {
-                navigate('/');
+                // Finish round - save to database
+                setIsSaving(true);
+                try {
+                  // Calculate total score
+                  const totalScore = holeStats.reduce((sum, stat) => sum + (stat.score || 0), 0);
+                  
+                  // Insert round
+                  const { data: roundData, error: roundError } = await supabase
+                    .from('rounds')
+                    .insert({
+                      course_name: course.course_name || course.club_name,
+                      course_id: course.id?.toString(),
+                      total_score: totalScore,
+                    })
+                    .select()
+                    .single();
+
+                  if (roundError) throw roundError;
+
+                  // Insert hole stats
+                  const holeStatsToInsert = holeStats.map((stat, idx) => ({
+                    round_id: roundData.id,
+                    hole_number: idx + 1,
+                    par: course.holes?.[idx]?.par,
+                    score: stat.score,
+                    fir: stat.fir,
+                    fir_direction: stat.firDirection,
+                    gir: stat.gir,
+                    gir_direction: stat.girDirection,
+                    scramble: stat.scramble,
+                    putts: stat.putts,
+                    tee_club: stat.teeClub || null,
+                    approach_club: stat.approachClub || null,
+                  }));
+
+                  const { error: statsError } = await supabase
+                    .from('hole_stats')
+                    .insert(holeStatsToInsert);
+
+                  if (statsError) throw statsError;
+
+                  toast({
+                    title: "Round saved!",
+                    description: `Your round at ${course.course_name || course.club_name} has been recorded.`,
+                  });
+                  navigate('/');
+                } catch (error) {
+                  console.error('Error saving round:', error);
+                  toast({
+                    title: "Error saving round",
+                    description: "Please try again.",
+                    variant: "destructive",
+                  });
+                } finally {
+                  setIsSaving(false);
+                }
               } else {
                 setCurrentHoleIndex(Math.min(totalHoles - 1, currentHoleIndex + 1));
               }
             }}
-            className="flex-1 h-14 rounded-xl bg-primary hover:bg-primary/90 dark:bg-[hsl(var(--round-accent))] dark:hover:bg-[hsl(var(--round-accent-hover))] text-white font-medium transition-all flex items-center justify-center gap-2"
+            disabled={isSaving}
+            className="flex-1 h-14 rounded-xl bg-primary hover:bg-primary/90 dark:bg-[hsl(var(--round-accent))] dark:hover:bg-[hsl(var(--round-accent-hover))] text-white font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {currentHoleIndex === totalHoles - 1 ? "Finish Round" : "Next"}
-            {currentHoleIndex !== totalHoles - 1 && <ChevronRight className="w-5 h-5" />}
+            {isSaving ? "Saving..." : currentHoleIndex === totalHoles - 1 ? "Finish Round" : "Next"}
+            {currentHoleIndex !== totalHoles - 1 && !isSaving && <ChevronRight className="w-5 h-5" />}
           </button>
         </div>
       </div>

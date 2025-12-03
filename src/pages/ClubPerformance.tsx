@@ -6,36 +6,26 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
+import { useDispersionStats } from "@/hooks/useDispersionStats";
 
 type TabType = "teeShots" | "approach";
 
 const ClubPerformance = () => {
   const [activeTab, setActiveTab] = useState<TabType>("teeShots");
-  const [selectedClub, setSelectedClub] = useState<string>("all");
+  const [selectedTeeClub, setSelectedTeeClub] = useState<string>("all");
+  const [selectedApproachClub, setSelectedApproachClub] = useState<string>("all");
 
-  // Mock clubs used - would come from actual round data
-  const teeClubs = ["All Clubs", "Driver", "3 Wood", "5 Iron"];
-  const approachClubs = ["All Clubs", "5 Iron", "6 Iron", "7 Iron", "8 Iron", "9 Iron", "PW", "SW"];
+  const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub);
+
+  const teeClubs = ["All Clubs", ...(stats?.teeClubs || [])];
+  const approachClubs = ["All Clubs", ...(stats?.approachClubs || [])];
 
   const clubs = activeTab === "teeShots" ? teeClubs : approachClubs;
+  const selectedClub = activeTab === "teeShots" ? selectedTeeClub : selectedApproachClub;
+  const setSelectedClub = activeTab === "teeShots" ? setSelectedTeeClub : setSelectedApproachClub;
 
-  // Mock dispersion data - would be calculated from actual round data
-  const teeDispersion = {
-    total: 27,
-    fwHit: 37,
-    left: 37,
-    right: 26,
-    short: 0,
-  };
-
-  const approachDispersion = {
-    total: 35,
-    onGreen: 34,
-    long: 3,
-    left: 6,
-    right: 6,
-    short: 51,
-  };
+  const teeDispersion = stats?.teeShots || { total: 0, fwHit: 0, left: 0, right: 0, short: 0 };
+  const approachDispersion = stats?.approach || { total: 0, onGreen: 0, long: 0, left: 0, right: 0, short: 0 };
 
   const shotCount = activeTab === "teeShots" ? teeDispersion.total : approachDispersion.total;
   const shotType = activeTab === "teeShots" ? "tee shots" : "approach shots";
@@ -62,7 +52,7 @@ const ClubPerformance = () => {
 
         {/* Shot Count */}
         <p className="text-sm text-muted-foreground text-center mb-4">
-          Based on {shotCount} {shotType}
+          {isLoading ? "Loading..." : shotCount > 0 ? `Based on ${shotCount} ${shotType}` : `No ${shotType} recorded yet`}
         </p>
 
         {/* Club Filter */}
