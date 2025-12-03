@@ -7,13 +7,22 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useStatPreferences, StatPreferences } from "@/hooks/useStatPreferences";
-import { useMyBag } from "@/hooks/useMyBag";
+import { useMyBag, Club } from "@/hooks/useMyBag";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { preferences, updatePreference } = useStatPreferences();
   const { clubs, renameClub, addClub, removeClub, resetToDefault } = useMyBag();
   const [newClubName, setNewClubName] = useState("");
+  const [editingClub, setEditingClub] = useState<Club | null>(null);
+  const [editName, setEditName] = useState("");
 
   const statOptions: { key: keyof StatPreferences; label: string; description: string }[] = [
     { key: "fir", label: "FIR (Fairway in Regulation)", description: "Track fairway accuracy on tee shots" },
@@ -28,6 +37,25 @@ const Settings = () => {
     if (newClubName.trim()) {
       addClub(newClubName.trim());
       setNewClubName("");
+    }
+  };
+
+  const openEditDialog = (club: Club) => {
+    setEditingClub(club);
+    setEditName(club.name);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingClub && editName.trim()) {
+      renameClub(editingClub.id, editName.trim());
+      setEditingClub(null);
+    }
+  };
+
+  const handleDeleteClub = () => {
+    if (editingClub) {
+      removeClub(editingClub.id);
+      setEditingClub(null);
     }
   };
 
@@ -74,22 +102,15 @@ const Settings = () => {
           <p className="text-sm text-muted-foreground mb-4">
             Customize the clubs in your bag
           </p>
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             {clubs.map((club) => (
-              <div key={club.id} className="flex items-center gap-2">
-                <Input
-                  value={club.name}
-                  onChange={(e) => renameClub(club.id, e.target.value)}
-                  className="flex-1"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeClub(club.id)}
-                  className="text-muted-foreground hover:text-destructive shrink-0"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+              <div
+                key={club.id}
+                onClick={() => openEditDialog(club)}
+                className="p-3 rounded-lg border bg-background hover:bg-accent cursor-pointer transition-colors"
+              >
+                <p className="font-semibold text-foreground truncate">{club.name}</p>
+                <p className="text-xs text-muted-foreground">Tap to edit</p>
               </div>
             ))}
           </div>
@@ -112,6 +133,34 @@ const Settings = () => {
             </Button>
           </div>
         </Card>
+
+        {/* Edit Club Dialog */}
+        <Dialog open={editingClub !== null} onOpenChange={() => setEditingClub(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Club</DialogTitle>
+            </DialogHeader>
+            <Input
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="Club name"
+              onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
+            />
+            <DialogFooter className="flex gap-2 sm:gap-0">
+              <Button
+                variant="destructive"
+                onClick={handleDeleteClub}
+                className="flex-1 sm:flex-none"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Delete
+              </Button>
+              <Button onClick={handleSaveEdit} className="flex-1 sm:flex-none">
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Stat Tracking Section */}
         <Card className="p-4">
