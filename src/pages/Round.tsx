@@ -513,21 +513,28 @@ const Round = () => {
                   if (roundError) throw roundError;
 
                   // Insert hole stats
-                  const holeStatsToInsert = holeStats.map((stat, idx) => ({
-                    round_id: roundData.id,
-                    hole_number: idx + 1,
-                    par: course.holes?.[idx]?.par,
-                    score: stat.score,
-                    fir: stat.fir,
-                    fir_direction: stat.firDirection,
-                    gir: stat.gir,
-                    gir_direction: stat.girDirection,
-                    scramble: stat.scramble,
-                    putts: stat.putts,
-                    tee_club: stat.teeClub || null,
-                    approach_club: stat.approachClub || null,
-                    scramble_club: stat.scrambleClub || null,
-                  }));
+                  const holeStatsToInsert = holeStats.map((stat, idx) => {
+                    const holePar = course.holes?.[idx]?.par;
+                    const isPar3 = holePar === 3;
+                    
+                    return {
+                      round_id: roundData.id,
+                      hole_number: idx + 1,
+                      par: holePar,
+                      score: stat.score,
+                      // No FIR on Par 3s - the tee shot is the approach
+                      fir: isPar3 ? null : stat.fir,
+                      fir_direction: isPar3 ? null : stat.firDirection,
+                      gir: stat.gir,
+                      gir_direction: stat.girDirection,
+                      scramble: stat.scramble,
+                      putts: stat.putts,
+                      // On Par 3s, tee club IS the approach club
+                      tee_club: isPar3 ? null : (stat.teeClub || null),
+                      approach_club: isPar3 ? (stat.teeClub || null) : (stat.approachClub || null),
+                      scramble_club: stat.scrambleClub || null,
+                    };
+                  });
 
                   const { error: statsError } = await supabase
                     .from('hole_stats')
