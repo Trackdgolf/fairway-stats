@@ -65,7 +65,7 @@ const Stats = () => {
     {
       id: "totalRounds" as StatType,
       icon: Trophy,
-      value: data?.stats.totalRounds?.toString() || "0",
+      value: data?.stats?.totalRounds?.toString() || "0",
       label: "Total Rounds",
       iconColor: "bg-amber-100 dark:bg-amber-900/30",
       iconTextColor: "text-amber-500",
@@ -75,7 +75,7 @@ const Stats = () => {
     {
       id: "bestScore" as StatType,
       icon: Award,
-      value: formatStatValue(data?.stats.bestScore ?? null),
+      value: formatStatValue(data?.stats?.bestScore ?? null),
       label: "Best Score",
       iconColor: "bg-yellow-100 dark:bg-yellow-900/30",
       iconTextColor: "text-yellow-500",
@@ -85,7 +85,7 @@ const Stats = () => {
     {
       id: "avgScore" as StatType,
       icon: Target,
-      value: formatStatValue(data?.stats.avgScore ?? null),
+      value: formatStatValue(data?.stats?.avgScore ?? null),
       label: "Average Score",
       iconColor: "bg-blue-100 dark:bg-blue-900/30",
       iconTextColor: "text-blue-500",
@@ -95,7 +95,7 @@ const Stats = () => {
     {
       id: "avgOverPar" as StatType,
       icon: TrendingUp,
-      value: data?.stats.avgOverPar !== null ? `+${data.stats.avgOverPar}` : "-",
+      value: data?.stats?.avgOverPar != null ? `+${data.stats.avgOverPar}` : "-",
       label: "Avg Over Par",
       iconColor: "bg-red-100 dark:bg-red-900/30",
       iconTextColor: "text-red-500",
@@ -105,7 +105,7 @@ const Stats = () => {
     {
       id: "avgPutts" as StatType,
       icon: Grip,
-      value: formatStatValue(data?.stats.avgPutts ?? null),
+      value: formatStatValue(data?.stats?.avgPutts ?? null),
       label: "Avg Putts",
       iconColor: "bg-purple-100 dark:bg-purple-900/30",
       iconTextColor: "text-purple-500",
@@ -115,7 +115,7 @@ const Stats = () => {
     {
       id: "firPercent" as StatType,
       icon: MapPin,
-      value: formatStatValue(data?.stats.firPercent ?? null, "%"),
+      value: formatStatValue(data?.stats?.firPercent ?? null, "%"),
       label: "FIR %",
       iconColor: "bg-green-100 dark:bg-green-900/30",
       iconTextColor: "text-green-500",
@@ -125,7 +125,7 @@ const Stats = () => {
     {
       id: "girPercent" as StatType,
       icon: Flag,
-      value: formatStatValue(data?.stats.girPercent ?? null, "%"),
+      value: formatStatValue(data?.stats?.girPercent ?? null, "%"),
       label: "GIR %",
       iconColor: "bg-pink-100 dark:bg-pink-900/30",
       iconTextColor: "text-pink-500",
@@ -135,7 +135,7 @@ const Stats = () => {
     {
       id: "scramblePercent" as StatType,
       icon: Circle,
-      value: formatStatValue(data?.stats.scramblePercent ?? null, "%"),
+      value: formatStatValue(data?.stats?.scramblePercent ?? null, "%"),
       label: "Scramble %",
       iconColor: "bg-orange-100 dark:bg-orange-900/30",
       iconTextColor: "text-orange-500",
