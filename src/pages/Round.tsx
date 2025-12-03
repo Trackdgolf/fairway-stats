@@ -294,8 +294,8 @@ const Round = () => {
 
           {/* FIR & GIR Row */}
           {(preferences.fir || preferences.gir) && (
-            <div className="grid grid-cols-2 gap-6">
-              {preferences.fir && (
+            <div className={cn("grid gap-6", preferences.fir && currentHole?.par !== 3 && preferences.gir ? "grid-cols-2" : "grid-cols-1")}>
+              {preferences.fir && currentHole?.par !== 3 && (
                 <div className="space-y-3">
                   <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                     FIR
@@ -444,8 +444,8 @@ const Round = () => {
             </div>
           )}
 
-          {/* Approach Club */}
-          {preferences.approachClub && (
+          {/* Approach Club - hidden on Par 3s */}
+          {preferences.approachClub && currentHole?.par !== 3 && (
             <div className="space-y-3">
               <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Approach Club
