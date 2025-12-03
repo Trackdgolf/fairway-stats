@@ -1,4 +1,4 @@
-import { Play, Trophy, TrendingUp, Settings, Clock } from "lucide-react";
+import { Play, Trophy, TrendingUp, Settings, Clock, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
@@ -136,7 +136,7 @@ const Home = () => {
               <h2 className="text-2xl font-bold mb-1">Ready to play?</h2>
               <p className="text-primary-foreground/90 text-sm">Start tracking your round</p>
             </div>
-            <Trophy className="w-12 h-12 opacity-80" />
+            <Flag className="w-12 h-12 opacity-80" />
           </div>
           <Button 
             size="lg" 
