@@ -1,6 +1,5 @@
 import { useState } from "react";
 import BottomNav from "@/components/BottomNav";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -34,12 +33,9 @@ const ClubPerformance = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
       <div className="max-w-md mx-auto px-4 pt-8">
         {/* Header */}
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Club Performance</h1>
-            <p className="text-muted-foreground">Shot dispersion analysis</p>
-          </div>
-          <ThemeToggle />
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Club Performance</h1>
+          <p className="text-muted-foreground">Shot dispersion analysis</p>
         </div>
 
         {/* Tab Navigation */}
