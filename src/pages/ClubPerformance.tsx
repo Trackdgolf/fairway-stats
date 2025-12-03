@@ -1,5 +1,6 @@
 import { useState } from "react";
 import BottomNav from "@/components/BottomNav";
+import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -45,12 +46,13 @@ const ClubPerformance = () => {
   const { count: shotCount, type: shotType } = getShotInfo();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
-      <div className="max-w-md mx-auto px-4 pt-8">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20 relative">
+      <PageHeader />
+      <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Club Performance</h1>
-          <p className="text-muted-foreground">Shot dispersion analysis</p>
+          <h1 className="text-3xl font-bold text-header-foreground mb-2">Club Performance</h1>
+          <p className="text-header-foreground/80">Shot dispersion analysis</p>
         </div>
 
         {/* Tab Navigation */}

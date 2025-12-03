@@ -1,6 +1,7 @@
 import { ArrowLeft, Plus, Trash2, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import PageHeader from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -66,17 +67,18 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
-      <div className="max-w-md mx-auto px-4 pt-8">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20 relative">
+      <PageHeader />
+      <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
         {/* Header */}
         <div className="mb-8 flex items-center gap-4">
           <button
             onClick={() => navigate("/")}
-            className="p-2 -ml-2 text-foreground hover:text-muted-foreground transition-colors"
+            className="p-2 -ml-2 text-header-foreground hover:text-header-foreground/70 transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+          <h1 className="text-2xl font-bold text-header-foreground">Settings</h1>
         </div>
 
         {/* Appearance Section */}
