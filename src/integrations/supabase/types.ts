@@ -14,7 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      hole_stats: {
+        Row: {
+          approach_club: string | null
+          created_at: string | null
+          fir: boolean | null
+          fir_direction: string | null
+          gir: boolean | null
+          gir_direction: string | null
+          hole_number: number
+          id: string
+          par: number | null
+          putts: number | null
+          round_id: string
+          score: number | null
+          scramble: string | null
+          tee_club: string | null
+        }
+        Insert: {
+          approach_club?: string | null
+          created_at?: string | null
+          fir?: boolean | null
+          fir_direction?: string | null
+          gir?: boolean | null
+          gir_direction?: string | null
+          hole_number: number
+          id?: string
+          par?: number | null
+          putts?: number | null
+          round_id: string
+          score?: number | null
+          scramble?: string | null
+          tee_club?: string | null
+        }
+        Update: {
+          approach_club?: string | null
+          created_at?: string | null
+          fir?: boolean | null
+          fir_direction?: string | null
+          gir?: boolean | null
+          gir_direction?: string | null
+          hole_number?: number
+          id?: string
+          par?: number | null
+          putts?: number | null
+          round_id?: string
+          score?: number | null
+          scramble?: string | null
+          tee_club?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hole_stats_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rounds: {
+        Row: {
+          course_id: string | null
+          course_name: string
+          created_at: string | null
+          id: string
+          played_at: string | null
+          total_score: number | null
+          user_id: string | null
+        }
+        Insert: {
+          course_id?: string | null
+          course_name: string
+          created_at?: string | null
+          id?: string
+          played_at?: string | null
+          total_score?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          course_id?: string | null
+          course_name?: string
+          created_at?: string | null
+          id?: string
+          played_at?: string | null
+          total_score?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
