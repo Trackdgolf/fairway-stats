@@ -9,6 +9,7 @@ import Stats from "./pages/Stats";
 import ClubPerformance from "./pages/ClubPerformance";
 import CourseSearch from "./pages/CourseSearch";
 import Round from "./pages/Round";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/clubs" element={<ClubPerformance />} />
             <Route path="/course-search" element={<CourseSearch />} />
             <Route path="/round" element={<Round />} />
+            <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

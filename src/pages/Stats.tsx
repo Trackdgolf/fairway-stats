@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Trophy, Award, Target, TrendingUp, Grip, MapPin, Flag, Circle } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import StatsChart from "@/components/StatsChart";
 import StatTile from "@/components/StatTile";
+import { useStatPreferences } from "@/hooks/useStatPreferences";
 import {
   Select,
   SelectContent,
@@ -20,6 +21,7 @@ const Stats = () => {
   const [selectedStat, setSelectedStat] = useState<StatType>("avgOverPar");
   const [timeRange, setTimeRange] = useState<TimeRange>("MAX");
   const [courseFilter, setCourseFilter] = useState("all");
+  const { preferences } = useStatPreferences();
 
   // Mock data for demonstration
   const generateMockData = (stat: StatType, range: TimeRange) => {
@@ -93,7 +95,7 @@ const Stats = () => {
     return titles[selectedStat];
   };
 
-  const stats = [
+  const allStats = [
     {
       id: "totalRounds" as StatType,
       icon: Trophy,
@@ -102,6 +104,7 @@ const Stats = () => {
       iconColor: "bg-amber-100 dark:bg-amber-900/30",
       iconTextColor: "text-amber-500",
       isSelectable: false,
+      alwaysShow: true,
     },
     {
       id: "bestScore" as StatType,
@@ -111,6 +114,7 @@ const Stats = () => {
       iconColor: "bg-yellow-100 dark:bg-yellow-900/30",
       iconTextColor: "text-yellow-500",
       isSelectable: false,
+      alwaysShow: true,
     },
     {
       id: "avgScore" as StatType,
@@ -120,6 +124,7 @@ const Stats = () => {
       iconColor: "bg-blue-100 dark:bg-blue-900/30",
       iconTextColor: "text-blue-500",
       isSelectable: true,
+      alwaysShow: true,
     },
     {
       id: "avgOverPar" as StatType,
@@ -129,6 +134,7 @@ const Stats = () => {
       iconColor: "bg-red-100 dark:bg-red-900/30",
       iconTextColor: "text-red-500",
       isSelectable: true,
+      alwaysShow: true,
     },
     {
       id: "avgPutts" as StatType,
@@ -138,6 +144,7 @@ const Stats = () => {
       iconColor: "bg-purple-100 dark:bg-purple-900/30",
       iconTextColor: "text-purple-500",
       isSelectable: true,
+      preferenceKey: "putts" as const,
     },
     {
       id: "firPercent" as StatType,
@@ -147,6 +154,7 @@ const Stats = () => {
       iconColor: "bg-green-100 dark:bg-green-900/30",
       iconTextColor: "text-green-500",
       isSelectable: true,
+      preferenceKey: "fir" as const,
     },
     {
       id: "girPercent" as StatType,
@@ -156,6 +164,7 @@ const Stats = () => {
       iconColor: "bg-pink-100 dark:bg-pink-900/30",
       iconTextColor: "text-pink-500",
       isSelectable: true,
+      preferenceKey: "gir" as const,
     },
     {
       id: "scramblePercent" as StatType,
@@ -165,8 +174,17 @@ const Stats = () => {
       iconColor: "bg-orange-100 dark:bg-orange-900/30",
       iconTextColor: "text-orange-500",
       isSelectable: true,
+      preferenceKey: "scramble" as const,
     },
   ];
+
+  const stats = useMemo(() => {
+    return allStats.filter(stat => {
+      if (stat.alwaysShow) return true;
+      if (stat.preferenceKey) return preferences[stat.preferenceKey];
+      return true;
+    });
+  }, [preferences]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">

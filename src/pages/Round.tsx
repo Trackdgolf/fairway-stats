@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronR
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useStatPreferences } from "@/hooks/useStatPreferences";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -187,6 +188,7 @@ const Round = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { preferences } = useStatPreferences();
   const course = location.state?.course;
   
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
@@ -311,53 +313,59 @@ const Round = () => {
           />
 
           {/* FIR & GIR Row */}
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                FIR
-              </label>
-              <div className="flex gap-2">
-                <ToggleButton
-                  selected={currentStats?.fir === true}
-                  onClick={() => updateHoleStats("fir", true)}
-                >
-                  Yes
-                </ToggleButton>
-                <ToggleButton
-                  selected={currentStats?.fir === false}
-                  onClick={() => updateHoleStats("fir", false)}
-                >
-                  No
-                </ToggleButton>
-              </div>
-            </div>
+          {(preferences.fir || preferences.gir) && (
+            <div className="grid grid-cols-2 gap-6">
+              {preferences.fir && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                    FIR
+                  </label>
+                  <div className="flex gap-2">
+                    <ToggleButton
+                      selected={currentStats?.fir === true}
+                      onClick={() => updateHoleStats("fir", true)}
+                    >
+                      Yes
+                    </ToggleButton>
+                    <ToggleButton
+                      selected={currentStats?.fir === false}
+                      onClick={() => updateHoleStats("fir", false)}
+                    >
+                      No
+                    </ToggleButton>
+                  </div>
+                </div>
+              )}
 
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                GIR
-              </label>
-              <div className="flex gap-2">
-                <ToggleButton
-                  selected={currentStats?.gir === true}
-                  onClick={() => {
-                    updateHoleStats("gir", true);
-                    updateHoleStats("scramble", 'n/a');
-                  }}
-                >
-                  Yes
-                </ToggleButton>
-                <ToggleButton
-                  selected={currentStats?.gir === false}
-                  onClick={() => updateHoleStats("gir", false)}
-                >
-                  No
-                </ToggleButton>
-              </div>
+              {preferences.gir && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                    GIR
+                  </label>
+                  <div className="flex gap-2">
+                    <ToggleButton
+                      selected={currentStats?.gir === true}
+                      onClick={() => {
+                        updateHoleStats("gir", true);
+                        updateHoleStats("scramble", 'n/a');
+                      }}
+                    >
+                      Yes
+                    </ToggleButton>
+                    <ToggleButton
+                      selected={currentStats?.gir === false}
+                      onClick={() => updateHoleStats("gir", false)}
+                    >
+                      No
+                    </ToggleButton>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
-          {/* Scramble - only show when GIR is not Yes */}
-          {currentStats?.gir !== true && (
+          {/* Scramble - only show when GIR is not Yes and scramble tracking is enabled */}
+          {preferences.scramble && currentStats?.gir !== true && (
             <div className="space-y-3">
               <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Scramble %
@@ -389,7 +397,7 @@ const Round = () => {
           )}
 
           {/* Scramble Club - only show when Scramble is Yes or No */}
-          {(currentStats?.scramble === 'yes' || currentStats?.scramble === 'no') && (
+          {preferences.scramble && (currentStats?.scramble === 'yes' || currentStats?.scramble === 'no') && (
             <div className="space-y-3">
               <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Scramble Club
@@ -417,75 +425,85 @@ const Round = () => {
           )}
 
           {/* Putts */}
-          <NumberStepper
-            label="Putts"
-            value={currentStats?.putts}
-            onChange={(val) => updateHoleStats("putts", val)}
-            min={0}
-            max={10}
-          />
+          {preferences.putts && (
+            <NumberStepper
+              label="Putts"
+              value={currentStats?.putts}
+              onChange={(val) => updateHoleStats("putts", val)}
+              min={0}
+              max={10}
+            />
+          )}
 
           {/* Tee Club */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Tee Club
-            </label>
-            <Select
-              value={currentStats?.teeClub || ""}
-              onValueChange={(value) => updateHoleStats("teeClub", value)}
-            >
-              <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
-                <SelectValue placeholder="Select Club" />
-              </SelectTrigger>
-              <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
-                {CLUBS.map((club) => (
-                  <SelectItem 
-                    key={club} 
-                    value={club}
-                    className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
-                  >
-                    {club}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <ShotDirectionSelector
-              options={FIR_DIRECTIONS}
-              selectedValue={currentStats?.firDirection}
-              onSelect={(value) => updateHoleStats("firDirection", value)}
-            />
-          </div>
+          {preferences.teeClub && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Tee Club
+              </label>
+              <Select
+                value={currentStats?.teeClub || ""}
+                onValueChange={(value) => updateHoleStats("teeClub", value)}
+              >
+                <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
+                  <SelectValue placeholder="Select Club" />
+                </SelectTrigger>
+                <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
+                  {CLUBS.map((club) => (
+                    <SelectItem 
+                      key={club} 
+                      value={club}
+                      className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
+                    >
+                      {club}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {preferences.fir && (
+                <ShotDirectionSelector
+                  options={FIR_DIRECTIONS}
+                  selectedValue={currentStats?.firDirection}
+                  onSelect={(value) => updateHoleStats("firDirection", value)}
+                />
+              )}
+            </div>
+          )}
 
           {/* Approach Club */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Approach Club
-            </label>
-            <Select
-              value={currentStats?.approachClub || ""}
-              onValueChange={(value) => updateHoleStats("approachClub", value)}
-            >
-              <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
-                <SelectValue placeholder="Select Club" />
-              </SelectTrigger>
-              <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
-                {CLUBS.map((club) => (
-                  <SelectItem 
-                    key={club} 
-                    value={club}
-                    className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
-                  >
-                    {club}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <ShotDirectionSelector
-              options={GIR_DIRECTIONS}
-              selectedValue={currentStats?.girDirection}
-              onSelect={(value) => updateHoleStats("girDirection", value)}
-            />
-          </div>
+          {preferences.approachClub && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Approach Club
+              </label>
+              <Select
+                value={currentStats?.approachClub || ""}
+                onValueChange={(value) => updateHoleStats("approachClub", value)}
+              >
+                <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
+                  <SelectValue placeholder="Select Club" />
+                </SelectTrigger>
+                <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
+                  {CLUBS.map((club) => (
+                    <SelectItem 
+                      key={club} 
+                      value={club}
+                      className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
+                    >
+                      {club}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {preferences.gir && (
+                <ShotDirectionSelector
+                  options={GIR_DIRECTIONS}
+                  selectedValue={currentStats?.girDirection}
+                  onSelect={(value) => updateHoleStats("girDirection", value)}
+                />
+              )}
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
