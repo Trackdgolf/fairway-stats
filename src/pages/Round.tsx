@@ -350,7 +350,7 @@ const Round = () => {
               <div className="flex gap-2">
                 <ToggleButton
                   selected={currentStats?.scramble === 'yes'}
-                  onClick={() => updateHoleStats({ scramble: 'yes' })}
+                  onClick={() => updateHoleStats({ scramble: 'yes', putts: 1 })}
                 >
                   Yes
                 </ToggleButton>
