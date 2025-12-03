@@ -15,6 +15,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -85,54 +91,64 @@ const Settings = () => {
           </div>
         </Card>
 
-        {/* My Bag Section */}
-        <Card className="p-4 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">My Bag</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={resetToDefault}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <RotateCcw className="w-4 h-4 mr-1" />
-              Reset
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground mb-4">
-            Customize the clubs in your bag
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            {clubs.map((club) => (
-              <div
-                key={club.id}
-                onClick={() => openEditDialog(club)}
-                className="p-3 rounded-lg border bg-background hover:bg-accent cursor-pointer transition-colors"
-              >
-                <p className="font-semibold text-foreground truncate">{club.name}</p>
-                <p className="text-xs text-muted-foreground">Tap to edit</p>
+        {/* My Bag Section - Collapsible */}
+        <Accordion type="single" collapsible className="mb-6">
+          <AccordionItem value="my-bag" className="border rounded-lg bg-card px-4">
+            <AccordionTrigger className="hover:no-underline py-4">
+              <div className="text-left">
+                <h2 className="text-lg font-semibold text-foreground">My Bag</h2>
+                <p className="text-sm text-muted-foreground font-normal">
+                  Customize the clubs in your bag
+                </p>
               </div>
-            ))}
-          </div>
-          <div className="flex items-center gap-2 mt-4">
-            <Input
-              value={newClubName}
-              onChange={(e) => setNewClubName(e.target.value)}
-              placeholder="New club name"
-              className="flex-1"
-              onKeyDown={(e) => e.key === "Enter" && handleAddClub()}
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleAddClub}
-              disabled={!newClubName.trim()}
-              className="shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-        </Card>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="pb-4">
+                <div className="flex justify-end mb-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetToDefault}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-1" />
+                    Reset
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {clubs.map((club) => (
+                    <div
+                      key={club.id}
+                      onClick={() => openEditDialog(club)}
+                      className="p-3 rounded-lg border bg-background hover:bg-accent cursor-pointer transition-colors"
+                    >
+                      <p className="font-semibold text-foreground truncate">{club.name}</p>
+                      <p className="text-xs text-muted-foreground">Tap to edit</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 mt-4">
+                  <Input
+                    value={newClubName}
+                    onChange={(e) => setNewClubName(e.target.value)}
+                    placeholder="New club name"
+                    className="flex-1"
+                    onKeyDown={(e) => e.key === "Enter" && handleAddClub()}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleAddClub}
+                    disabled={!newClubName.trim()}
+                    className="shrink-0"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
         {/* Edit Club Dialog */}
         <Dialog open={editingClub !== null} onOpenChange={() => setEditingClub(null)}>
@@ -162,27 +178,35 @@ const Settings = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Stat Tracking Section */}
-        <Card className="p-4">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Stat Tracking</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Choose which stats to track during your rounds
-          </p>
-          <div className="space-y-4">
-            {statOptions.map((option) => (
-              <div key={option.key} className="flex items-center justify-between">
-                <div className="flex-1 pr-4">
-                  <p className="font-medium text-foreground">{option.label}</p>
-                  <p className="text-sm text-muted-foreground">{option.description}</p>
-                </div>
-                <Switch
-                  checked={preferences[option.key]}
-                  onCheckedChange={(checked) => updatePreference(option.key, checked)}
-                />
+        {/* Stat Tracking Section - Collapsible */}
+        <Accordion type="single" collapsible>
+          <AccordionItem value="stat-tracking" className="border rounded-lg bg-card px-4">
+            <AccordionTrigger className="hover:no-underline py-4">
+              <div className="text-left">
+                <h2 className="text-lg font-semibold text-foreground">Stat Tracking</h2>
+                <p className="text-sm text-muted-foreground font-normal">
+                  Choose which stats to track during your rounds
+                </p>
               </div>
-            ))}
-          </div>
-        </Card>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pb-4">
+                {statOptions.map((option) => (
+                  <div key={option.key} className="flex items-center justify-between">
+                    <div className="flex-1 pr-4">
+                      <p className="font-medium text-foreground">{option.label}</p>
+                      <p className="text-sm text-muted-foreground">{option.description}</p>
+                    </div>
+                    <Switch
+                      checked={preferences[option.key]}
+                      onCheckedChange={(checked) => updatePreference(option.key, checked)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     </div>
   );
