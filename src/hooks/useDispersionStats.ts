@@ -32,9 +32,9 @@ export interface DispersionStats {
   approachClubs: string[];
 }
 
-export const useDispersionStats = (selectedTeeClub: string, selectedApproachClub: string) => {
+export const useDispersionStats = (selectedTeeClub: string, selectedApproachClub: string, selectedScrambleShotType: string = "all") => {
   return useQuery({
-    queryKey: ["dispersion-stats", selectedTeeClub, selectedApproachClub],
+    queryKey: ["dispersion-stats", selectedTeeClub, selectedApproachClub, selectedScrambleShotType],
     queryFn: async (): Promise<DispersionStats> => {
       // Fetch all hole stats for the current user
       const { data: holeStats, error } = await supabase
@@ -79,9 +79,12 @@ export const useDispersionStats = (selectedTeeClub: string, selectedApproachClub
       };
 
       // Calculate scramble statistics
-      const scrambleAttempts = stats.filter(s => 
-        s.scramble === 'yes' || s.scramble === 'no'
-      );
+      const scrambleAttempts = stats.filter(s => {
+        const isScrambleAttempt = s.scramble === 'yes' || s.scramble === 'no';
+        if (!isScrambleAttempt) return false;
+        if (selectedScrambleShotType === "all") return true;
+        return s.scramble_shot_type === selectedScrambleShotType;
+      });
 
       const clubStatsMap: Record<string, { attempts: number; successes: number }> = {};
       
