@@ -2,6 +2,7 @@ import { Play, Trophy, TrendingUp, Settings, Clock, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
+import PageHeader from "@/components/PageHeader";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -113,23 +114,24 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
-      <div className="max-w-md mx-auto px-4 pt-8">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20 relative">
+      <PageHeader height="h-40" />
+      <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">GolfTrack</h1>
-            <p className="text-muted-foreground">Track your game, improve your score</p>
+            <h1 className="text-3xl font-bold text-header-foreground mb-2">GolfTrack</h1>
+            <p className="text-header-foreground/80">Track your game, improve your score</p>
           </div>
           <button
             onClick={() => navigate('/settings')}
-            className="p-2 text-foreground hover:text-muted-foreground transition-colors"
+            className="p-2 text-header-foreground hover:text-header-foreground/70 transition-colors"
           >
             <Settings className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Start Round Card */}
+        {/* Start Round Card - overlaps header */}
         <Card className="p-6 mb-6 bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <div>

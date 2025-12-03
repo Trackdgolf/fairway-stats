@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, MapPin, ArrowLeft } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -93,19 +94,20 @@ const CourseSearch = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
-      <div className="max-w-md mx-auto px-4 pt-8">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20 relative">
+      <PageHeader />
+      <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
         {/* Header */}
         <div className="mb-6 flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate('/')}
-            className="text-foreground"
+            className="text-header-foreground hover:text-header-foreground/70 hover:bg-header-foreground/10"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-bold text-foreground">Find Course</h1>
+          <h1 className="text-2xl font-bold text-header-foreground">Find Course</h1>
         </div>
 
         {/* Search */}
