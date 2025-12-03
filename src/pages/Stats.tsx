@@ -156,7 +156,7 @@ const Stats = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20 relative">
       <PageHeader />
-      <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
+      <div className="max-w-md mx-auto px-4 pt-36 relative z-10">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-header-foreground">Statistics</h1>
