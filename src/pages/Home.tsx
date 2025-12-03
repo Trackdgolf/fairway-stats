@@ -1,11 +1,116 @@
-import { Play, Trophy, TrendingUp, Settings } from "lucide-react";
+import { Play, Trophy, TrendingUp, Settings, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+
+interface InProgressRound {
+  id: string;
+  course_data: {
+    course_name?: string;
+    club_name?: string;
+    id?: string | number;
+    holes?: Array<{ par?: number }>;
+  };
+  hole_stats: Array<{
+    score: number | null;
+    fir: boolean | null;
+    firDirection: string | null;
+    gir: boolean | null;
+    girDirection: string | null;
+    scramble: string | null;
+    putts: number | null;
+    teeClub: string;
+    approachClub: string;
+    scrambleClub: string;
+    scrambleShotType: string | null;
+  }>;
+  current_hole_index: number;
+  updated_at: string;
+}
+
+interface CompletedRound {
+  id: string;
+  course_name: string;
+  total_score: number | null;
+  played_at: string | null;
+}
 
 const Home = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  // Fetch in-progress rounds
+  const { data: inProgressRounds } = useQuery({
+    queryKey: ["in-progress-rounds", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("in_progress_rounds")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false });
+      
+      if (error) throw error;
+      return (data || []) as unknown as InProgressRound[];
+    },
+    enabled: !!user,
+  });
+
+  // Fetch completed rounds
+  const { data: completedRounds } = useQuery({
+    queryKey: ["completed-rounds", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("rounds")
+        .select("id, course_name, total_score, played_at")
+        .eq("user_id", user.id)
+        .order("played_at", { ascending: false })
+        .limit(5);
+      
+      if (error) throw error;
+      return (data || []) as CompletedRound[];
+    },
+    enabled: !!user,
+  });
+
+  // Fetch stats summary
+  const { data: statsData } = useQuery({
+    queryKey: ["stats-summary", user?.id],
+    queryFn: async () => {
+      if (!user) return { totalRounds: 0, bestScore: null };
+      
+      const { data, error } = await supabase
+        .from("rounds")
+        .select("total_score")
+        .eq("user_id", user.id);
+      
+      if (error) throw error;
+      
+      const totalRounds = data?.length || 0;
+      const scores = data?.map(r => r.total_score).filter((s): s is number => s !== null) || [];
+      const bestScore = scores.length > 0 ? Math.min(...scores) : null;
+      
+      return { totalRounds, bestScore };
+    },
+    enabled: !!user,
+  });
+
+  const handleContinueRound = (round: InProgressRound) => {
+    navigate("/round", {
+      state: {
+        course: round.course_data,
+        inProgressRoundId: round.id,
+        restoredStats: round.hole_stats,
+        restoredHoleIndex: round.current_hole_index,
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
@@ -43,6 +148,39 @@ const Home = () => {
           </Button>
         </Card>
 
+        {/* In Progress Rounds */}
+        {inProgressRounds && inProgressRounds.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-accent" />
+              In Progress
+            </h3>
+            <div className="space-y-3">
+              {inProgressRounds.map((round) => (
+                <Card 
+                  key={round.id} 
+                  className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => handleContinueRound(round)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {round.course_data?.course_name || round.course_data?.club_name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Hole {round.current_hole_index + 1} of {round.course_data?.holes?.length || 18}
+                      </p>
+                    </div>
+                    <Button size="sm" variant="outline">
+                      Continue
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <Card className="p-4">
@@ -50,25 +188,56 @@ const Home = () => {
               <Trophy className="w-5 h-5 text-accent" />
               <span className="text-sm text-muted-foreground">Rounds Played</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">0</p>
+            <p className="text-2xl font-bold text-foreground">{statsData?.totalRounds || 0}</p>
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-5 h-5 text-accent" />
               <span className="text-sm text-muted-foreground">Best Score</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">--</p>
+            <p className="text-2xl font-bold text-foreground">
+              {statsData?.bestScore ?? "--"}
+            </p>
           </Card>
         </div>
 
         {/* Recent Rounds */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-foreground mb-3">Recent Rounds</h3>
-          <Card className="p-6 text-center">
-            <p className="text-muted-foreground">No rounds yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Start your first round to see it here</p>
-          </Card>
+          {completedRounds && completedRounds.length > 0 ? (
+            <div className="space-y-3">
+              {completedRounds.map((round) => (
+                <Card key={round.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-foreground">{round.course_name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {round.played_at ? format(new Date(round.played_at), "MMM d, yyyy") : ""}
+                      </p>
+                    </div>
+                    <p className="text-xl font-bold text-foreground">
+                      {round.total_score ?? "--"}
+                    </p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="p-6 text-center">
+              <p className="text-muted-foreground">No rounds yet</p>
+              <p className="text-sm text-muted-foreground mt-1">Start your first round to see it here</p>
+            </Card>
+          )}
         </div>
+
+        {/* Sign Out Button */}
+        <Button 
+          variant="outline" 
+          className="w-full" 
+          onClick={signOut}
+        >
+          Sign Out
+        </Button>
       </div>
 
       <BottomNav />
