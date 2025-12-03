@@ -1,0 +1,1 @@
+ALTER TABLE public.hole_stats ADD COLUMN scramble_club TEXT;
