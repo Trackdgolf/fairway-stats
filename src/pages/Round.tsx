@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useStatPreferences } from "@/hooks/useStatPreferences";
+import { useMyBag } from "@/hooks/useMyBag";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -29,28 +30,6 @@ interface HoleStats {
   approachClub: string;
   scrambleClub: string;
 }
-
-const CLUBS = [
-  "Driver",
-  "3 Wood",
-  "5 Wood",
-  "7 Wood",
-  "3 Hybrid",
-  "4 Hybrid",
-  "5 Hybrid",
-  "3 Iron",
-  "4 Iron",
-  "5 Iron",
-  "6 Iron",
-  "7 Iron",
-  "8 Iron",
-  "9 Iron",
-  "PW",
-  "GW",
-  "SW",
-  "LW",
-  "Putter",
-];
 
 const FIR_DIRECTIONS: { icon: typeof Circle; value: FirDirection; label: string }[] = [
   { icon: Circle, value: 'hit', label: 'Hit' },
@@ -189,6 +168,7 @@ const Round = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { preferences } = useStatPreferences();
+  const { clubs } = useMyBag();
   const course = location.state?.course;
   
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
@@ -410,13 +390,13 @@ const Round = () => {
                   <SelectValue placeholder="Select Club" />
                 </SelectTrigger>
                 <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
-                  {CLUBS.map((club) => (
+                  {clubs.map((club) => (
                     <SelectItem 
-                      key={club} 
-                      value={club}
+                      key={club.id} 
+                      value={club.name}
                       className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
                     >
-                      {club}
+                      {club.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -449,13 +429,13 @@ const Round = () => {
                   <SelectValue placeholder="Select Club" />
                 </SelectTrigger>
                 <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
-                  {CLUBS.map((club) => (
+                  {clubs.map((club) => (
                     <SelectItem 
-                      key={club} 
-                      value={club}
+                      key={club.id} 
+                      value={club.name}
                       className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
                     >
-                      {club}
+                      {club.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -484,13 +464,13 @@ const Round = () => {
                   <SelectValue placeholder="Select Club" />
                 </SelectTrigger>
                 <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
-                  {CLUBS.map((club) => (
+                  {clubs.map((club) => (
                     <SelectItem 
-                      key={club} 
-                      value={club}
+                      key={club.id} 
+                      value={club.name}
                       className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
                     >
-                      {club}
+                      {club.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
