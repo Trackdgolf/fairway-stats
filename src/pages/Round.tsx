@@ -262,13 +262,6 @@ const Round = () => {
                   {currentHole?.length_meters}
                 </div>
               </div>
-              <div className="w-px h-16 bg-border dark:bg-[hsl(var(--round-border))]" />
-              <div className="text-center">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">SI</div>
-                <div className="text-3xl font-semibold text-foreground">
-                  {currentHole?.stroke_index ?? '-'}
-                </div>
-              </div>
             </div>
             <div className="flex gap-1">
               {Array.from({ length: totalHoles }).map((_, idx) => (
