@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { Trophy, Award, Target, TrendingUp, Grip, MapPin, Flag, Circle } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import StatsChart from "@/components/StatsChart";
 import StatTile from "@/components/StatTile";
 import { useStatPreferences } from "@/hooks/useStatPreferences";
@@ -190,11 +189,8 @@ const Stats = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
       <div className="max-w-md mx-auto px-4 pt-8">
         {/* Header */}
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Statistics</h1>
-          </div>
-          <ThemeToggle />
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-foreground">Statistics</h1>
         </div>
 
         {/* Chart */}
