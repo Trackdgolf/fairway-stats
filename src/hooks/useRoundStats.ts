@@ -241,7 +241,7 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
         if (monthFirHoles.length > 0) {
           timeSeries.firPercent.push({
             date: monthKey,
-            value: parseFloat(((monthFirHits / monthFirHoles.length) * 100).toFixed(1)),
+            value: Math.round((monthFirHits / monthFirHoles.length) * 100),
           });
         }
 
@@ -251,7 +251,7 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
         if (monthGirHoles.length > 0) {
           timeSeries.girPercent.push({
             date: monthKey,
-            value: parseFloat(((monthGirHits / monthGirHoles.length) * 100).toFixed(1)),
+            value: Math.round((monthGirHits / monthGirHoles.length) * 100),
           });
         }
 
@@ -261,7 +261,7 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
         if (monthScrambleAttempts.length > 0) {
           timeSeries.scramblePercent.push({
             date: monthKey,
-            value: parseFloat(((monthScrambleSuccesses / monthScrambleAttempts.length) * 100).toFixed(1)),
+            value: Math.round((monthScrambleSuccesses / monthScrambleAttempts.length) * 100),
           });
         }
       });
@@ -273,9 +273,9 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
           avgScore: avgScore ? parseFloat(avgScore.toFixed(1)) : null,
           avgOverPar: avgOverPar ? parseFloat(avgOverPar.toFixed(1)) : null,
           avgPutts: avgPutts ? parseFloat(avgPutts.toFixed(1)) : null,
-          firPercent: firPercent ? parseFloat(firPercent.toFixed(0)) : null,
-          girPercent: girPercent ? parseFloat(girPercent.toFixed(0)) : null,
-          scramblePercent: scramblePercent ? parseFloat(scramblePercent.toFixed(0)) : null,
+          firPercent: firPercent !== null ? Math.round(firPercent) : null,
+          girPercent: girPercent !== null ? Math.round(girPercent) : null,
+          scramblePercent: scramblePercent !== null ? Math.round(scramblePercent) : null,
           courses,
         },
         timeSeries,
