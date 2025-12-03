@@ -174,8 +174,8 @@ const Round = () => {
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [holeStats, setHoleStats] = useState<HoleStats[]>(
-    course?.holes?.map(() => ({
-      score: null,
+    course?.holes?.map((hole: { par?: number }) => ({
+      score: hole?.par || null,
       fir: null,
       firDirection: null,
       gir: null,
