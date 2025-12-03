@@ -26,6 +26,7 @@ interface HoleStats {
   putts: number | null;
   teeClub: string;
   approachClub: string;
+  scrambleClub: string;
 }
 
 const CLUBS = [
@@ -201,6 +202,7 @@ const Round = () => {
       putts: null,
       teeClub: "",
       approachClub: "",
+      scrambleClub: "",
     })) || []
   );
 
@@ -375,11 +377,42 @@ const Round = () => {
                 </ToggleButton>
                 <ToggleButton
                   selected={currentStats?.scramble === 'n/a'}
-                  onClick={() => updateHoleStats("scramble", 'n/a')}
+                  onClick={() => {
+                    updateHoleStats("scramble", 'n/a');
+                    updateHoleStats("scrambleClub", "");
+                  }}
                 >
                   N/A
                 </ToggleButton>
               </div>
+            </div>
+          )}
+
+          {/* Scramble Club - only show when Scramble is Yes or No */}
+          {(currentStats?.scramble === 'yes' || currentStats?.scramble === 'no') && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Scramble Club
+              </label>
+              <Select
+                value={currentStats?.scrambleClub || ""}
+                onValueChange={(value) => updateHoleStats("scrambleClub", value)}
+              >
+                <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
+                  <SelectValue placeholder="Select Club" />
+                </SelectTrigger>
+                <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
+                  {CLUBS.map((club) => (
+                    <SelectItem 
+                      key={club} 
+                      value={club}
+                      className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
+                    >
+                      {club}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
@@ -501,6 +534,7 @@ const Round = () => {
                     putts: stat.putts,
                     tee_club: stat.teeClub || null,
                     approach_club: stat.approachClub || null,
+                    scramble_club: stat.scrambleClub || null,
                   }));
 
                   const { error: statsError } = await supabase
