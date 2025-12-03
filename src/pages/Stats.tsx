@@ -4,6 +4,7 @@ import BottomNav from "@/components/BottomNav";
 import StatsChart from "@/components/StatsChart";
 import StatTile from "@/components/StatTile";
 import { useStatPreferences } from "@/hooks/useStatPreferences";
+import { useRoundStats } from "@/hooks/useRoundStats";
 import {
   Select,
   SelectContent,
@@ -12,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type StatType = "totalRounds" | "bestScore" | "avgScore" | "avgOverPar" | "avgPutts" | "firPercent" | "girPercent" | "scramblePercent";
 type TimeRange = "3M" | "6M" | "1Y" | "MAX";
@@ -21,64 +23,24 @@ const Stats = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>("MAX");
   const [courseFilter, setCourseFilter] = useState("all");
   const { preferences } = useStatPreferences();
+  const { data, isLoading } = useRoundStats(timeRange, courseFilter);
 
-  // Mock data for demonstration
-  const generateMockData = (stat: StatType, range: TimeRange) => {
-    const dataPoints: { [key in TimeRange]: number } = {
-      "3M": 3,
-      "6M": 6,
-      "1Y": 12,
-      "MAX": 24
+  const getChartData = () => {
+    if (!data?.timeSeries) return [];
+    
+    const timeSeriesMap: Record<StatType, { date: string; value: number }[]> = {
+      totalRounds: [],
+      bestScore: [],
+      avgScore: data.timeSeries.avgScore,
+      avgOverPar: data.timeSeries.avgOverPar,
+      avgPutts: data.timeSeries.avgPutts,
+      firPercent: data.timeSeries.firPercent,
+      girPercent: data.timeSeries.girPercent,
+      scramblePercent: data.timeSeries.scramblePercent,
     };
-
-    const points = dataPoints[range];
-    const data = [];
-
-    for (let i = points; i > 0; i--) {
-      const monthsAgo = i;
-      const date = new Date();
-      date.setMonth(date.getMonth() - monthsAgo);
-      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-
-      let value = 0;
-      
-      switch (stat) {
-        case "totalRounds":
-          value = Math.floor(Math.random() * 3) + 1;
-          break;
-        case "bestScore":
-          value = Math.floor(Math.random() * 10) + 80;
-          break;
-        case "avgScore":
-          value = Math.floor(Math.random() * 8) + 82;
-          break;
-        case "avgOverPar":
-          value = Math.random() * 8 + 10;
-          break;
-        case "avgPutts":
-          value = Math.random() * 0.8 + 1.4;
-          break;
-        case "firPercent":
-          value = Math.random() * 30 + 30;
-          break;
-        case "girPercent":
-          value = Math.random() * 20 + 20;
-          break;
-        case "scramblePercent":
-          value = Math.random() * 30 + 30;
-          break;
-      }
-
-      data.push({
-        date: `${monthName}`,
-        value: parseFloat(value.toFixed(1)),
-      });
-    }
-
-    return data;
+    
+    return timeSeriesMap[selectedStat] || [];
   };
-
-  const chartData = generateMockData(selectedStat, timeRange);
 
   const getChartTitle = () => {
     const titles: { [key in StatType]: string } = {
@@ -94,11 +56,16 @@ const Stats = () => {
     return titles[selectedStat];
   };
 
-  const allStats = [
+  const formatStatValue = (value: number | null, suffix: string = ""): string => {
+    if (value === null) return "-";
+    return `${value}${suffix}`;
+  };
+
+  const allStats = useMemo(() => [
     {
       id: "totalRounds" as StatType,
       icon: Trophy,
-      value: "2",
+      value: data?.stats.totalRounds?.toString() || "0",
       label: "Total Rounds",
       iconColor: "bg-amber-100 dark:bg-amber-900/30",
       iconTextColor: "text-amber-500",
@@ -108,7 +75,7 @@ const Stats = () => {
     {
       id: "bestScore" as StatType,
       icon: Award,
-      value: "84",
+      value: formatStatValue(data?.stats.bestScore ?? null),
       label: "Best Score",
       iconColor: "bg-yellow-100 dark:bg-yellow-900/30",
       iconTextColor: "text-yellow-500",
@@ -118,7 +85,7 @@ const Stats = () => {
     {
       id: "avgScore" as StatType,
       icon: Target,
-      value: "85",
+      value: formatStatValue(data?.stats.avgScore ?? null),
       label: "Average Score",
       iconColor: "bg-blue-100 dark:bg-blue-900/30",
       iconTextColor: "text-blue-500",
@@ -128,7 +95,7 @@ const Stats = () => {
     {
       id: "avgOverPar" as StatType,
       icon: TrendingUp,
-      value: "+13.5",
+      value: data?.stats.avgOverPar !== null ? `+${data.stats.avgOverPar}` : "-",
       label: "Avg Over Par",
       iconColor: "bg-red-100 dark:bg-red-900/30",
       iconTextColor: "text-red-500",
@@ -138,7 +105,7 @@ const Stats = () => {
     {
       id: "avgPutts" as StatType,
       icon: Grip,
-      value: "1.7",
+      value: formatStatValue(data?.stats.avgPutts ?? null),
       label: "Avg Putts",
       iconColor: "bg-purple-100 dark:bg-purple-900/30",
       iconTextColor: "text-purple-500",
@@ -148,7 +115,7 @@ const Stats = () => {
     {
       id: "firPercent" as StatType,
       icon: MapPin,
-      value: "37%",
+      value: formatStatValue(data?.stats.firPercent ?? null, "%"),
       label: "FIR %",
       iconColor: "bg-green-100 dark:bg-green-900/30",
       iconTextColor: "text-green-500",
@@ -158,7 +125,7 @@ const Stats = () => {
     {
       id: "girPercent" as StatType,
       icon: Flag,
-      value: "26%",
+      value: formatStatValue(data?.stats.girPercent ?? null, "%"),
       label: "GIR %",
       iconColor: "bg-pink-100 dark:bg-pink-900/30",
       iconTextColor: "text-pink-500",
@@ -168,14 +135,14 @@ const Stats = () => {
     {
       id: "scramblePercent" as StatType,
       icon: Circle,
-      value: "41%",
+      value: formatStatValue(data?.stats.scramblePercent ?? null, "%"),
       label: "Scramble %",
       iconColor: "bg-orange-100 dark:bg-orange-900/30",
       iconTextColor: "text-orange-500",
       isSelectable: true,
       preferenceKey: "scramble" as const,
     },
-  ];
+  ], [data?.stats]);
 
   const stats = useMemo(() => {
     return allStats.filter(stat => {
@@ -183,7 +150,7 @@ const Stats = () => {
       if (stat.preferenceKey) return preferences[stat.preferenceKey];
       return true;
     });
-  }, [preferences]);
+  }, [preferences, allStats]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
@@ -194,11 +161,15 @@ const Stats = () => {
         </div>
 
         {/* Chart */}
-        <StatsChart
-          data={chartData}
-          title={getChartTitle()}
-          yAxisLabel="Value"
-        />
+        {isLoading ? (
+          <Skeleton className="h-64 w-full mb-4 rounded-lg" />
+        ) : (
+          <StatsChart
+            data={getChartData()}
+            title={getChartTitle()}
+            yAxisLabel="Value"
+          />
+        )}
 
         {/* Course Filter */}
         <div className="mb-4 flex items-center gap-3">
@@ -209,8 +180,11 @@ const Stats = () => {
             </SelectTrigger>
             <SelectContent className="bg-card border-border z-50">
               <SelectItem value="all">All Courses</SelectItem>
-              <SelectItem value="course1">Pebble Beach</SelectItem>
-              <SelectItem value="course2">Augusta National</SelectItem>
+              {data?.stats.courses.map((course) => (
+                <SelectItem key={course} value={course}>
+                  {course}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -230,21 +204,29 @@ const Stats = () => {
         </div>
 
         {/* Stat Tiles Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          {stats.map((stat) => (
-            <StatTile
-              key={stat.id}
-              icon={stat.icon}
-              value={stat.value}
-              label={stat.label}
-              isSelected={selectedStat === stat.id}
-              onClick={() => setSelectedStat(stat.id)}
-              iconColor={stat.iconColor}
-              iconTextColor={stat.iconTextColor}
-              isSelectable={stat.isSelectable}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-2 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-40 rounded-lg" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            {stats.map((stat) => (
+              <StatTile
+                key={stat.id}
+                icon={stat.icon}
+                value={stat.value}
+                label={stat.label}
+                isSelected={selectedStat === stat.id}
+                onClick={() => setSelectedStat(stat.id)}
+                iconColor={stat.iconColor}
+                iconTextColor={stat.iconTextColor}
+                isSelectable={stat.isSelectable}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <BottomNav />
