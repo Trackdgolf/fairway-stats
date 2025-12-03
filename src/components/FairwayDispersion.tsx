@@ -29,18 +29,18 @@ const FairwayDispersion = ({ fwHit, left, right, short }: FairwayDispersionProps
         className="w-full h-auto rounded-lg"
       />
       
-      {/* FW HIT - Center */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      {/* FW HIT - Center, moved up */}
+      <div className="absolute top-[40%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <DispersionLabel percentage={fwHit} label="FW HIT" />
       </div>
       
       {/* LEFT */}
-      <div className="absolute top-1/2 left-4 transform -translate-y-1/2">
+      <div className="absolute top-[55%] left-4 transform -translate-y-1/2">
         <DispersionLabel percentage={left} label="LEFT" />
       </div>
       
       {/* RIGHT */}
-      <div className="absolute top-1/2 right-4 transform -translate-y-1/2">
+      <div className="absolute top-[55%] right-4 transform -translate-y-1/2">
         <DispersionLabel percentage={right} label="RIGHT" />
       </div>
       

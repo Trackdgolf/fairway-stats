@@ -30,25 +30,23 @@ const GreenDispersion = ({ onGreen, long, left, right, short }: GreenDispersionP
         className="w-full h-auto rounded-lg"
       />
       
-      {/* ON GREEN - Center */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      {/* ON GREEN - Center, moved up */}
+      <div className="absolute top-[42%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <DispersionLabel percentage={onGreen} label="ON GREEN" />
       </div>
       
-      {/* LONG - Top */}
-      {long > 0 && (
-        <div className="absolute top-6 left-1/2 transform -translate-x-1/2">
-          <DispersionLabel percentage={long} label="LONG" />
-        </div>
-      )}
+      {/* LONG - Top, always visible */}
+      <div className="absolute top-6 left-1/2 transform -translate-x-1/2">
+        <DispersionLabel percentage={long} label="LONG" />
+      </div>
       
-      {/* LEFT */}
-      <div className="absolute top-1/2 left-4 transform -translate-y-1/2">
+      {/* LEFT - moved down */}
+      <div className="absolute top-[55%] left-4 transform -translate-y-1/2">
         <DispersionLabel percentage={left} label="LEFT" />
       </div>
       
-      {/* RIGHT */}
-      <div className="absolute top-1/2 right-4 transform -translate-y-1/2">
+      {/* RIGHT - moved down */}
+      <div className="absolute top-[55%] right-4 transform -translate-y-1/2">
         <DispersionLabel percentage={right} label="RIGHT" />
       </div>
       
