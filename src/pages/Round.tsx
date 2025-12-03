@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 type FirDirection = 'hit' | 'left' | 'right' | 'short' | null;
 type GirDirection = 'hit' | 'left' | 'right' | 'long' | 'short' | null;
+type ScrambleShotType = 'pitch' | 'chip' | 'bunker' | null;
 
 interface HoleStats {
   score: number | null;
@@ -29,6 +30,7 @@ interface HoleStats {
   teeClub: string;
   approachClub: string;
   scrambleClub: string;
+  scrambleShotType: ScrambleShotType;
 }
 
 const FIR_DIRECTIONS: { icon: typeof Circle; value: FirDirection; label: string }[] = [
@@ -185,6 +187,7 @@ const Round = () => {
       teeClub: "",
       approachClub: "",
       scrambleClub: "",
+      scrambleShotType: null,
     })) || []
   );
 
@@ -362,7 +365,7 @@ const Round = () => {
                 </ToggleButton>
                 <ToggleButton
                   selected={currentStats?.scramble === 'n/a'}
-                  onClick={() => updateHoleStats({ scramble: 'n/a', scrambleClub: "" })}
+                  onClick={() => updateHoleStats({ scramble: 'n/a', scrambleClub: "", scrambleShotType: null })}
                 >
                   N/A
                 </ToggleButton>
@@ -395,6 +398,33 @@ const Round = () => {
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Scramble Shot Type */}
+              <div className="space-y-3 mt-4">
+                <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                  Shot Type
+                </label>
+                <div className="flex gap-2">
+                  <ToggleButton
+                    selected={currentStats?.scrambleShotType === 'pitch'}
+                    onClick={() => updateHoleStats({ scrambleShotType: 'pitch' })}
+                  >
+                    Pitch
+                  </ToggleButton>
+                  <ToggleButton
+                    selected={currentStats?.scrambleShotType === 'chip'}
+                    onClick={() => updateHoleStats({ scrambleShotType: 'chip' })}
+                  >
+                    Chip
+                  </ToggleButton>
+                  <ToggleButton
+                    selected={currentStats?.scrambleShotType === 'bunker'}
+                    onClick={() => updateHoleStats({ scrambleShotType: 'bunker' })}
+                  >
+                    Bunker
+                  </ToggleButton>
+                </div>
+              </div>
             </div>
           )}
 
@@ -542,6 +572,7 @@ const Round = () => {
                       tee_club: isPar3 ? null : (stat.teeClub || null),
                       approach_club: isPar3 ? (stat.teeClub || null) : (stat.approachClub || null),
                       scramble_club: stat.scrambleClub || null,
+                      scramble_shot_type: stat.scrambleShotType || null,
                     };
                   });
 

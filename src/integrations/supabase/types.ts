@@ -30,6 +30,7 @@ export type Database = {
           score: number | null
           scramble: string | null
           scramble_club: string | null
+          scramble_shot_type: string | null
           tee_club: string | null
         }
         Insert: {
@@ -47,6 +48,7 @@ export type Database = {
           score?: number | null
           scramble?: string | null
           scramble_club?: string | null
+          scramble_shot_type?: string | null
           tee_club?: string | null
         }
         Update: {
@@ -64,6 +66,7 @@ export type Database = {
           score?: number | null
           scramble?: string | null
           scramble_club?: string | null
+          scramble_shot_type?: string | null
           tee_club?: string | null
         }
         Relationships: [
