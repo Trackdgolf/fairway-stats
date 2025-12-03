@@ -434,11 +434,20 @@ const Round = () => {
                   ))}
                 </SelectContent>
               </Select>
-              {preferences.fir && (
+              {/* FIR direction - only shown on non-Par 3s */}
+              {preferences.fir && currentHole?.par !== 3 && (
                 <ShotDirectionSelector
                   options={FIR_DIRECTIONS}
                   selectedValue={currentStats?.firDirection}
                   onSelect={(value) => updateHoleStats({ firDirection: value })}
+                />
+              )}
+              {/* GIR direction - shown on Par 3s under Tee Club since tee shot = approach */}
+              {preferences.gir && currentHole?.par === 3 && (
+                <ShotDirectionSelector
+                  options={GIR_DIRECTIONS}
+                  selectedValue={currentStats?.girDirection}
+                  onSelect={(value) => updateHoleStats({ girDirection: value })}
                 />
               )}
             </div>
