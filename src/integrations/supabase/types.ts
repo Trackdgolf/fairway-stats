@@ -79,6 +79,36 @@ export type Database = {
           },
         ]
       }
+      in_progress_rounds: {
+        Row: {
+          course_data: Json
+          created_at: string
+          current_hole_index: number
+          hole_stats: Json
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          course_data: Json
+          created_at?: string
+          current_hole_index?: number
+          hole_stats: Json
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          course_data?: Json
+          created_at?: string
+          current_hole_index?: number
+          hole_stats?: Json
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       rounds: {
         Row: {
           course_id: string | null

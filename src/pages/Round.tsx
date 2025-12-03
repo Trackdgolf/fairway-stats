@@ -1,10 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Circle, Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useStatPreferences } from "@/hooks/useStatPreferences";
 import { useMyBag } from "@/hooks/useMyBag";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -13,6 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 type FirDirection = 'hit' | 'left' | 'right' | 'short' | null;
@@ -171,12 +183,18 @@ const Round = () => {
   const { toast } = useToast();
   const { preferences } = useStatPreferences();
   const { clubs } = useMyBag();
-  const course = location.state?.course;
+  const { user } = useAuth();
   
-  const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
+  const course = location.state?.course;
+  const inProgressRoundId = location.state?.inProgressRoundId;
+  const restoredStats = location.state?.restoredStats;
+  const restoredHoleIndex = location.state?.restoredHoleIndex;
+  
+  const [currentHoleIndex, setCurrentHoleIndex] = useState(restoredHoleIndex || 0);
   const [isSaving, setIsSaving] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
   const [holeStats, setHoleStats] = useState<HoleStats[]>(
-    course?.holes?.map((hole: { par?: number }) => ({
+    restoredStats || course?.holes?.map((hole: { par?: number }) => ({
       score: hole?.par || null,
       fir: null,
       firDirection: null,
@@ -191,6 +209,62 @@ const Round = () => {
     })) || []
   );
 
+  // Debounce timer ref for auto-save
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const inProgressIdRef = useRef<string | null>(inProgressRoundId || null);
+
+  // Auto-save progress to database
+  const saveProgress = useCallback(async () => {
+    if (!user || !course) return;
+
+    try {
+      const progressData = {
+        user_id: user.id,
+        course_data: JSON.parse(JSON.stringify(course)) as Json,
+        hole_stats: JSON.parse(JSON.stringify(holeStats)) as Json,
+        current_hole_index: currentHoleIndex,
+      };
+
+      if (inProgressIdRef.current) {
+        // Update existing in-progress round
+        await supabase
+          .from('in_progress_rounds')
+          .update(progressData)
+          .eq('id', inProgressIdRef.current);
+      } else {
+        // Create new in-progress round
+        const { data } = await supabase
+          .from('in_progress_rounds')
+          .insert(progressData)
+          .select()
+          .single();
+        
+        if (data) {
+          inProgressIdRef.current = data.id;
+        }
+      }
+    } catch (error) {
+      console.error('Error saving progress:', error);
+    }
+  }, [user, course, holeStats, currentHoleIndex]);
+
+  // Debounced auto-save when stats change
+  useEffect(() => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveProgress();
+    }, 2000); // Save 2 seconds after last change
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [holeStats, currentHoleIndex, saveProgress]);
+
   const updateHoleStats = (updates: Partial<HoleStats>) => {
     const newStats = [...holeStats];
     newStats[currentHoleIndex] = {
@@ -198,6 +272,102 @@ const Round = () => {
       ...updates,
     };
     setHoleStats(newStats);
+  };
+
+  const deleteInProgressRound = async () => {
+    if (inProgressIdRef.current) {
+      await supabase
+        .from('in_progress_rounds')
+        .delete()
+        .eq('id', inProgressIdRef.current);
+    }
+  };
+
+  const handleFinishRound = async () => {
+    if (!user) {
+      toast({
+        title: "Not authenticated",
+        description: "Please log in to save your round.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Calculate total score
+      const totalScore = holeStats.reduce((sum, stat) => sum + (stat.score || 0), 0);
+      
+      // Insert round with user_id
+      const { data: roundData, error: roundError } = await supabase
+        .from('rounds')
+        .insert({
+          course_name: course.course_name || course.club_name,
+          course_id: course.id?.toString(),
+          total_score: totalScore,
+          user_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (roundError) throw roundError;
+
+      // Insert hole stats
+      const holeStatsToInsert = holeStats.map((stat, idx) => {
+        const holePar = course.holes?.[idx]?.par;
+        const isPar3 = holePar === 3;
+        
+        return {
+          round_id: roundData.id,
+          hole_number: idx + 1,
+          par: holePar,
+          score: stat.score,
+          fir: isPar3 ? null : stat.fir,
+          fir_direction: isPar3 ? null : stat.firDirection,
+          gir: stat.gir,
+          gir_direction: stat.girDirection,
+          scramble: stat.scramble,
+          putts: stat.putts,
+          tee_club: isPar3 ? null : (stat.teeClub || null),
+          approach_club: isPar3 ? (stat.teeClub || null) : (stat.approachClub || null),
+          scramble_club: stat.scrambleClub || null,
+          scramble_shot_type: stat.scrambleShotType || null,
+        };
+      });
+
+      const { error: statsError } = await supabase
+        .from('hole_stats')
+        .insert(holeStatsToInsert);
+
+      if (statsError) throw statsError;
+
+      // Delete in-progress round after successful save
+      await deleteInProgressRound();
+
+      toast({
+        title: "Round saved!",
+        description: `Your round at ${course.course_name || course.club_name} has been recorded.`,
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Error saving round:', error);
+      toast({
+        title: "Error saving round",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveAndExit = async () => {
+    await saveProgress();
+    toast({
+      title: "Progress saved",
+      description: "You can continue this round from the Home page.",
+    });
+    navigate('/');
   };
 
   const currentHole = course?.holes?.[currentHoleIndex];
@@ -223,7 +393,7 @@ const Round = () => {
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-8 pb-6">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => setShowExitDialog(true)}
             className="p-2 -ml-2 text-foreground hover:text-muted-foreground transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
@@ -234,7 +404,7 @@ const Round = () => {
             </h1>
           </div>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => setShowExitDialog(true)}
             className="p-2 -mr-2 text-foreground hover:text-muted-foreground transition-colors"
           >
             <Check className="w-6 h-6" />
@@ -532,71 +702,7 @@ const Round = () => {
           <button
             onClick={async () => {
               if (currentHoleIndex === totalHoles - 1) {
-                // Finish round - save to database
-                setIsSaving(true);
-                try {
-                  // Calculate total score
-                  const totalScore = holeStats.reduce((sum, stat) => sum + (stat.score || 0), 0);
-                  
-                  // Insert round
-                  const { data: roundData, error: roundError } = await supabase
-                    .from('rounds')
-                    .insert({
-                      course_name: course.course_name || course.club_name,
-                      course_id: course.id?.toString(),
-                      total_score: totalScore,
-                    })
-                    .select()
-                    .single();
-
-                  if (roundError) throw roundError;
-
-                  // Insert hole stats
-                  const holeStatsToInsert = holeStats.map((stat, idx) => {
-                    const holePar = course.holes?.[idx]?.par;
-                    const isPar3 = holePar === 3;
-                    
-                    return {
-                      round_id: roundData.id,
-                      hole_number: idx + 1,
-                      par: holePar,
-                      score: stat.score,
-                      // No FIR on Par 3s - the tee shot is the approach
-                      fir: isPar3 ? null : stat.fir,
-                      fir_direction: isPar3 ? null : stat.firDirection,
-                      gir: stat.gir,
-                      gir_direction: stat.girDirection,
-                      scramble: stat.scramble,
-                      putts: stat.putts,
-                      // On Par 3s, tee club IS the approach club
-                      tee_club: isPar3 ? null : (stat.teeClub || null),
-                      approach_club: isPar3 ? (stat.teeClub || null) : (stat.approachClub || null),
-                      scramble_club: stat.scrambleClub || null,
-                      scramble_shot_type: stat.scrambleShotType || null,
-                    };
-                  });
-
-                  const { error: statsError } = await supabase
-                    .from('hole_stats')
-                    .insert(holeStatsToInsert);
-
-                  if (statsError) throw statsError;
-
-                  toast({
-                    title: "Round saved!",
-                    description: `Your round at ${course.course_name || course.club_name} has been recorded.`,
-                  });
-                  navigate('/');
-                } catch (error) {
-                  console.error('Error saving round:', error);
-                  toast({
-                    title: "Error saving round",
-                    description: "Please try again.",
-                    variant: "destructive",
-                  });
-                } finally {
-                  setIsSaving(false);
-                }
+                await handleFinishRound();
               } else {
                 setCurrentHoleIndex(Math.min(totalHoles - 1, currentHoleIndex + 1));
               }
@@ -609,6 +715,30 @@ const Round = () => {
           </button>
         </div>
       </div>
+
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Exit Round?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your progress will be saved and you can continue later from the Home page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSaveAndExit}>
+              Save & Exit
+            </AlertDialogAction>
+            <AlertDialogAction 
+              onClick={handleFinishRound}
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              Finish Round
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
