@@ -1,4 +1,4 @@
-import { Play, Trophy, TrendingUp } from "lucide-react";
+import { Play, Trophy, TrendingUp, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
@@ -17,7 +17,15 @@ const Home = () => {
             <h1 className="text-3xl font-bold text-foreground mb-2">GolfTrack</h1>
             <p className="text-muted-foreground">Track your game, improve your score</p>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={() => navigate('/settings')}
+              className="p-2 text-foreground hover:text-muted-foreground transition-colors"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Start Round Card */}
