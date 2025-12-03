@@ -71,7 +71,7 @@ const Settings = () => {
         {/* Header */}
         <div className="mb-8 flex items-center gap-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/")}
             className="p-2 -ml-2 text-foreground hover:text-muted-foreground transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
