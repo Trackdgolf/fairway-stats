@@ -117,7 +117,7 @@ const ToggleButton = ({
       className={cn(
         "flex-1 h-12 rounded-xl font-medium transition-all",
         selected 
-          ? "bg-primary/20 text-primary border-2 border-primary dark:bg-[hsl(var(--round-border))] dark:text-foreground dark:border-[hsl(var(--round-border))]" 
+          ? "bg-primary/20 text-yellow-500 border-2 border-primary dark:bg-[hsl(var(--round-accent))]/20 dark:text-yellow-400 dark:border-[hsl(var(--round-accent))]" 
           : "bg-muted text-muted-foreground border border-border dark:bg-[hsl(var(--round-input))] dark:border-[hsl(var(--round-border))]",
         className
       )}
@@ -188,11 +188,11 @@ const Round = () => {
     })) || []
   );
 
-  const updateHoleStats = (field: keyof HoleStats, value: any) => {
+  const updateHoleStats = (updates: Partial<HoleStats>) => {
     const newStats = [...holeStats];
     newStats[currentHoleIndex] = {
       ...newStats[currentHoleIndex],
-      [field]: value,
+      ...updates,
     };
     setHoleStats(newStats);
   };
@@ -287,7 +287,7 @@ const Round = () => {
           <NumberStepper
             label="Score"
             value={currentStats?.score}
-            onChange={(val) => updateHoleStats("score", val)}
+            onChange={(val) => updateHoleStats({ score: val })}
             min={1}
             max={15}
           />
@@ -303,13 +303,13 @@ const Round = () => {
                   <div className="flex gap-2">
                     <ToggleButton
                       selected={currentStats?.fir === true}
-                      onClick={() => updateHoleStats("fir", true)}
+                      onClick={() => updateHoleStats({ fir: true })}
                     >
                       Yes
                     </ToggleButton>
                     <ToggleButton
                       selected={currentStats?.fir === false}
-                      onClick={() => updateHoleStats("fir", false)}
+                      onClick={() => updateHoleStats({ fir: false })}
                     >
                       No
                     </ToggleButton>
@@ -325,16 +325,13 @@ const Round = () => {
                   <div className="flex gap-2">
                     <ToggleButton
                       selected={currentStats?.gir === true}
-                      onClick={() => {
-                        updateHoleStats("gir", true);
-                        updateHoleStats("scramble", 'n/a');
-                      }}
+                      onClick={() => updateHoleStats({ gir: true, scramble: 'n/a' })}
                     >
                       Yes
                     </ToggleButton>
                     <ToggleButton
                       selected={currentStats?.gir === false}
-                      onClick={() => updateHoleStats("gir", false)}
+                      onClick={() => updateHoleStats({ gir: false })}
                     >
                       No
                     </ToggleButton>
@@ -353,22 +350,19 @@ const Round = () => {
               <div className="flex gap-2">
                 <ToggleButton
                   selected={currentStats?.scramble === 'yes'}
-                  onClick={() => updateHoleStats("scramble", 'yes')}
+                  onClick={() => updateHoleStats({ scramble: 'yes' })}
                 >
                   Yes
                 </ToggleButton>
                 <ToggleButton
                   selected={currentStats?.scramble === 'no'}
-                  onClick={() => updateHoleStats("scramble", 'no')}
+                  onClick={() => updateHoleStats({ scramble: 'no' })}
                 >
                   No
                 </ToggleButton>
                 <ToggleButton
                   selected={currentStats?.scramble === 'n/a'}
-                  onClick={() => {
-                    updateHoleStats("scramble", 'n/a');
-                    updateHoleStats("scrambleClub", "");
-                  }}
+                  onClick={() => updateHoleStats({ scramble: 'n/a', scrambleClub: "" })}
                 >
                   N/A
                 </ToggleButton>
@@ -384,7 +378,7 @@ const Round = () => {
               </label>
               <Select
                 value={currentStats?.scrambleClub || ""}
-                onValueChange={(value) => updateHoleStats("scrambleClub", value)}
+                onValueChange={(value) => updateHoleStats({ scrambleClub: value })}
               >
                 <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
                   <SelectValue placeholder="Select Club" />
@@ -409,7 +403,7 @@ const Round = () => {
             <NumberStepper
               label="Putts"
               value={currentStats?.putts}
-              onChange={(val) => updateHoleStats("putts", val)}
+              onChange={(val) => updateHoleStats({ putts: val })}
               min={0}
               max={10}
             />
@@ -423,7 +417,7 @@ const Round = () => {
               </label>
               <Select
                 value={currentStats?.teeClub || ""}
-                onValueChange={(value) => updateHoleStats("teeClub", value)}
+                onValueChange={(value) => updateHoleStats({ teeClub: value })}
               >
                 <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
                   <SelectValue placeholder="Select Club" />
@@ -444,7 +438,7 @@ const Round = () => {
                 <ShotDirectionSelector
                   options={FIR_DIRECTIONS}
                   selectedValue={currentStats?.firDirection}
-                  onSelect={(value) => updateHoleStats("firDirection", value)}
+                  onSelect={(value) => updateHoleStats({ firDirection: value })}
                 />
               )}
             </div>
@@ -458,7 +452,7 @@ const Round = () => {
               </label>
               <Select
                 value={currentStats?.approachClub || ""}
-                onValueChange={(value) => updateHoleStats("approachClub", value)}
+                onValueChange={(value) => updateHoleStats({ approachClub: value })}
               >
                 <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
                   <SelectValue placeholder="Select Club" />
@@ -479,7 +473,7 @@ const Round = () => {
                 <ShotDirectionSelector
                   options={GIR_DIRECTIONS}
                   selectedValue={currentStats?.girDirection}
-                  onSelect={(value) => updateHoleStats("girDirection", value)}
+                  onSelect={(value) => updateHoleStats({ girDirection: value })}
                 />
               )}
             </div>
