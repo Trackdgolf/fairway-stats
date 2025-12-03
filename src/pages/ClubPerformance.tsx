@@ -9,13 +9,22 @@ import ScrambleClubList from "@/components/ScrambleClubList";
 import { useDispersionStats } from "@/hooks/useDispersionStats";
 
 type TabType = "teeShots" | "approach" | "scramble";
+type ScrambleShotTypeFilter = "all" | "pitch" | "chip" | "bunker";
+
+const SCRAMBLE_SHOT_TYPES: { value: ScrambleShotTypeFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "pitch", label: "Pitch" },
+  { value: "chip", label: "Chip" },
+  { value: "bunker", label: "Bunker" },
+];
 
 const ClubPerformance = () => {
   const [activeTab, setActiveTab] = useState<TabType>("teeShots");
   const [selectedTeeClub, setSelectedTeeClub] = useState<string>("all");
   const [selectedApproachClub, setSelectedApproachClub] = useState<string>("all");
+  const [selectedScrambleShotType, setSelectedScrambleShotType] = useState<ScrambleShotTypeFilter>("all");
 
-  const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub);
+  const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType);
 
   const teeClubs = ["All Clubs", ...(stats?.teeClubs || [])];
   const approachClubs = ["All Clubs", ...(stats?.approachClubs || [])];
@@ -76,6 +85,26 @@ const ClubPerformance = () => {
                   </Button>
                 );
               })}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        )}
+
+        {/* Scramble Shot Type Filter */}
+        {activeTab === "scramble" && (
+          <ScrollArea className="w-full whitespace-nowrap mb-6">
+            <div className="flex gap-2 pb-2">
+              {SCRAMBLE_SHOT_TYPES.map((type) => (
+                <Button
+                  key={type.value}
+                  variant={selectedScrambleShotType === type.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedScrambleShotType(type.value)}
+                  className="flex-shrink-0"
+                >
+                  {type.label}
+                </Button>
+              ))}
             </div>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
