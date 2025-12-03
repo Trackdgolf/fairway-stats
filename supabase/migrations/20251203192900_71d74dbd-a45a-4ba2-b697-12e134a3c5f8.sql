@@ -1,0 +1,1 @@
+ALTER TABLE hole_stats ADD COLUMN scramble_shot_type text;
