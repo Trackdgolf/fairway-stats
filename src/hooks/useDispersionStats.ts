@@ -1,6 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface ScrambleClubStats {
+  club: string;
+  attempts: number;
+  successes: number;
+  successRate: number;
+}
+
 export interface DispersionStats {
   teeShots: {
     total: number;
@@ -16,6 +23,10 @@ export interface DispersionStats {
     left: number;
     right: number;
     short: number;
+  };
+  scramble: {
+    total: number;
+    clubs: ScrambleClubStats[];
   };
   teeClubs: string[];
   approachClubs: string[];
@@ -67,9 +78,42 @@ export const useDispersionStats = (selectedTeeClub: string, selectedApproachClub
         short: approachTotal > 0 ? Math.round((approachShots.filter(s => s.gir_direction === 'short').length / approachTotal) * 100) : 0,
       };
 
+      // Calculate scramble statistics
+      const scrambleAttempts = stats.filter(s => 
+        s.scramble === 'yes' || s.scramble === 'no'
+      );
+
+      const clubStatsMap: Record<string, { attempts: number; successes: number }> = {};
+      
+      scrambleAttempts.forEach(stat => {
+        const club = stat.scramble_club;
+        if (!club) return;
+        
+        if (!clubStatsMap[club]) {
+          clubStatsMap[club] = { attempts: 0, successes: 0 };
+        }
+        clubStatsMap[club].attempts++;
+        if (stat.scramble === 'yes') {
+          clubStatsMap[club].successes++;
+        }
+      });
+
+      const rankedClubs: ScrambleClubStats[] = Object.entries(clubStatsMap)
+        .map(([club, data]) => ({
+          club,
+          attempts: data.attempts,
+          successes: data.successes,
+          successRate: data.attempts > 0 ? Math.round((data.successes / data.attempts) * 100) : 0
+        }))
+        .sort((a, b) => b.successRate - a.successRate);
+
       return {
         teeShots: teeDispersion,
         approach: approachDispersion,
+        scramble: {
+          total: scrambleAttempts.length,
+          clubs: rankedClubs,
+        },
         teeClubs,
         approachClubs,
       };
