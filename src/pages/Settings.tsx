@@ -1,13 +1,19 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useStatPreferences, StatPreferences } from "@/hooks/useStatPreferences";
+import { useMyBag } from "@/hooks/useMyBag";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { preferences, updatePreference } = useStatPreferences();
+  const { clubs, renameClub, addClub, removeClub, resetToDefault } = useMyBag();
+  const [newClubName, setNewClubName] = useState("");
 
   const statOptions: { key: keyof StatPreferences; label: string; description: string }[] = [
     { key: "fir", label: "FIR (Fairway in Regulation)", description: "Track fairway accuracy on tee shots" },
@@ -17,6 +23,13 @@ const Settings = () => {
     { key: "teeClub", label: "Tee Club", description: "Track which club used off the tee" },
     { key: "approachClub", label: "Approach Club", description: "Track which club used for approach shots" },
   ];
+
+  const handleAddClub = () => {
+    if (newClubName.trim()) {
+      addClub(newClubName.trim());
+      setNewClubName("");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20">
@@ -41,6 +54,62 @@ const Settings = () => {
               <p className="text-sm text-muted-foreground">Toggle light/dark mode</p>
             </div>
             <ThemeToggle />
+          </div>
+        </Card>
+
+        {/* My Bag Section */}
+        <Card className="p-4 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-foreground">My Bag</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetToDefault}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <RotateCcw className="w-4 h-4 mr-1" />
+              Reset
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Customize the clubs in your bag
+          </p>
+          <div className="space-y-3">
+            {clubs.map((club) => (
+              <div key={club.id} className="flex items-center gap-2">
+                <Input
+                  value={club.name}
+                  onChange={(e) => renameClub(club.id, e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeClub(club.id)}
+                  className="text-muted-foreground hover:text-destructive shrink-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 mt-4">
+            <Input
+              value={newClubName}
+              onChange={(e) => setNewClubName(e.target.value)}
+              placeholder="New club name"
+              className="flex-1"
+              onKeyDown={(e) => e.key === "Enter" && handleAddClub()}
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleAddClub}
+              disabled={!newClubName.trim()}
+              className="shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
           </div>
         </Card>
 
