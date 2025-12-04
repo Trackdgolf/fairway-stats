@@ -8,6 +8,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useTheme } from "next-themes";
+import logoLight from "@/assets/logo-light.png";
+import logoDark from "@/assets/logo-dark.png";
 
 interface InProgressRound {
   id: string;
@@ -44,6 +47,7 @@ interface CompletedRound {
 const Home = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { resolvedTheme } = useTheme();
 
   // Fetch in-progress rounds
   const { data: inProgressRounds } = useQuery({
@@ -120,7 +124,11 @@ const Home = () => {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-header-foreground mb-2">GolfTrack</h1>
+            <img 
+              src={resolvedTheme === "dark" ? logoDark : logoLight} 
+              alt="Trackd" 
+              className="h-16 mb-2"
+            />
             <p className="text-header-foreground/80">Track your game, improve your score</p>
           </div>
           <button
