@@ -158,7 +158,7 @@ const Stats = () => {
       <PageHeader />
       <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
         {/* Header */}
-        <div className="mb-6 pt-4">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-header-foreground mb-2">Your Statistics</h1>
           <p className="text-header-foreground/80">Track your golf performance</p>
         </div>
