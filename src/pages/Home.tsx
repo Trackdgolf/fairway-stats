@@ -1,4 +1,4 @@
-import { Play, Settings, Clock, Flag } from "lucide-react";
+import { Play, Settings, Clock, Flag, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
@@ -177,15 +177,23 @@ const Home = () => {
               {completedRounds.map((round) => (
                 <Card key={round.id} className="p-4">
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium text-foreground">{round.course_name}</p>
                       <p className="text-sm text-muted-foreground">
                         {round.played_at ? format(new Date(round.played_at), "MMM d, yyyy") : ""}
                       </p>
                     </div>
-                    <p className="text-xl font-bold text-foreground">
-                      {round.total_score ?? "--"}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <p className="text-xl font-bold text-foreground">
+                        {round.total_score ?? "--"}
+                      </p>
+                      <button
+                        onClick={() => navigate(`/edit-round/${round.id}`)}
+                        className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </Card>
               ))}
