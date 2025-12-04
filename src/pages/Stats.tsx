@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Trophy, Award, Target, TrendingUp, Grip, MapPin, Flag, Circle } from "lucide-react";
+import { Trophy, Award, Target, TrendingUp, Grip, MapPin, Flag, Circle, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import StatsChart from "@/components/StatsChart";
@@ -20,6 +21,7 @@ type StatType = "totalRounds" | "bestScore" | "avgScore" | "avgOverPar" | "avgPu
 type TimeRange = "3M" | "6M" | "1Y" | "MAX";
 
 const Stats = () => {
+  const navigate = useNavigate();
   const [selectedStat, setSelectedStat] = useState<StatType>("avgOverPar");
   const [timeRange, setTimeRange] = useState<TimeRange>("MAX");
   const [courseFilter, setCourseFilter] = useState("all");
@@ -158,7 +160,13 @@ const Stats = () => {
       <PageHeader />
       <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-6 relative">
+          <button
+            onClick={() => navigate('/settings')}
+            className="absolute right-0 top-0 p-2 text-header-foreground hover:text-header-foreground/70 transition-colors"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
           <h1 className="text-3xl font-bold text-header-foreground mb-2">Your Statistics</h1>
           <p className="text-header-foreground/80">Track your golf performance</p>
         </div>
