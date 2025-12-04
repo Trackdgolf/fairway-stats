@@ -30,11 +30,14 @@ All colors MUST be HSL.
     --accent: 152 39% 41%; /* #40916C - Secondary interactions */
     --accent-foreground: 0 0% 100%;
 
-    --header: 158 50% 22%; /* Deep forest green for page headers */
+    --header: 158 47% 18%; /* #1B4332 - Dark Green / Deep Forest */
     --header-foreground: 0 0% 100%;
 
     --success: 152 44% 52%; /* #52B788 - Light Green */
     --success-foreground: 0 0% 100%;
+
+    --warning: 45 100% 51%; /* #FFC107 */
+    --warning-foreground: 210 11% 15%;
 
     --destructive: 354 70% 54%; /* #DC3545 */
     --destructive-foreground: 0 0% 100%;
@@ -42,6 +45,9 @@ All colors MUST be HSL.
     --border: 210 14% 93%; /* #E9ECEF */
     --input: 210 14% 93%;
     --ring: 153 41% 30%;
+
+    /* Navigation */
+    --nav-inactive: 210 9% 71%; /* #ADB5BD */
 
     --radius: 1rem;
     
@@ -87,11 +93,14 @@ All colors MUST be HSL.
     --accent: 152 44% 52%; /* #52B788 - Light Green */
     --accent-foreground: 217 33% 17%;
 
-    --header: 160 45% 18%; /* Deep forest green for page headers */
+    --header: 158 47% 18%; /* #1B4332 - Dark Green / Deep Forest */
     --header-foreground: 210 40% 96%;
 
     --success: 152 44% 52%; /* #52B788 */
     --success-foreground: 217 33% 17%;
+
+    --warning: 45 100% 51%; /* #FFC107 */
+    --warning-foreground: 217 33% 17%;
 
     --destructive: 0 84% 60%; /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
@@ -99,6 +108,9 @@ All colors MUST be HSL.
     --border: 217 19% 27%; /* #334155 */
     --input: 217 19% 27%;
     --ring: 152 44% 52%;
+
+    /* Navigation */
+    --nav-inactive: 215 16% 47%; /* #64748B */
     
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 210 40% 96%;
@@ -109,7 +121,7 @@ All colors MUST be HSL.
     --sidebar-border: 217 19% 27%;
     --sidebar-ring: 152 44% 52%;
     
-    /* Round stats tracking colors (same as dark mode) */
+    /* Round stats tracking colors */
     --round-bg: 222 47% 11%; /* #0F172A */
     --round-card: 217 33% 17%; /* #1E293B */
     --round-input: 217 19% 27%; /* #334155 */
