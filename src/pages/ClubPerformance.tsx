@@ -52,7 +52,7 @@ const ClubPerformance = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-header-foreground mb-2">Club Performance</h1>
-          <p className="text-header-foreground/80">Shot dispersion analysis</p>
+          <p className="text-header-foreground/80">Track your dispersion and accuracy</p>
         </div>
 
         {/* Tab Navigation */}
