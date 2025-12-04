@@ -1,4 +1,4 @@
-import { Play, Trophy, TrendingUp, Settings, Clock, Flag } from "lucide-react";
+import { Play, Settings, Clock, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
@@ -84,27 +84,7 @@ const Home = () => {
     enabled: !!user,
   });
 
-  // Fetch stats summary
-  const { data: statsData } = useQuery({
-    queryKey: ["stats-summary", user?.id],
-    queryFn: async () => {
-      if (!user) return { totalRounds: 0, bestScore: null };
-      
-      const { data, error } = await supabase
-        .from("rounds")
-        .select("total_score")
-        .eq("user_id", user.id);
-      
-      if (error) throw error;
-      
-      const totalRounds = data?.length || 0;
-      const scores = data?.map(r => r.total_score).filter((s): s is number => s !== null) || [];
-      const bestScore = scores.length > 0 ? Math.min(...scores) : null;
-      
-      return { totalRounds, bestScore };
-    },
-    enabled: !!user,
-  });
+
 
   const handleContinueRound = (round: InProgressRound) => {
     navigate("/round", {
@@ -188,25 +168,6 @@ const Home = () => {
           </div>
         )}
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Trophy className="w-5 h-5 text-accent" />
-              <span className="text-sm text-muted-foreground">Rounds Played</span>
-            </div>
-            <p className="text-2xl font-bold text-foreground">{statsData?.totalRounds || 0}</p>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-5 h-5 text-accent" />
-              <span className="text-sm text-muted-foreground">Best Score</span>
-            </div>
-            <p className="text-2xl font-bold text-foreground">
-              {statsData?.bestScore ?? "--"}
-            </p>
-          </Card>
-        </div>
 
         {/* Recent Rounds */}
         <div className="mb-6">
