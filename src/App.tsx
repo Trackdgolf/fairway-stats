@@ -11,6 +11,7 @@ import Stats from "./pages/Stats";
 import ClubPerformance from "./pages/ClubPerformance";
 import CourseSearch from "./pages/CourseSearch";
 import Round from "./pages/Round";
+import EditRound from "./pages/EditRound";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/clubs" element={<ProtectedRoute><ClubPerformance /></ProtectedRoute>} />
               <Route path="/course-search" element={<ProtectedRoute><CourseSearch /></ProtectedRoute>} />
               <Route path="/round" element={<ProtectedRoute><Round /></ProtectedRoute>} />
+              <Route path="/edit-round/:roundId" element={<ProtectedRoute><EditRound /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
