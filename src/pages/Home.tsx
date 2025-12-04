@@ -122,21 +122,19 @@ const Home = () => {
       <PageHeader height="h-40" />
       <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
         {/* Header */}
-        <div className="mb-8 flex items-start justify-between">
-          <div>
-            <img 
-              src={resolvedTheme === "dark" ? logoDark : logoLight} 
-              alt="Trackd" 
-              className="h-16 mb-2"
-            />
-            <p className="text-header-foreground/80">Track your game, improve your score</p>
-          </div>
+        <div className="mb-8 flex flex-col items-center relative">
           <button
             onClick={() => navigate('/settings')}
-            className="p-2 text-header-foreground hover:text-header-foreground/70 transition-colors"
+            className="absolute right-0 top-0 p-2 text-header-foreground hover:text-header-foreground/70 transition-colors"
           >
             <Settings className="w-5 h-5" />
           </button>
+          <img 
+            src={resolvedTheme === "dark" ? logoDark : logoLight} 
+            alt="Trackd" 
+            className="h-24 mb-2"
+          />
+          <p className="text-header-foreground/80">Track your game, improve your score</p>
         </div>
 
         {/* Start Round Card - overlaps header */}
