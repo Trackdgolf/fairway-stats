@@ -165,7 +165,7 @@ const Stats = () => {
 
         {/* Chart */}
         {isLoading ? (
-          <Skeleton className="h-64 w-full mb-4 rounded-lg" />
+          <Skeleton className="h-48 w-full mb-4 rounded-lg" />
         ) : (
           <StatsChart
             data={getChartData()}
@@ -210,7 +210,7 @@ const Stats = () => {
         {isLoading ? (
           <div className="grid grid-cols-2 gap-4">
             {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-40 rounded-lg" />
+              <Skeleton key={i} className="aspect-square rounded-lg" />
             ))}
           </div>
         ) : (

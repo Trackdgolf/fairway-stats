@@ -39,7 +39,7 @@ const StatsChart = ({ data, title, yAxisLabel }: StatsChartProps) => {
   return (
     <Card className="p-6 mb-4">
       <h3 className="text-xl font-bold text-foreground mb-6 text-center">{title}</h3>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis 
