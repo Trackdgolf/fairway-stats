@@ -27,7 +27,7 @@ const StatTile = ({
     <Card
       onClick={isSelectable ? onClick : undefined}
       className={cn(
-        "p-4 transition-all relative aspect-square flex items-center justify-center",
+        "p-3 transition-all relative flex items-center justify-center",
         isSelectable && "cursor-pointer",
         isSelectable && isSelected && "border-[3px] border-primary"
       )}
@@ -35,13 +35,13 @@ const StatTile = ({
       {isSelectable && isSelected && (
         <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full" />
       )}
-      <div className="flex flex-col items-center text-center">
+      <div className="flex flex-col items-center text-center py-2">
         <div
-          className={cn("w-12 h-12 rounded-full flex items-center justify-center mb-2", iconColor)}
+          className={cn("w-10 h-10 rounded-full flex items-center justify-center mb-2", iconColor)}
         >
-          <Icon className={cn("w-6 h-6", iconTextColor)} />
+          <Icon className={cn("w-5 h-5", iconTextColor)} />
         </div>
-        <p className="text-2xl font-bold text-foreground mb-1">{value}</p>
+        <p className="text-xl font-bold text-foreground mb-0.5">{value}</p>
         <p className="text-xs text-muted-foreground">{label}</p>
       </div>
     </Card>
