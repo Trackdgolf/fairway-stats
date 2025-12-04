@@ -130,7 +130,7 @@ const Home = () => {
             <Settings className="w-5 h-5" />
           </button>
           <img 
-            src={resolvedTheme === "dark" ? logoDark : logoLight} 
+            src={resolvedTheme === "dark" ? logoLight : logoDark} 
             alt="Trackd" 
             className="h-32"
           />
