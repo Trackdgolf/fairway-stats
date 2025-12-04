@@ -210,7 +210,7 @@ const Stats = () => {
         {isLoading ? (
           <div className="grid grid-cols-2 gap-4">
             {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="aspect-square rounded-lg" />
+              <Skeleton key={i} className="h-24 rounded-lg" />
             ))}
           </div>
         ) : (
