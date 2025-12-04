@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Settings } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +22,7 @@ const SCRAMBLE_SHOT_TYPES: { value: ScrambleShotTypeFilter; label: string }[] = 
 ];
 
 const ClubPerformance = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>("teeShots");
   const [selectedTeeClub, setSelectedTeeClub] = useState<string>("all");
   const [selectedApproachClub, setSelectedApproachClub] = useState<string>("all");
@@ -50,7 +53,13 @@ const ClubPerformance = () => {
       <PageHeader />
       <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-6 relative">
+          <button
+            onClick={() => navigate('/settings')}
+            className="absolute right-0 top-0 p-2 text-header-foreground hover:text-header-foreground/70 transition-colors"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
           <h1 className="text-3xl font-bold text-header-foreground mb-2">Club Performance</h1>
           <p className="text-header-foreground/80">Track your dispersion and accuracy</p>
         </div>
