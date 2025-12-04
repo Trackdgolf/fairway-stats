@@ -93,8 +93,8 @@ All colors MUST be HSL.
     --accent: 152 44% 52%; /* #52B788 - Light Green */
     --accent-foreground: 217 33% 17%;
 
-    --header: 158 47% 18%; /* #1B4332 - Dark Green / Deep Forest */
-    --header-foreground: 210 40% 96%;
+    --header: 152 44% 52%; /* #52B788 - Light Green */
+    --header-foreground: 217 33% 17%;
 
     --success: 152 44% 52%; /* #52B788 */
     --success-foreground: 217 33% 17%;
