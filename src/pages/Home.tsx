@@ -132,9 +132,8 @@ const Home = () => {
           <img 
             src={resolvedTheme === "dark" ? logoDark : logoLight} 
             alt="Trackd" 
-            className="h-24 mb-2"
+            className="h-32"
           />
-          <p className="text-header-foreground/80">Track your game, improve your score</p>
         </div>
 
         {/* Start Round Card - overlaps header */}
