@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus, Trash2, RotateCcw } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, RotateCcw, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
@@ -9,11 +9,15 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useStatPreferences, StatPreferences } from "@/hooks/useStatPreferences";
 import { useMyBag, Club } from "@/hooks/useMyBag";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -25,11 +29,14 @@ import {
 
 const Settings = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { preferences, updatePreference } = useStatPreferences();
   const { clubs, renameClub, addClub, removeClub, resetToDefault } = useMyBag();
   const [newClubName, setNewClubName] = useState("");
   const [editingClub, setEditingClub] = useState<Club | null>(null);
   const [editName, setEditName] = useState("");
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [showRenameConfirm, setShowRenameConfirm] = useState(false);
 
   const statOptions: { key: keyof StatPreferences; label: string; description: string }[] = [
     { key: "fir", label: "FIR (Fairway in Regulation)", description: "Track fairway accuracy on tee shots" },
@@ -52,10 +59,68 @@ const Settings = () => {
     setEditName(club.name);
   };
 
-  const handleSaveEdit = () => {
-    if (editingClub && editName.trim()) {
-      renameClub(editingClub.id, editName.trim());
+  const handleSaveEdit = async () => {
+    if (!editingClub || !editName.trim()) return;
+    
+    const oldName = editingClub.name;
+    const newName = editName.trim();
+    
+    // If name hasn't changed, just close
+    if (oldName === newName) {
       setEditingClub(null);
+      return;
+    }
+    
+    // Show confirmation dialog
+    setShowRenameConfirm(true);
+  };
+
+  const confirmRename = async () => {
+    if (!editingClub || !editName.trim()) return;
+    
+    const oldName = editingClub.name;
+    const newName = editName.trim();
+    
+    setIsRenaming(true);
+    setShowRenameConfirm(false);
+    
+    try {
+      // Update all historical records in hole_stats
+      const updates = await Promise.all([
+        supabase
+          .from("hole_stats")
+          .update({ tee_club: newName })
+          .eq("tee_club", oldName),
+        supabase
+          .from("hole_stats")
+          .update({ approach_club: newName })
+          .eq("approach_club", oldName),
+        supabase
+          .from("hole_stats")
+          .update({ scramble_club: newName })
+          .eq("scramble_club", oldName),
+      ]);
+      
+      // Check for errors
+      const errors = updates.filter(result => result.error);
+      if (errors.length > 0) {
+        throw new Error(errors[0].error?.message || "Failed to update historical data");
+      }
+      
+      // Update local storage
+      renameClub(editingClub.id, newName);
+      
+      // Invalidate queries to refresh stats
+      queryClient.invalidateQueries({ queryKey: ["dispersionStats"] });
+      queryClient.invalidateQueries({ queryKey: ["roundStats"] });
+      
+      toast.success(`Renamed "${oldName}" to "${newName}" across all historical data`);
+      setEditingClub(null);
+    } catch (error) {
+      console.error("Error updating club name:", error);
+      toast.error("Failed to update historical data. Please try again.");
+    } finally {
+      setIsRenaming(false);
     }
   };
 
@@ -153,7 +218,7 @@ const Settings = () => {
         </Accordion>
 
         {/* Edit Club Dialog */}
-        <Dialog open={editingClub !== null} onOpenChange={() => setEditingClub(null)}>
+        <Dialog open={editingClub !== null && !showRenameConfirm} onOpenChange={() => setEditingClub(null)}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Club</DialogTitle>
@@ -163,18 +228,44 @@ const Settings = () => {
               onChange={(e) => setEditName(e.target.value)}
               placeholder="Club name"
               onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
+              disabled={isRenaming}
             />
             <DialogFooter className="flex gap-2 sm:gap-0">
               <Button
                 variant="destructive"
                 onClick={handleDeleteClub}
                 className="flex-1 sm:flex-none"
+                disabled={isRenaming}
               >
                 <Trash2 className="w-4 h-4 mr-1" />
                 Delete
               </Button>
-              <Button onClick={handleSaveEdit} className="flex-1 sm:flex-none">
-                Save
+              <Button onClick={handleSaveEdit} className="flex-1 sm:flex-none" disabled={isRenaming}>
+                {isRenaming ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Rename Confirmation Dialog */}
+        <Dialog open={showRenameConfirm} onOpenChange={setShowRenameConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Update Historical Data?</DialogTitle>
+              <DialogDescription>
+                Renaming "{editingClub?.name}" to "{editName}" will also update all your historical stats to use the new name. This ensures your stats remain consolidated.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                onClick={() => setShowRenameConfirm(false)}
+                className="flex-1 sm:flex-none"
+              >
+                Cancel
+              </Button>
+              <Button onClick={confirmRename} className="flex-1 sm:flex-none">
+                Confirm Rename
               </Button>
             </DialogFooter>
           </DialogContent>
