@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Settings } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
@@ -11,6 +11,7 @@ import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
 import ScrambleClubList from "@/components/ScrambleClubList";
 import { useDispersionStats } from "@/hooks/useDispersionStats";
+import { useMyBag } from "@/hooks/useMyBag";
 
 type TabType = "teeShots" | "approach" | "scramble";
 type ScrambleShotTypeFilter = "all" | "pitch" | "chip" | "bunker";
@@ -29,12 +30,38 @@ const ClubPerformance = () => {
   const [selectedApproachClub, setSelectedApproachClub] = useState<string>("all");
   const [selectedScrambleShotType, setSelectedScrambleShotType] = useState<ScrambleShotTypeFilter>("all");
 
+  const { clubs: bagClubs } = useMyBag();
   const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType);
 
-  const teeClubs = ["All Clubs", ...(stats?.teeClubs || [])];
-  const approachClubs = ["All Clubs", ...(stats?.approachClubs || [])];
+  // Sort clubs by bag order, only include clubs with data
+  const sortedTeeClubs = useMemo(() => {
+    const clubsWithData = stats?.teeClubs || [];
+    const bagOrder = bagClubs.map(c => c.name);
+    return clubsWithData.sort((a, b) => {
+      const indexA = bagOrder.indexOf(a);
+      const indexB = bagOrder.indexOf(b);
+      // If not in bag, put at end
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+  }, [stats?.teeClubs, bagClubs]);
 
-  const clubs = activeTab === "teeShots" ? teeClubs : activeTab === "approach" ? approachClubs : [];
+  const sortedApproachClubs = useMemo(() => {
+    const clubsWithData = stats?.approachClubs || [];
+    const bagOrder = bagClubs.map(c => c.name);
+    return clubsWithData.sort((a, b) => {
+      const indexA = bagOrder.indexOf(a);
+      const indexB = bagOrder.indexOf(b);
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+  }, [stats?.approachClubs, bagClubs]);
+
+  const clubs = activeTab === "teeShots" ? sortedTeeClubs : activeTab === "approach" ? sortedApproachClubs : [];
   const selectedClub = activeTab === "teeShots" ? selectedTeeClub : selectedApproachClub;
   const setSelectedClub = activeTab === "teeShots" ? setSelectedTeeClub : setSelectedApproachClub;
 
@@ -98,7 +125,7 @@ const ClubPerformance = () => {
                 <SelectValue placeholder="Club Filter" />
               </SelectTrigger>
               <SelectContent>
-                {clubs.filter(c => c !== "All Clubs").map((club) => (
+                {clubs.map((club) => (
                   <SelectItem key={club} value={club}>
                     {club}
                   </SelectItem>
