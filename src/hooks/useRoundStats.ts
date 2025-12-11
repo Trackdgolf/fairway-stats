@@ -61,13 +61,15 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
       }
 
       // Calculate date cutoff based on time range
-      const now = new Date();
       let dateCutoff: Date | null = null;
       if (timeRange === "3M") {
+        const now = new Date();
         dateCutoff = new Date(now.setMonth(now.getMonth() - 3));
       } else if (timeRange === "6M") {
+        const now = new Date();
         dateCutoff = new Date(now.setMonth(now.getMonth() - 6));
       } else if (timeRange === "1Y") {
+        const now = new Date();
         dateCutoff = new Date(now.setFullYear(now.getFullYear() - 1));
       }
 
