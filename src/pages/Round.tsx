@@ -367,6 +367,15 @@ const Round = () => {
     navigate('/');
   };
 
+  const handleDiscardRound = async () => {
+    await deleteInProgressRound();
+    toast({
+      title: "Round discarded",
+      description: "Your round has been deleted.",
+    });
+    navigate('/');
+  };
+
   const currentHole = course?.holes?.[currentHoleIndex];
   const currentStats = holeStats[currentHoleIndex];
   const totalHoles = course?.holes?.length || 18;
@@ -729,6 +738,12 @@ const Round = () => {
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
               Finish Round
+            </AlertDialogAction>
+            <AlertDialogAction 
+              onClick={handleDiscardRound}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Discard Round
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
