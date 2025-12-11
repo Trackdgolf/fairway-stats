@@ -64,7 +64,7 @@ const CourseSearch = () => {
         return acc;
       }, []);
 
-      return uniqueCourses.slice(0, 5); // Return top 5 recent courses
+      return uniqueCourses.slice(0, 3); // Return top 3 recent courses
     },
     enabled: !!user?.id,
   });
