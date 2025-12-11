@@ -6,6 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
 import ScrambleClubList from "@/components/ScrambleClubList";
@@ -80,25 +81,31 @@ const ClubPerformance = () => {
 
         {/* Club Filter - only show for teeShots and approach */}
         {activeTab !== "scramble" && (
-          <ScrollArea className="w-full whitespace-nowrap mb-6">
-            <div className="flex gap-2 pb-2">
-              {clubs.map((club) => {
-                const clubKey = club === "All Clubs" ? "all" : club;
-                return (
-                  <Button
-                    key={club}
-                    variant={selectedClub === clubKey ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedClub(clubKey)}
-                    className="flex-shrink-0"
-                  >
+          <div className="flex gap-2 mb-6">
+            <Button
+              variant={selectedClub === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedClub("all")}
+            >
+              All Clubs
+            </Button>
+            
+            <Select
+              value={selectedClub === "all" ? "" : selectedClub}
+              onValueChange={(value) => setSelectedClub(value)}
+            >
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue placeholder="Club Filter" />
+              </SelectTrigger>
+              <SelectContent>
+                {clubs.filter(c => c !== "All Clubs").map((club) => (
+                  <SelectItem key={club} value={club}>
                     {club}
-                  </Button>
-                );
-              })}
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
 
         {/* Scramble Shot Type Filter */}
