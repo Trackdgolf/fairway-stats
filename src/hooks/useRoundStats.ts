@@ -168,17 +168,7 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
       const { data: allRounds } = await supabase.from("rounds").select("course_name");
       const courses = [...new Set(allRounds?.map((r) => r.course_name) || [])];
 
-      // Calculate time series data grouped by month
-      const roundsByMonth = new Map<string, typeof rounds>();
-      rounds.forEach((round) => {
-        const date = new Date(round.played_at || round.created_at || new Date());
-        const monthKey = date.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
-        if (!roundsByMonth.has(monthKey)) {
-          roundsByMonth.set(monthKey, []);
-        }
-        roundsByMonth.get(monthKey)!.push(round);
-      });
-
+      // Calculate time series data per round
       const holeStatsByRound = new Map<string, typeof holeStats>();
       holeStats?.forEach((hole) => {
         if (!holeStatsByRound.has(hole.round_id)) {
@@ -196,74 +186,73 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
         scramblePercent: [],
       };
 
-      roundsByMonth.forEach((monthRounds, monthKey) => {
-        const monthScores = monthRounds.map((r) => r.total_score).filter((s): s is number => s !== null);
-        if (monthScores.length > 0) {
+      rounds.forEach((round) => {
+        const date = new Date(round.played_at || round.created_at || new Date());
+        const dateKey = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        
+        // Score for this round
+        if (round.total_score !== null) {
           timeSeries.avgScore.push({
-            date: monthKey,
-            value: parseFloat((monthScores.reduce((a, b) => a + b, 0) / monthScores.length).toFixed(1)),
+            date: dateKey,
+            value: round.total_score,
           });
         }
 
-        // Get hole stats for this month's rounds
-        const monthHoleStats: typeof holeStats = [];
-        monthRounds.forEach((r) => {
-          const holes = holeStatsByRound.get(r.id);
-          if (holes) monthHoleStats.push(...holes);
-        });
+        // Get hole stats for this round
+        const roundHoleStats = holeStatsByRound.get(round.id) || [];
 
-        // Avg over par for month
-        let monthOverPar = 0;
-        let monthHolesWithPar = 0;
-        monthHoleStats.forEach((hole) => {
+        // Over par for this round
+        let roundOverPar = 0;
+        let roundHolesWithPar = 0;
+        roundHoleStats.forEach((hole) => {
           if (hole.score !== null && hole.par !== null) {
-            monthOverPar += hole.score - hole.par;
-            monthHolesWithPar++;
+            roundOverPar += hole.score - hole.par;
+            roundHolesWithPar++;
           }
         });
-        if (monthHolesWithPar > 0) {
+        if (roundHolesWithPar > 0) {
           timeSeries.avgOverPar.push({
-            date: monthKey,
-            value: parseFloat((monthOverPar / (monthHolesWithPar / 18)).toFixed(1)),
+            date: dateKey,
+            value: parseFloat((roundOverPar).toFixed(1)),
           });
         }
 
-        // Avg putts for month
-        const monthPutts = monthHoleStats.filter((h) => h.putts !== null).map((h) => h.putts as number);
-        if (monthPutts.length > 0) {
+        // Avg putts for this round
+        const roundPutts = roundHoleStats.filter((h) => h.putts !== null).map((h) => h.putts as number);
+        if (roundPutts.length > 0) {
           timeSeries.avgPutts.push({
-            date: monthKey,
-            value: parseFloat((monthPutts.reduce((a, b) => a + b, 0) / monthPutts.length).toFixed(1)),
+            date: dateKey,
+            value: parseFloat((roundPutts.reduce((a, b) => a + b, 0) / roundPutts.length).toFixed(1)),
           });
         }
 
-        // FIR % for month
-        const monthFirHoles = monthHoleStats.filter((h) => h.fir !== null);
-        const monthFirHits = monthFirHoles.filter((h) => h.fir === true).length;
-        if (monthFirHoles.length > 0) {
+        // FIR % for this round
+        const roundFirHoles = roundHoleStats.filter((h) => h.fir !== null);
+        const roundFirHits = roundFirHoles.filter((h) => h.fir === true).length;
+        if (roundFirHoles.length > 0) {
           timeSeries.firPercent.push({
-            date: monthKey,
-            value: Math.round((monthFirHits / monthFirHoles.length) * 100),
+            date: dateKey,
+            value: Math.round((roundFirHits / roundFirHoles.length) * 100),
           });
         }
 
-        // GIR % for month
-        const monthGirHoles = monthHoleStats.filter((h) => h.gir !== null);
-        const monthGirHits = monthGirHoles.filter((h) => h.gir === true).length;
-        if (monthGirHoles.length > 0) {
+        // GIR % for this round
+        const roundGirHoles = roundHoleStats.filter((h) => h.gir !== null);
+        const roundGirHits = roundGirHoles.filter((h) => h.gir === true).length;
+        if (roundGirHoles.length > 0) {
           timeSeries.girPercent.push({
-            date: monthKey,
-            value: Math.round((monthGirHits / monthGirHoles.length) * 100),
+            date: dateKey,
+            value: Math.round((roundGirHits / roundGirHoles.length) * 100),
           });
         }
 
-        // Scramble % for month
-        const monthScrambleAttempts = monthHoleStats.filter((h) => h.scramble === "yes" || h.scramble === "no");
-        const monthScrambleSuccesses = monthScrambleAttempts.filter((h) => h.scramble === "yes").length;
-        if (monthScrambleAttempts.length > 0) {
+        // Scramble % for this round
+        const roundScrambleAttempts = roundHoleStats.filter((h) => h.scramble === "yes" || h.scramble === "no");
+        const roundScrambleSuccesses = roundScrambleAttempts.filter((h) => h.scramble === "yes").length;
+        if (roundScrambleAttempts.length > 0) {
           timeSeries.scramblePercent.push({
-            date: monthKey,
-            value: Math.round((monthScrambleSuccesses / monthScrambleAttempts.length) * 100),
+            date: dateKey,
+            value: Math.round((roundScrambleSuccesses / roundScrambleAttempts.length) * 100),
           });
         }
       });
