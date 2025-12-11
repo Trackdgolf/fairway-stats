@@ -35,7 +35,7 @@ const ClubSelectorDrawer = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="h-[40vh] bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
+      <DrawerContent className="h-[60vh] bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
         <DrawerHeader className="pb-2">
           <DrawerTitle className="text-foreground text-center">{title}</DrawerTitle>
         </DrawerHeader>
