@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Circle, Minus, Plus } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Circle, Minus, Plus, ChevronDown } from "lucide-react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
@@ -8,13 +8,6 @@ import { useStatPreferences } from "@/hooks/useStatPreferences";
 import { useMyBag } from "@/hooks/useMyBag";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import ClubSelectorDrawer from "@/components/ClubSelectorDrawer";
 
 type FirDirection = 'hit' | 'left' | 'right' | 'short' | null;
 type GirDirection = 'hit' | 'left' | 'right' | 'long' | 'short' | null;
@@ -193,6 +187,9 @@ const Round = () => {
   const [currentHoleIndex, setCurrentHoleIndex] = useState(restoredHoleIndex || 0);
   const [isSaving, setIsSaving] = useState(false);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [teeClubDrawerOpen, setTeeClubDrawerOpen] = useState(false);
+  const [approachClubDrawerOpen, setApproachClubDrawerOpen] = useState(false);
+  const [scrambleClubDrawerOpen, setScrambleClubDrawerOpen] = useState(false);
   const [holeStats, setHoleStats] = useState<HoleStats[]>(
     restoredStats || course?.holes?.map((hole: { par?: number }) => ({
       score: hole?.par || null,
@@ -549,25 +546,24 @@ const Round = () => {
               <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Scramble Club
               </label>
-              <Select
-                value={currentStats?.scrambleClub || ""}
-                onValueChange={(value) => updateHoleStats({ scrambleClub: value })}
+              <button
+                type="button"
+                onClick={() => setScrambleClubDrawerOpen(true)}
+                className="w-full h-14 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
               >
-                <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
-                  <SelectValue placeholder="Select Club" />
-                </SelectTrigger>
-                <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
-                  {clubs.map((club) => (
-                    <SelectItem 
-                      key={club.id} 
-                      value={club.name}
-                      className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
-                    >
-                      {club.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <span className={currentStats?.scrambleClub ? "text-foreground" : "text-muted-foreground"}>
+                  {currentStats?.scrambleClub || "Select Club"}
+                </span>
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <ClubSelectorDrawer
+                open={scrambleClubDrawerOpen}
+                onOpenChange={setScrambleClubDrawerOpen}
+                title="Select Scramble Club"
+                clubs={clubs}
+                selectedClub={currentStats?.scrambleClub || ""}
+                onSelect={(value) => updateHoleStats({ scrambleClub: value })}
+              />
 
               {/* Scramble Shot Type */}
               <div className="space-y-3 mt-4">
@@ -615,25 +611,24 @@ const Round = () => {
               <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Tee Club
               </label>
-              <Select
-                value={currentStats?.teeClub || ""}
-                onValueChange={(value) => updateHoleStats({ teeClub: value })}
+              <button
+                type="button"
+                onClick={() => setTeeClubDrawerOpen(true)}
+                className="w-full h-14 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
               >
-                <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
-                  <SelectValue placeholder="Select Club" />
-                </SelectTrigger>
-                <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
-                  {clubs.map((club) => (
-                    <SelectItem 
-                      key={club.id} 
-                      value={club.name}
-                      className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
-                    >
-                      {club.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <span className={currentStats?.teeClub ? "text-foreground" : "text-muted-foreground"}>
+                  {currentStats?.teeClub || "Select Club"}
+                </span>
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <ClubSelectorDrawer
+                open={teeClubDrawerOpen}
+                onOpenChange={setTeeClubDrawerOpen}
+                title="Select Tee Club"
+                clubs={clubs}
+                selectedClub={currentStats?.teeClub || ""}
+                onSelect={(value) => updateHoleStats({ teeClub: value })}
+              />
               {/* FIR direction - only shown on non-Par 3s */}
               {preferences.fir && currentHole?.par !== 3 && (
                 <ShotDirectionSelector
@@ -659,25 +654,24 @@ const Round = () => {
               <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Approach Club
               </label>
-              <Select
-                value={currentStats?.approachClub || ""}
-                onValueChange={(value) => updateHoleStats({ approachClub: value })}
+              <button
+                type="button"
+                onClick={() => setApproachClubDrawerOpen(true)}
+                className="w-full h-14 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
               >
-                <SelectTrigger className="h-14 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground">
-                  <SelectValue placeholder="Select Club" />
-                </SelectTrigger>
-                <SelectContent className="bg-card dark:bg-[hsl(var(--round-card))] border-border dark:border-[hsl(var(--round-border))]">
-                  {clubs.map((club) => (
-                    <SelectItem 
-                      key={club.id} 
-                      value={club.name}
-                      className="text-foreground focus:bg-muted dark:focus:bg-[hsl(var(--round-input))] focus:text-foreground"
-                    >
-                      {club.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <span className={currentStats?.approachClub ? "text-foreground" : "text-muted-foreground"}>
+                  {currentStats?.approachClub || "Select Club"}
+                </span>
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <ClubSelectorDrawer
+                open={approachClubDrawerOpen}
+                onOpenChange={setApproachClubDrawerOpen}
+                title="Select Approach Club"
+                clubs={clubs}
+                selectedClub={currentStats?.approachClub || ""}
+                onSelect={(value) => updateHoleStats({ approachClub: value })}
+              />
               {preferences.gir && (
                 <ShotDirectionSelector
                   options={GIR_DIRECTIONS}
