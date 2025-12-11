@@ -42,7 +42,21 @@ interface CompletedRound {
   course_name: string;
   total_score: number | null;
   played_at: string | null;
+  hole_stats: Array<{ par: number | null }>;
 }
+
+const formatScoreVsPar = (totalScore: number | null, holeStats: Array<{ par: number | null }>) => {
+  if (totalScore === null || !holeStats || holeStats.length === 0) return null;
+  
+  const totalPar = holeStats.reduce((sum, hole) => sum + (hole.par || 0), 0);
+  if (totalPar === 0) return null;
+  
+  const difference = totalScore - totalPar;
+  
+  if (difference === 0) return "E";
+  if (difference > 0) return `+${difference}`;
+  return `${difference}`;
+};
 
 const Home = () => {
   const navigate = useNavigate();
@@ -73,7 +87,7 @@ const Home = () => {
       if (!user) return [];
       const { data, error } = await supabase
         .from("rounds")
-        .select("id, course_name, total_score, played_at")
+        .select("id, course_name, total_score, played_at, hole_stats(par)")
         .eq("user_id", user.id)
         .order("played_at", { ascending: false })
         .limit(5);
@@ -184,9 +198,16 @@ const Home = () => {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <p className="text-xl font-bold text-foreground">
-                        {round.total_score ?? "--"}
-                      </p>
+                      <div className="text-right">
+                        <p className="text-xl font-bold text-foreground">
+                          {round.total_score ?? "--"}
+                        </p>
+                        {formatScoreVsPar(round.total_score, round.hole_stats) && (
+                          <p className="text-sm font-medium text-primary">
+                            {formatScoreVsPar(round.total_score, round.hole_stats)}
+                          </p>
+                        )}
+                      </div>
                       <button
                         onClick={() => navigate(`/edit-round/${round.id}`)}
                         className="p-2 text-muted-foreground hover:text-foreground transition-colors"
