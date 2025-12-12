@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
-import { useStatPreferences } from "@/hooks/useStatPreferences";
-import { useMyBag } from "@/hooks/useMyBag";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -175,8 +174,7 @@ const Round = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { preferences } = useStatPreferences();
-  const { clubs } = useMyBag();
+  const { statPreferences: preferences, clubs } = useUserPreferences();
   const { user } = useAuth();
   
   const course = location.state?.course;

@@ -7,8 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useStatPreferences, StatPreferences } from "@/hooks/useStatPreferences";
-import { useMyBag, Club } from "@/hooks/useMyBag";
+import { useUserPreferences, StatPreferences, Club } from "@/hooks/useUserPreferences";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -30,8 +29,16 @@ import {
 const Settings = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { preferences, updatePreference } = useStatPreferences();
-  const { clubs, renameClub, addClub, removeClub, resetToDefault } = useMyBag();
+  const { 
+    clubs, 
+    renameClub, 
+    addClub, 
+    removeClub, 
+    resetClubsToDefault,
+    statPreferences,
+    updateStatPreference,
+    loading 
+  } = useUserPreferences();
   const [newClubName, setNewClubName] = useState("");
   const [editingClub, setEditingClub] = useState<Club | null>(null);
   const [editName, setEditName] = useState("");
@@ -175,7 +182,7 @@ const Settings = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={resetToDefault}
+                    onClick={resetClubsToDefault}
                     className="text-muted-foreground hover:text-foreground"
                   >
                     <RotateCcw className="w-4 h-4 mr-1" />
@@ -291,8 +298,8 @@ const Settings = () => {
                       <p className="text-sm text-muted-foreground">{option.description}</p>
                     </div>
                     <Switch
-                      checked={preferences[option.key]}
-                      onCheckedChange={(checked) => updatePreference(option.key, checked)}
+                      checked={statPreferences[option.key]}
+                      onCheckedChange={(checked) => updateStatPreference(option.key, checked)}
                     />
                   </div>
                 ))}

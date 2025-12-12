@@ -11,7 +11,7 @@ import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
 import ScrambleClubList from "@/components/ScrambleClubList";
 import { useDispersionStats } from "@/hooks/useDispersionStats";
-import { useMyBag } from "@/hooks/useMyBag";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 type TabType = "teeShots" | "approach" | "scramble";
 type ScrambleShotTypeFilter = "all" | "pitch" | "chip" | "bunker";
@@ -30,7 +30,7 @@ const ClubPerformance = () => {
   const [selectedApproachClub, setSelectedApproachClub] = useState<string>("all");
   const [selectedScrambleShotType, setSelectedScrambleShotType] = useState<ScrambleShotTypeFilter>("all");
 
-  const { clubs: bagClubs } = useMyBag();
+  const { clubs: bagClubs } = useUserPreferences();
   const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType);
 
   // Sort clubs by bag order, only include clubs with data
