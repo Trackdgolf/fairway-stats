@@ -26,8 +26,20 @@ const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user arrived via password reset link
-    const checkSession = async () => {
+    let redirectTimeout: NodeJS.Timeout;
+
+    // Listen for auth state changes - catches PASSWORD_RECOVERY event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'PASSWORD_RECOVERY' || session) {
+          setIsValidSession(true);
+          if (redirectTimeout) clearTimeout(redirectTimeout);
+        }
+      }
+    );
+
+    // Check existing session after delay to allow URL token processing
+    redirectTimeout = setTimeout(async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setIsValidSession(true);
@@ -39,8 +51,12 @@ const ResetPassword = () => {
         });
         navigate('/auth');
       }
+    }, 1500);
+
+    return () => {
+      subscription.unsubscribe();
+      if (redirectTimeout) clearTimeout(redirectTimeout);
     };
-    checkSession();
   }, [navigate, toast]);
 
   const validateForm = () => {
