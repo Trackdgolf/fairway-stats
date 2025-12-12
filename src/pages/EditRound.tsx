@@ -3,8 +3,7 @@ import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronR
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useStatPreferences } from "@/hooks/useStatPreferences";
-import { useMyBag } from "@/hooks/useMyBag";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -184,8 +183,7 @@ const EditRound = () => {
   const { roundId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { preferences } = useStatPreferences();
-  const { clubs } = useMyBag();
+  const { statPreferences: preferences, clubs } = useUserPreferences();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   

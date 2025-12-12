@@ -5,7 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import StatsChart from "@/components/StatsChart";
 import StatTile from "@/components/StatTile";
-import { useStatPreferences } from "@/hooks/useStatPreferences";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useRoundStats } from "@/hooks/useRoundStats";
 import {
   Select,
@@ -25,7 +25,7 @@ const Stats = () => {
   const [selectedStat, setSelectedStat] = useState<StatType>("avgOverPar");
   const [timeRange, setTimeRange] = useState<TimeRange>("MAX");
   const [courseFilter, setCourseFilter] = useState("all");
-  const { preferences } = useStatPreferences();
+  const { statPreferences: preferences } = useUserPreferences();
   const { data, isLoading } = useRoundStats(timeRange, courseFilter);
 
   const getChartData = () => {
