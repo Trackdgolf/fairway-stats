@@ -14,6 +14,7 @@ import Round from "./pages/Round";
 import EditRound from "./pages/EditRound";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
               <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
               <Route path="/clubs" element={<ProtectedRoute><ClubPerformance /></ProtectedRoute>} />
