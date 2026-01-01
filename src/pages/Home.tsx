@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
+import { TrackdHandicap } from "@/components/TrackdHandicap";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -100,7 +101,6 @@ const Home = () => {
   });
 
 
-
   const handleContinueRound = (round: InProgressRound) => {
     navigate("/round", {
       state: {
@@ -183,6 +183,10 @@ const Home = () => {
           </div>
         )}
 
+        {/* Trackd Handicap */}
+        <div className="mb-6">
+          <TrackdHandicap />
+        </div>
 
         {/* Recent Rounds */}
         <div className="mb-6">
