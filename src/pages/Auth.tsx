@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import logoLight from '@/assets/logo-light.png';
+import logoDark from '@/assets/logo-dark.png';
 
 const authSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -29,6 +32,7 @@ const Auth = () => {
   const { signIn, signUp, resetPassword, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     if (user) {
@@ -158,7 +162,11 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">GolfTrack</h1>
+          <img 
+            src={resolvedTheme === "dark" ? logoLight : logoDark} 
+            alt="Tackd" 
+            className="h-24 mx-auto mb-2"
+          />
           <p className="text-muted-foreground">Track your game, improve your score</p>
         </div>
 
