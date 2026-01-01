@@ -6,7 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { format } from "date-fns";
 import { useTheme } from "next-themes";
 import logoLight from "@/assets/logo-light.png";
@@ -62,6 +62,7 @@ const Home = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { resolvedTheme } = useTheme();
+  const supabase = getSupabaseClient();
 
   // Fetch in-progress rounds
   const { data: inProgressRounds } = useQuery({
