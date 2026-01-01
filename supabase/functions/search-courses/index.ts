@@ -40,6 +40,21 @@ serve(async (req) => {
     console.log('Authenticated user:', user.id);
 
     const { query } = await req.json();
+    
+    // Input validation
+    if (!query || typeof query !== 'string' || query.trim().length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Query parameter is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    if (query.length > 200) {
+      return new Response(
+        JSON.stringify({ error: 'Query too long' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const apiKey = Deno.env.get('GOLF_COURSE_API_KEY');
 
     if (!apiKey) {
