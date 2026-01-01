@@ -163,7 +163,7 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img 
-            src={resolvedTheme === "dark" ? logoLight : logoDark} 
+            src={resolvedTheme === "dark" ? logoDark : logoLight} 
             alt="Tackd" 
             className="h-24 mx-auto mb-2"
           />
