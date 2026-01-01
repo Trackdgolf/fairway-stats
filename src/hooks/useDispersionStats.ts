@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 
 export interface ScrambleClubStats {
   club: string;
@@ -33,6 +33,8 @@ export interface DispersionStats {
 }
 
 export const useDispersionStats = (selectedTeeClub: string, selectedApproachClub: string, selectedScrambleShotType: string = "all") => {
+  const supabase = getSupabaseClient();
+  
   return useQuery({
     queryKey: ["dispersion-stats", selectedTeeClub, selectedApproachClub, selectedScrambleShotType],
     queryFn: async (): Promise<DispersionStats> => {

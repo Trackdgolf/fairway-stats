@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Circle, Minus, Plus, ChevronDown } from "lucide-react";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import type { Json } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
@@ -176,6 +176,7 @@ const Round = () => {
   const { toast } = useToast();
   const { statPreferences: preferences, clubs } = useUserPreferences();
   const { user } = useAuth();
+  const supabase = getSupabaseClient();
   
   const course = location.state?.course;
   const inProgressRoundId = location.state?.inProgressRoundId;

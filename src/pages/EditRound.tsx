@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Circle, Minus, Plus, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useAuth } from "@/contexts/AuthContext";
@@ -186,6 +186,7 @@ const EditRound = () => {
   const { statPreferences: preferences, clubs } = useUserPreferences();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const supabase = getSupabaseClient();
   
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);

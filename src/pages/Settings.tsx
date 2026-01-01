@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useUserPreferences, StatPreferences, Club } from "@/hooks/useUserPreferences";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -29,6 +29,7 @@ import {
 const Settings = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const supabase = getSupabaseClient();
   const { 
     clubs, 
     renameClub, 

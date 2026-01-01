@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 
 export interface Club {
@@ -51,6 +51,7 @@ export const useUserPreferences = () => {
   const [statPreferences, setStatPreferences] = useState<StatPreferences>(DEFAULT_STAT_PREFERENCES);
   const [loading, setLoading] = useState(true);
   const [preferencesId, setPreferencesId] = useState<string | null>(null);
+  const supabase = getSupabaseClient();
 
   // Load preferences from database or localStorage
   useEffect(() => {

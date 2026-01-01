@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 
 type TimeRange = "3M" | "6M" | "1Y" | "MAX";
@@ -32,6 +32,7 @@ interface TimeSeriesData {
 
 export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
   const { user } = useAuth();
+  const supabase = getSupabaseClient();
 
   return useQuery({
     queryKey: ["roundStats", user?.id, timeRange, courseFilter],
