@@ -40,6 +40,22 @@ serve(async (req) => {
     console.log('Authenticated user:', user.id);
 
     const { courseId } = await req.json();
+    
+    // Input validation
+    if (!courseId) {
+      return new Response(
+        JSON.stringify({ error: 'Course ID is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const parsedId = typeof courseId === 'number' ? courseId : parseInt(courseId);
+    if (isNaN(parsedId) || parsedId <= 0) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid course ID format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const apiKey = Deno.env.get('GOLF_COURSE_API_KEY');
 
     if (!apiKey) {
