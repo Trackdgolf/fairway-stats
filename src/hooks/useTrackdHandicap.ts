@@ -62,8 +62,15 @@ export const useTrackdHandicap = (): TrackdHandicapResult => {
       // Sort differentials ascending (best = lowest)
       differentials.sort((a, b) => a - b);
 
-      // Select best rounds based on count
-      const selectCount = differentials.length >= 20 ? 8 : 3;
+      // Select best rounds based on count (graduated scale)
+      const getSelectCount = (totalRounds: number): number => {
+        if (totalRounds >= 20) return 8;
+        if (totalRounds >= 13) return 6;
+        if (totalRounds >= 7) return 5;
+        return 3; // 3-6 rounds
+      };
+
+      const selectCount = getSelectCount(differentials.length);
       const bestDifferentials = differentials.slice(0, selectCount);
 
       // Calculate average
