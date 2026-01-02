@@ -29,7 +29,7 @@ export const TrackdHandicap = () => {
         {hasEnoughRounds && handicap !== null ? (
           <>
             <div className="text-4xl font-bold text-primary">
-              {handicap > 0 ? '+' : ''}{handicap}
+              {handicap < 0 ? '+' : ''}{handicap < 0 ? Math.abs(handicap) : handicap}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
               Best {roundsUsed} of {totalRounds >= 20 ? '20' : totalRounds} rounds
