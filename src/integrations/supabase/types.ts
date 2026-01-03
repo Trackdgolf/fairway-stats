@@ -167,6 +167,8 @@ export type Database = {
           current_period_start: string | null
           id: string
           plan_type: string | null
+          revenuecat_customer_id: string | null
+          revenuecat_product_id: string | null
           status: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -179,6 +181,8 @@ export type Database = {
           current_period_start?: string | null
           id?: string
           plan_type?: string | null
+          revenuecat_customer_id?: string | null
+          revenuecat_product_id?: string | null
           status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -191,6 +195,8 @@ export type Database = {
           current_period_start?: string | null
           id?: string
           plan_type?: string | null
+          revenuecat_customer_id?: string | null
+          revenuecat_product_id?: string | null
           status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null

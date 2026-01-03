@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SubscriptionStatus } from "@/components/SubscriptionStatus";
 import { useUserPreferences, StatPreferences, Club } from "@/hooks/useUserPreferences";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
@@ -165,6 +166,11 @@ const Settings = () => {
             <ThemeToggle />
           </div>
         </Card>
+
+        {/* Subscription Section */}
+        <div className="mb-6">
+          <SubscriptionStatus />
+        </div>
 
         {/* My Bag Section - Collapsible */}
         <Accordion type="single" collapsible className="mb-6">
