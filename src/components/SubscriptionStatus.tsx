@@ -19,6 +19,14 @@ export const SubscriptionStatus = () => {
   const loading = isNative ? rcLoading : dbLoading;
 
   const handleRestore = async () => {
+    if (!isNative) {
+      toast({
+        title: 'Not available',
+        description: 'Restore purchases is only available in the iOS or Android app.',
+      });
+      return;
+    }
+    
     setRestoring(true);
     try {
       const success = await restore();
@@ -99,23 +107,21 @@ export const SubscriptionStatus = () => {
             </Button>
           )}
           
-          {isNative && (
-            <Button 
-              variant={isPremium ? "default" : "outline"}
-              className={isPremium ? "flex-1" : ""}
-              onClick={handleRestore}
-              disabled={restoring}
-            >
-              {restoring ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Restore
-                </>
-              )}
-            </Button>
-          )}
+          <Button 
+            variant={isPremium ? "default" : "outline"}
+            className={isPremium ? "flex-1" : ""}
+            onClick={handleRestore}
+            disabled={restoring}
+          >
+            {restoring ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Restore
+              </>
+            )}
+          </Button>
         </div>
       </Card>
 
