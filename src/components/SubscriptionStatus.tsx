@@ -6,10 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import { PaywallModal } from './PaywallModal';
+import { toast } from '@/hooks/use-toast';
 
 export const SubscriptionStatus = () => {
-  const { isPremium: isDbPremium, loading: dbLoading } = useSubscription();
-  const { isPremium: isRcPremium, restore, loading: rcLoading, isNative } = useRevenueCat();
+  const { isPremium: isDbPremium, loading: dbLoading, refreshSubscription } = useSubscription();
+  const { isPremium: isRcPremium, restore, loading: rcLoading, isNative, refreshCustomerInfo } = useRevenueCat();
   const [showPaywall, setShowPaywall] = useState(false);
   const [restoring, setRestoring] = useState(false);
 
@@ -19,7 +20,30 @@ export const SubscriptionStatus = () => {
 
   const handleRestore = async () => {
     setRestoring(true);
-    await restore();
+    try {
+      const success = await restore();
+      if (success) {
+        toast({
+          title: 'Purchases restored',
+          description: 'Your premium access has been restored.',
+        });
+        // Refresh both RevenueCat and database subscription status
+        await refreshCustomerInfo();
+        await refreshSubscription();
+      } else {
+        toast({
+          title: 'No purchases found',
+          description: 'No previous purchases were found to restore.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Restore failed',
+        description: 'Unable to restore purchases. Please try again.',
+        variant: 'destructive',
+      });
+    }
     setRestoring(false);
   };
 
