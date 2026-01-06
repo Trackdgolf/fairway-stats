@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { Play, Settings, Clock, Flag, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import { TrackdHandicap } from "@/components/TrackdHandicap";
+import { LockedTrackdHandicap } from "@/components/LockedTrackdHandicap";
+import { PaywallModal } from "@/components/PaywallModal";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -64,6 +68,8 @@ const Home = () => {
   const { user, signOut } = useAuth();
   const { resolvedTheme } = useTheme();
   const supabase = getSupabaseClient();
+  const { isPremium } = usePremiumStatus();
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // Fetch in-progress rounds
   const { data: inProgressRounds } = useQuery({
@@ -185,7 +191,14 @@ const Home = () => {
 
         {/* Trackd Handicap */}
         <div className="mb-6">
-          <TrackdHandicap />
+          {isPremium ? (
+            <TrackdHandicap />
+          ) : (
+            <LockedTrackdHandicap onUpgrade={() => {
+              console.log('Paywall opened');
+              setShowPaywall(true);
+            }} />
+          )}
         </div>
 
         {/* Recent Rounds */}
@@ -243,6 +256,7 @@ const Home = () => {
       </div>
 
       <BottomNav />
+      <PaywallModal open={showPaywall} onOpenChange={setShowPaywall} />
     </div>
   );
 };

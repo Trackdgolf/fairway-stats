@@ -29,8 +29,10 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const [restoring, setRestoring] = useState(false);
 
   const handlePurchase = async (pkg: PurchasesPackage) => {
+    console.log('Paywall: Purchase initiated for', pkg.identifier);
     setPurchasing(true);
     const success = await purchase(pkg);
+    console.log('Paywall: Purchase', success ? 'success' : 'cancelled/failed');
     setPurchasing(false);
     if (success) {
       onOpenChange(false);
@@ -38,8 +40,10 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   };
 
   const handleRestore = async () => {
+    console.log('Paywall: Restore purchases initiated');
     setRestoring(true);
     const success = await restore();
+    console.log('Paywall: Restore', success ? 'success' : 'fail');
     setRestoring(false);
     if (success) {
       onOpenChange(false);

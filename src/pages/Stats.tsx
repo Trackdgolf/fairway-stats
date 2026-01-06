@@ -5,6 +5,9 @@ import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import StatsChart from "@/components/StatsChart";
 import StatTile from "@/components/StatTile";
+import { LockedStatTile } from "@/components/LockedStatTile";
+import { PaywallModal } from "@/components/PaywallModal";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useRoundStats } from "@/hooks/useRoundStats";
 import {
@@ -17,6 +20,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const PREMIUM_STATS: StatType[] = ["avgPutts", "firPercent", "girPercent", "scramblePercent"];
+
 type StatType = "totalRounds" | "bestScore" | "avgScore" | "avgOverPar" | "avgPutts" | "firPercent" | "girPercent" | "scramblePercent";
 type TimeRange = "3M" | "6M" | "1Y" | "MAX";
 
@@ -25,8 +30,10 @@ const Stats = () => {
   const [selectedStat, setSelectedStat] = useState<StatType>("avgOverPar");
   const [timeRange, setTimeRange] = useState<TimeRange>("MAX");
   const [courseFilter, setCourseFilter] = useState("all");
+  const [showPaywall, setShowPaywall] = useState(false);
   const { statPreferences: preferences } = useUserPreferences();
   const { data, isLoading } = useRoundStats(timeRange, courseFilter);
+  const { isPremium } = usePremiumStatus();
 
   const getChartData = () => {
     if (!data?.timeSeries) return [];
@@ -223,24 +230,44 @@ const Stats = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {stats.map((stat) => (
-              <StatTile
-                key={stat.id}
-                icon={stat.icon}
-                value={stat.value}
-                label={stat.label}
-                isSelected={selectedStat === stat.id}
-                onClick={() => setSelectedStat(stat.id)}
-                iconColor={stat.iconColor}
-                iconTextColor={stat.iconTextColor}
-                isSelectable={stat.isSelectable}
-              />
-            ))}
+            {stats.map((stat) => {
+              const isLocked = !isPremium && PREMIUM_STATS.includes(stat.id);
+              
+              if (isLocked) {
+                return (
+                  <LockedStatTile
+                    key={stat.id}
+                    icon={<stat.icon className={`w-5 h-5 ${stat.iconTextColor}`} />}
+                    label={stat.label}
+                    iconColor={stat.iconColor}
+                    onClick={() => {
+                      console.log('Paywall opened');
+                      setShowPaywall(true);
+                    }}
+                  />
+                );
+              }
+              
+              return (
+                <StatTile
+                  key={stat.id}
+                  icon={stat.icon}
+                  value={stat.value}
+                  label={stat.label}
+                  isSelected={selectedStat === stat.id}
+                  onClick={() => setSelectedStat(stat.id)}
+                  iconColor={stat.iconColor}
+                  iconTextColor={stat.iconTextColor}
+                  isSelectable={stat.isSelectable}
+                />
+              );
+            })}
           </div>
         )}
       </div>
 
       <BottomNav />
+      <PaywallModal open={showPaywall} onOpenChange={setShowPaywall} />
     </div>
   );
 };
