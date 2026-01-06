@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
 import ScrambleClubList from "@/components/ScrambleClubList";
+import { PremiumRequiredScreen } from "@/components/PremiumRequiredScreen";
 import { useDispersionStats } from "@/hooks/useDispersionStats";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 type TabType = "teeShots" | "approach" | "scramble";
 type ScrambleShotTypeFilter = "all" | "pitch" | "chip" | "bunker";
@@ -25,6 +27,7 @@ const SCRAMBLE_SHOT_TYPES: { value: ScrambleShotTypeFilter; label: string }[] = 
 
 const ClubPerformance = () => {
   const navigate = useNavigate();
+  const { isPremium } = usePremiumStatus();
   const [activeTab, setActiveTab] = useState<TabType>("teeShots");
   const [selectedTeeClub, setSelectedTeeClub] = useState<string>("all");
   const [selectedApproachClub, setSelectedApproachClub] = useState<string>("all");
@@ -32,6 +35,11 @@ const ClubPerformance = () => {
 
   const { clubs: bagClubs } = useUserPreferences();
   const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType);
+
+  // Gate entire page for non-premium users
+  if (!isPremium) {
+    return <PremiumRequiredScreen title="Club Performance" />;
+  }
 
   // Sort clubs by bag order, only include clubs with data
   const sortedTeeClubs = useMemo(() => {
