@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Crown, Check, Loader2, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Crown, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -53,6 +53,40 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   // Get the current offering's available packages
   const availablePackages = offerings?.current?.availablePackages || [];
 
+  // Log package availability status for debugging
+  useEffect(() => {
+    if (!isNative) {
+      console.log('Paywall: Not on native platform, packages unavailable');
+      return;
+    }
+    
+    if (loading) {
+      console.log('Paywall: Loading offerings from RevenueCat...');
+      return;
+    }
+    
+    if (!offerings) {
+      console.log('Paywall: Offerings is null - RevenueCat may not be initialized or configured');
+      return;
+    }
+    
+    if (!offerings.current) {
+      console.log('Paywall: No current offering configured in RevenueCat dashboard');
+      return;
+    }
+    
+    if (availablePackages.length === 0) {
+      console.log('Paywall: Current offering has no packages - check RevenueCat product configuration');
+      return;
+    }
+    
+    console.log('Paywall: Packages loaded successfully', {
+      offeringId: offerings.current.identifier,
+      packageCount: availablePackages.length,
+      packages: availablePackages.map(p => p.identifier)
+    });
+  }, [isNative, loading, offerings, availablePackages]);
+
   if (!isNative) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,8 +136,11 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
 
           {/* Subscription packages */}
           {loading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            <div className="flex flex-col items-center justify-center py-6 space-y-3">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">
+                Loading subscriptions...
+              </p>
             </div>
           ) : availablePackages.length > 0 ? (
             <div className="space-y-3">
@@ -132,9 +169,17 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground text-sm">
-              No subscription packages available at this time.
-            </p>
+            <div className="space-y-3">
+              <Button
+                className="w-full h-auto py-4"
+                disabled={true}
+              >
+                <span className="font-semibold">Purchases not available yet</span>
+              </Button>
+              <p className="text-center text-muted-foreground text-xs">
+                Please try again later or contact support if this persists.
+              </p>
+            </div>
           )}
 
           {/* Restore purchases */}
