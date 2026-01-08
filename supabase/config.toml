@@ -1,1 +1,10 @@
 project_id = "sejyshsgioedwhkqemgx"
+
+[functions.search-courses]
+verify_jwt = false
+
+[functions.get-course-details]
+verify_jwt = false
+
+[functions.create-demo-user]
+verify_jwt = false
