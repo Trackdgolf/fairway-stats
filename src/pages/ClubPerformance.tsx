@@ -1,16 +1,17 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings } from "lucide-react";
+import { Settings, Crown, Lock } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
 import ScrambleClubList from "@/components/ScrambleClubList";
-import { PremiumRequiredScreen } from "@/components/PremiumRequiredScreen";
+import { PaywallModal } from "@/components/PaywallModal";
 import { useDispersionStats } from "@/hooks/useDispersionStats";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
@@ -32,14 +33,17 @@ const ClubPerformance = () => {
   const [selectedTeeClub, setSelectedTeeClub] = useState<string>("all");
   const [selectedApproachClub, setSelectedApproachClub] = useState<string>("all");
   const [selectedScrambleShotType, setSelectedScrambleShotType] = useState<ScrambleShotTypeFilter>("all");
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const { clubs: bagClubs } = useUserPreferences();
   const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType);
 
-  // Gate entire page for non-premium users
-  if (!isPremium) {
-    return <PremiumRequiredScreen title="Club Performance" />;
-  }
+  // Show paywall automatically for non-premium users on first visit
+  useEffect(() => {
+    if (!isPremium) {
+      setShowPaywall(true);
+    }
+  }, [isPremium]);
 
   // Sort clubs by bag order, only include clubs with data
   const sortedTeeClubs = useMemo(() => {
@@ -192,7 +196,38 @@ const ClubPerformance = () => {
         )}
       </div>
 
+      {/* Premium Overlay for non-premium users */}
+      {!isPremium && (
+        <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
+          <Card className="w-full max-w-sm">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Crown className="w-8 h-8 text-primary" />
+              </div>
+              
+              <h2 className="text-xl font-bold mb-2">Premium Feature</h2>
+              <p className="text-muted-foreground text-sm mb-6">
+                Club Performance analytics require a premium subscription
+              </p>
+
+              <Button 
+                className="w-full" 
+                size="lg"
+                onClick={() => {
+                  console.log('Paywall opened');
+                  setShowPaywall(true);
+                }}
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                View Premium Options
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <BottomNav />
+      <PaywallModal open={showPaywall} onOpenChange={setShowPaywall} />
     </div>
   );
 };
