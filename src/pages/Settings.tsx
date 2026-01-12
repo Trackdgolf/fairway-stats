@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus, Trash2, RotateCcw, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, RotateCcw, Loader2, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
@@ -11,6 +11,7 @@ import { SubscriptionStatus } from "@/components/SubscriptionStatus";
 import { useUserPreferences, StatPreferences, Club } from "@/hooks/useUserPreferences";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -20,6 +21,17 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Accordion,
   AccordionContent,
@@ -31,6 +43,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const supabase = getSupabaseClient();
+  const { signOut } = useAuth();
   const { 
     clubs, 
     renameClub, 
@@ -46,6 +59,8 @@ const Settings = () => {
   const [editName, setEditName] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
   const [showRenameConfirm, setShowRenameConfirm] = useState(false);
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const statOptions: { key: keyof StatPreferences; label: string; description: string }[] = [
     { key: "fir", label: "FIR (Fairway in Regulation)", description: "Track fairway accuracy on tee shots" },
@@ -55,6 +70,50 @@ const Settings = () => {
     { key: "teeClub", label: "Tee Club", description: "Track which club used off the tee" },
     { key: "approachClub", label: "Approach Club", description: "Track which club used for approach shots" },
   ];
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    
+    try {
+      // Get the current session for the auth header
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error("You must be logged in to delete your account");
+        setIsDeletingAccount(false);
+        return;
+      }
+
+      // Call the edge function to delete the account
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) {
+        console.error('Error deleting account:', error);
+        toast.error("Failed to delete account. Please try again.");
+        setIsDeletingAccount(false);
+        return;
+      }
+
+      // Clear local storage
+      localStorage.clear();
+      
+      // Sign out and redirect to auth page
+      await signOut();
+      
+      toast.success("Your account has been permanently deleted");
+      navigate('/auth', { replace: true });
+      
+    } catch (error) {
+      console.error('Unexpected error deleting account:', error);
+      toast.error("An unexpected error occurred. Please try again.");
+      setIsDeletingAccount(false);
+    }
+  };
+
 
   const handleAddClub = () => {
     if (newClubName.trim()) {
@@ -314,6 +373,77 @@ const Settings = () => {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+
+        {/* Account Section */}
+        <Card className="p-4 mt-6 border-destructive/20">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Account</h2>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-3">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteAccountDialog(true)}
+                className="w-full"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Account
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        {/* Delete Account Confirmation Dialog */}
+        <AlertDialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-full bg-destructive/10">
+                  <AlertTriangle className="w-6 h-6 text-destructive" />
+                </div>
+                <AlertDialogTitle className="text-xl">Delete Account</AlertDialogTitle>
+              </div>
+              <AlertDialogDescription className="text-left space-y-3">
+                <p>
+                  This action is <strong>permanent and cannot be undone</strong>. Deleting your account will immediately remove:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>All your golf rounds and statistics</li>
+                  <li>Your club bag configuration</li>
+                  <li>Your preferences and settings</li>
+                  <li>Your subscription data</li>
+                  <li>Your profile and account</li>
+                </ul>
+                <p className="font-medium text-foreground">
+                  Are you absolutely sure you want to delete your account?
+                </p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+              <AlertDialogCancel disabled={isDeletingAccount} className="mt-0">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeletingAccount ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete My Account
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
