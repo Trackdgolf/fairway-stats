@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Crown, Check, Loader2 } from 'lucide-react';
+import { Crown, Check, Loader2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
 import type { PurchasesPackage } from '@revenuecat/purchases-capacitor';
 
@@ -22,6 +23,39 @@ const PREMIUM_FEATURES = [
   'Export your stats',
   'Priority support',
 ];
+
+const PRIVACY_POLICY_URL = 'https://www.trackdgolf.com/privacy-policy.pdf';
+const TERMS_OF_USE_URL = 'https://www.trackdgolf.com/terms-of-use.pdf';
+
+const getPackageLabel = (packageType: string): string => {
+  switch (packageType) {
+    case 'ANNUAL':
+      return 'Annual';
+    case 'MONTHLY':
+      return 'Monthly';
+    case 'WEEKLY':
+      return 'Weekly';
+    case 'LIFETIME':
+      return 'Lifetime';
+    default:
+      return packageType;
+  }
+};
+
+const getPackageDuration = (packageType: string): string => {
+  switch (packageType) {
+    case 'ANNUAL':
+      return '/year';
+    case 'MONTHLY':
+      return '/month';
+    case 'WEEKLY':
+      return '/week';
+    case 'LIFETIME':
+      return ' (one-time)';
+    default:
+      return '';
+  }
+};
 
 export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const { offerings, purchase, restore, loading, isNative } = useRevenueCat();
@@ -113,88 +147,123 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Crown className="w-6 h-6 text-yellow-500" />
-            Upgrade to Premium
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-sm max-h-[90vh] p-0">
+        <ScrollArea className="max-h-[85vh]">
+          <div className="p-6">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <Crown className="w-6 h-6 text-yellow-500" />
+                Trackd Golf Premium
+              </DialogTitle>
+            </DialogHeader>
 
-        <div className="py-4 space-y-6">
-          {/* Features list */}
-          <div className="space-y-3">
-            {PREMIUM_FEATURES.map((feature, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-primary" />
-                </div>
-                <span className="text-sm text-foreground">{feature}</span>
+            <div className="py-4 space-y-6">
+              {/* Features list */}
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">Unlock all premium features:</p>
+                {PREMIUM_FEATURES.map((feature, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-primary" />
+                    </div>
+                    <span className="text-sm text-foreground">{feature}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {/* Subscription packages */}
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-6 space-y-3">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">
-                Loading subscriptions...
-              </p>
-            </div>
-          ) : availablePackages.length > 0 ? (
-            <div className="space-y-3">
-              {availablePackages.map((pkg) => (
-                <Button
-                  key={pkg.identifier}
-                  className="w-full h-auto py-4 flex flex-col"
-                  onClick={() => handlePurchase(pkg)}
-                  disabled={purchasing || restoring}
-                >
-                  {purchasing ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <span className="font-semibold">
-                        {pkg.product.title || pkg.identifier}
-                      </span>
-                      <span className="text-sm opacity-90">
-                        {pkg.product.priceString}
-                        {pkg.packageType === 'ANNUAL' && '/year'}
-                        {pkg.packageType === 'MONTHLY' && '/month'}
-                      </span>
-                    </>
-                  )}
-                </Button>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3">
+              {/* Subscription packages */}
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-6 space-y-3">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">
+                    Loading subscriptions...
+                  </p>
+                </div>
+              ) : availablePackages.length > 0 ? (
+                <div className="space-y-3">
+                  {availablePackages.map((pkg) => (
+                    <Button
+                      key={pkg.identifier}
+                      className="w-full h-auto py-4 flex flex-col"
+                      onClick={() => handlePurchase(pkg)}
+                      disabled={purchasing || restoring}
+                    >
+                      {purchasing ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <>
+                          <span className="font-semibold">
+                            {getPackageLabel(pkg.packageType)} Subscription
+                          </span>
+                          <span className="text-sm opacity-90">
+                            {pkg.product.priceString}{getPackageDuration(pkg.packageType)}
+                          </span>
+                        </>
+                      )}
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <Button
+                    className="w-full h-auto py-4"
+                    disabled={true}
+                  >
+                    <span className="font-semibold">Purchases not available yet</span>
+                  </Button>
+                  <p className="text-center text-muted-foreground text-xs">
+                    Please try again later or contact support if this persists.
+                  </p>
+                </div>
+              )}
+
+              {/* Restore purchases */}
               <Button
-                className="w-full h-auto py-4"
-                disabled={true}
+                variant="ghost"
+                className="w-full text-muted-foreground"
+                onClick={handleRestore}
+                disabled={purchasing || restoring}
               >
-                <span className="font-semibold">Purchases not available yet</span>
+                {restoring ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : null}
+                Restore Purchases
               </Button>
-              <p className="text-center text-muted-foreground text-xs">
-                Please try again later or contact support if this persists.
-              </p>
-            </div>
-          )}
 
-          {/* Restore purchases */}
-          <Button
-            variant="ghost"
-            className="w-full text-muted-foreground"
-            onClick={handleRestore}
-            disabled={purchasing || restoring}
-          >
-            {restoring ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : null}
-            Restore Purchases
-          </Button>
-        </div>
+              {/* Apple-required subscription disclosure */}
+              <div className="space-y-3 pt-2 border-t border-border">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Payment will be charged to your Apple ID account at confirmation of purchase. 
+                  Subscriptions automatically renew unless cancelled at least 24 hours before 
+                  the end of the current period. You can manage or cancel your subscription 
+                  in your App Store account settings.
+                </p>
+
+                {/* Legal links */}
+                <div className="flex items-center justify-center gap-4">
+                  <a
+                    href={PRIVACY_POLICY_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary underline flex items-center gap-1"
+                  >
+                    Privacy Policy
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                  <a
+                    href={TERMS_OF_USE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary underline flex items-center gap-1"
+                  >
+                    Terms of Use
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
