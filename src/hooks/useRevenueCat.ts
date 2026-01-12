@@ -131,10 +131,24 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
   }, [isNative, isInitialized, syncSubscriptionToDatabase]);
 
   const refreshCustomerInfo = useCallback(async () => {
-    const info = await getCustomerInfo();
-    if (info) {
-      setCustomerInfo(info);
-      await syncSubscriptionToDatabase(info);
+    console.log('RevenueCat: Refreshing customer info and offerings...');
+    try {
+      const info = await getCustomerInfo();
+      if (info) {
+        setCustomerInfo(info);
+        await syncSubscriptionToDatabase(info);
+      }
+      
+      // Also refresh offerings
+      const offers = await getOfferings();
+      console.log('RevenueCat: Offerings refreshed', {
+        hasOfferings: !!offers,
+        currentOffering: offers?.current?.identifier || 'none',
+        packagesCount: offers?.current?.availablePackages?.length || 0
+      });
+      setOfferings(offers);
+    } catch (error) {
+      console.error('RevenueCat: Failed to refresh', error);
     }
   }, [syncSubscriptionToDatabase]);
 

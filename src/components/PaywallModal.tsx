@@ -73,6 +73,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
   const handlePurchase = async (pkg: PurchasesPackage) => {
     console.log('Paywall: Purchase initiated for', pkg.identifier);
@@ -99,11 +100,13 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const handleRetry = async () => {
     console.log('Paywall: Retry - re-fetching offerings from RevenueCat');
     setRetrying(true);
+    setFetchError(false);
     try {
       await refreshCustomerInfo();
       console.log('Paywall: Retry complete');
     } catch (error) {
       console.error('Paywall: Retry failed', error);
+      setFetchError(true);
     }
     setRetrying(false);
   };
@@ -113,7 +116,25 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   
   // Check if packages have valid pricing (not "Waiting for Review" state)
   const packagesWithValidPricing = availablePackages.filter(hasValidPricing);
-  const hasPackages = packagesWithValidPricing.length > 0;
+  
+  // Determine fallback state - ANY of these conditions triggers fallback
+  const shouldShowFallback = !loading && isNative && (
+    !offerings ||                           // No offerings at all
+    !offerings.current ||                   // No current offering
+    availablePackages.length === 0 ||       // No packages in offering
+    packagesWithValidPricing.length === 0 || // No packages with valid pricing
+    fetchError                              // Fetch error occurred
+  );
+
+  // Determine fallback reason for logging
+  const getFallbackReason = (): string => {
+    if (fetchError) return 'fetch_error';
+    if (!offerings) return 'no_offerings';
+    if (!offerings.current) return 'no_current_offering';
+    if (availablePackages.length === 0) return 'empty_packages';
+    if (packagesWithValidPricing.length === 0) return 'missing_pricing';
+    return 'unknown';
+  };
 
   // Log detailed debugging info
   useEffect(() => {
@@ -128,26 +149,19 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
     }
     
     // Detailed debug logging
-    console.log('Paywall Debug:', {
+    const debugInfo = {
       offeringsCount: offerings ? Object.keys(offerings.all || {}).length : 0,
       currentOffering: offerings?.current?.identifier || 'none',
       packagesCount: availablePackages.length,
-      packagesWithPricingCount: packagesWithValidPricing.length,
-    });
+      packagesWithValidPricingCount: packagesWithValidPricing.length,
+      shouldShowFallback,
+      fallbackReason: shouldShowFallback ? getFallbackReason() : 'n/a',
+    };
     
-    if (!offerings) {
-      console.log('Paywall Error: Offerings is null - RevenueCat may not be initialized or configured');
-      return;
-    }
+    console.log('Paywall Debug:', debugInfo);
     
-    if (!offerings.current) {
-      console.log('Paywall Error: No current offering configured in RevenueCat dashboard');
-      return;
-    }
-    
-    if (availablePackages.length === 0) {
-      console.log('Paywall Error: Current offering has no packages - check RevenueCat product configuration');
-      return;
+    if (shouldShowFallback) {
+      console.log(`Paywall Fallback: Triggered - reason: ${getFallbackReason()}`);
     }
     
     // Check each package for pricing issues
@@ -164,20 +178,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
         console.log(`Paywall Warning: Package ${pkg.identifier} has no price - product may be "Waiting for Review" in App Store`);
       }
     });
-    
-    if (packagesWithValidPricing.length > 0) {
-      console.log('Paywall: Packages loaded successfully', {
-        offeringId: offerings.current.identifier,
-        packageCount: packagesWithValidPricing.length,
-        packages: packagesWithValidPricing.map(p => ({
-          id: p.identifier,
-          price: p.product.priceString
-        }))
-      });
-    } else {
-      console.log('Paywall Warning: No packages have valid pricing - showing fallback UI');
-    }
-  }, [isNative, loading, offerings, availablePackages, packagesWithValidPricing]);
+  }, [isNative, loading, offerings, availablePackages, packagesWithValidPricing, shouldShowFallback, fetchError]);
 
   if (!isNative) {
     return (
@@ -237,7 +238,49 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                     Loading subscriptions...
                   </p>
                 </div>
-              ) : hasPackages ? (
+              ) : shouldShowFallback ? (
+                /* Fallback UI when packages are unavailable or pricing is missing */
+                <div className="space-y-4">
+                  {/* Fallback package display - styled like normal buttons but disabled */}
+                  <div className="space-y-3">
+                    {FALLBACK_PACKAGES.map((pkg) => (
+                      <Button
+                        key={pkg.id}
+                        className="w-full h-auto py-4 flex flex-col"
+                        disabled={true}
+                        variant="outline"
+                      >
+                        <span className="font-semibold">
+                          {pkg.label}
+                        </span>
+                        <span className="text-sm opacity-70">
+                          Price shown at checkout
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                  
+                  {/* Unavailable message */}
+                  <p className="text-center text-muted-foreground text-sm">
+                    Subscriptions are temporarily unavailable. Please try again.
+                  </p>
+                  
+                  {/* Retry button */}
+                  <Button
+                    variant="default"
+                    className="w-full"
+                    onClick={handleRetry}
+                    disabled={retrying}
+                  >
+                    {retrying ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                    )}
+                    Retry
+                  </Button>
+                </div>
+              ) : (
                 <div className="space-y-3">
                   {packagesWithValidPricing.map((pkg) => (
                     <Button
@@ -260,45 +303,6 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                       )}
                     </Button>
                   ))}
-                </div>
-              ) : (
-                /* Fallback UI when packages are unavailable or pricing is missing */
-                <div className="space-y-4">
-                  <p className="text-center text-muted-foreground text-sm">
-                    Subscriptions are temporarily unavailable. Please try again.
-                  </p>
-                  
-                  {/* Fallback package display - disabled but intentional-looking */}
-                  <div className="space-y-3 opacity-60">
-                    {FALLBACK_PACKAGES.map((pkg) => (
-                      <div
-                        key={pkg.id}
-                        className="w-full h-auto py-4 flex flex-col items-center rounded-md border border-border bg-muted/30"
-                      >
-                        <span className="font-semibold text-foreground">
-                          {pkg.label}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          Price shown at checkout
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Retry button */}
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleRetry}
-                    disabled={retrying}
-                  >
-                    {retrying ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : (
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                    )}
-                    Retry
-                  </Button>
                 </div>
               )}
 
