@@ -218,7 +218,6 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   // Render a package button with trial info
   const renderPackageButton = (pkg: PurchasesPackage) => {
     const hasTrial = hasFreeTrial(pkg);
-    const trialPeriod = formatTrialPeriod(pkg);
     const periodLabel = getPackageDuration(pkg.packageType);
     const priceString = pkg.product.priceString;
     const packageName = getPackageLabel(pkg.packageType);
@@ -232,16 +231,13 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
       >
         {purchasing ? (
           <Loader2 className="w-5 h-5 animate-spin" />
-        ) : hasTrial && trialPeriod ? (
+        ) : hasTrial ? (
           <>
             <span className="font-bold text-base">
-              {trialPeriod} free trial
+              {packageName}
             </span>
             <span className="text-sm opacity-90">
-              Then {priceString}{periodLabel}
-            </span>
-            <span className="text-xs opacity-75">
-              Cancel anytime.
+              Free for 14 days, then {priceString}{periodLabel}
             </span>
           </>
         ) : (
@@ -372,6 +368,13 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
               ) : (
                 <div className="space-y-3">
                   {packagesWithValidPricing.map(renderPackageButton)}
+                  
+                  {/* Show trial cancellation note if any package has a trial */}
+                  {packagesWithValidPricing.some(hasFreeTrial) && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      Cancel anytime during the trial in your App Store settings.
+                    </p>
+                  )}
                 </div>
               )}
 
