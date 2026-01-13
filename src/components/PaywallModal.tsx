@@ -345,6 +345,11 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                     ))}
                   </div>
                   
+                  {/* Trial eligibility note */}
+                  <p className="text-center text-sm text-foreground">
+                    Free for 14 days (if eligible), then prices shown at checkout.
+                  </p>
+                  
                   {/* Unavailable message */}
                   <p className="text-center text-muted-foreground text-sm">
                     Subscriptions are temporarily unavailable. Please try again.
