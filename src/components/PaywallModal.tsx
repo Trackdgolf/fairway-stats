@@ -68,6 +68,35 @@ const hasValidPricing = (pkg: PurchasesPackage): boolean => {
   return !!(pkg.product?.priceString && pkg.product.priceString.trim() !== '');
 };
 
+// Check if a package has a free trial (introPrice.price === 0)
+const hasFreeTrial = (pkg: PurchasesPackage): boolean => {
+  return pkg.product?.introPrice !== null && 
+         pkg.product?.introPrice !== undefined && 
+         pkg.product.introPrice.price === 0;
+};
+
+// Format trial period string (e.g., "14-day")
+const formatTrialPeriod = (pkg: PurchasesPackage): string | null => {
+  const introPrice = pkg.product?.introPrice;
+  if (!introPrice || introPrice.price !== 0) return null;
+  
+  const units = introPrice.periodNumberOfUnits || 0;
+  const unit = (introPrice.periodUnit || 'DAY').toLowerCase();
+  
+  // Convert 2 weeks to 14 days for display
+  if (unit === 'week' && units === 2) {
+    return '14-day';
+  }
+  
+  // Convert weeks to days for cleaner display
+  if (unit === 'week') {
+    return `${units * 7}-day`;
+  }
+  
+  // Return the unit with proper singular form
+  return `${units}-${unit}`;
+};
+
 export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const { offerings, purchase, restore, loading, isNative, refreshCustomerInfo } = useRevenueCat();
   const [purchasing, setPurchasing] = useState(false);
@@ -164,14 +193,20 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
       console.log(`Paywall Fallback: Triggered - reason: ${getFallbackReason()}`);
     }
     
-    // Check each package for pricing issues
+    // Check each package for pricing and trial info
     availablePackages.forEach((pkg) => {
       const hasPricing = hasValidPricing(pkg);
+      const hasTrial = hasFreeTrial(pkg);
+      const trialPeriod = formatTrialPeriod(pkg);
+      
       console.log(`Paywall Package: ${pkg.identifier}`, {
         packageType: pkg.packageType,
         productId: pkg.product?.identifier,
         priceString: pkg.product?.priceString || 'MISSING',
         hasValidPricing: hasPricing,
+        introPrice: pkg.product?.introPrice,
+        hasFreeTrial: hasTrial,
+        trialPeriod: trialPeriod,
       });
       
       if (!hasPricing) {
@@ -179,6 +214,60 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
       }
     });
   }, [isNative, loading, offerings, availablePackages, packagesWithValidPricing, shouldShowFallback, fetchError]);
+
+  // Render a package button with trial info
+  const renderPackageButton = (pkg: PurchasesPackage) => {
+    const hasTrial = hasFreeTrial(pkg);
+    const trialPeriod = formatTrialPeriod(pkg);
+    const periodLabel = getPackageDuration(pkg.packageType);
+    const priceString = pkg.product.priceString;
+    const packageName = getPackageLabel(pkg.packageType);
+
+    return (
+      <Button
+        key={pkg.identifier}
+        className="w-full h-auto py-4 flex flex-col gap-1"
+        onClick={() => handlePurchase(pkg)}
+        disabled={purchasing || restoring}
+      >
+        {purchasing ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : hasTrial && trialPeriod ? (
+          <>
+            <span className="font-bold text-base">
+              {trialPeriod} free trial
+            </span>
+            <span className="text-sm opacity-90">
+              Then {priceString}{periodLabel}
+            </span>
+            <span className="text-xs opacity-75">
+              Cancel anytime.
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="font-semibold">
+              {packageName} — {priceString}{periodLabel}
+            </span>
+          </>
+        )}
+      </Button>
+    );
+  };
+
+  // Render the CTA text for a package button
+  const getCtaText = (pkg: PurchasesPackage): string => {
+    const hasTrial = hasFreeTrial(pkg);
+    const trialPeriod = formatTrialPeriod(pkg);
+    
+    if (hasTrial && trialPeriod) {
+      return `Start ${trialPeriod} free trial`;
+    }
+    
+    const priceString = pkg.product.priceString;
+    const periodLabel = getPackageDuration(pkg.packageType);
+    return `Subscribe – ${priceString}${periodLabel}`;
+  };
 
   if (!isNative) {
     return (
@@ -282,27 +371,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {packagesWithValidPricing.map((pkg) => (
-                    <Button
-                      key={pkg.identifier}
-                      className="w-full h-auto py-4 flex flex-col"
-                      onClick={() => handlePurchase(pkg)}
-                      disabled={purchasing || restoring}
-                    >
-                      {purchasing ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <>
-                          <span className="font-semibold">
-                            {getPackageLabel(pkg.packageType)} Subscription
-                          </span>
-                          <span className="text-sm opacity-90">
-                            {pkg.product.priceString}{getPackageDuration(pkg.packageType)}
-                          </span>
-                        </>
-                      )}
-                    </Button>
-                  ))}
+                  {packagesWithValidPricing.map(renderPackageButton)}
                 </div>
               )}
 
