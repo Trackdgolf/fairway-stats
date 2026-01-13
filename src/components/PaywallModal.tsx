@@ -75,26 +75,25 @@ const hasFreeTrial = (pkg: PurchasesPackage): boolean => {
          pkg.product.introPrice.price === 0;
 };
 
-// Format trial period string (e.g., "14-day")
-const formatTrialPeriod = (pkg: PurchasesPackage): string | null => {
+// Format trial period for display (e.g., "14 days" from introPrice data)
+const formatTrialDays = (pkg: PurchasesPackage): number | null => {
   const introPrice = pkg.product?.introPrice;
   if (!introPrice || introPrice.price !== 0) return null;
   
   const units = introPrice.periodNumberOfUnits || 0;
-  const unit = (introPrice.periodUnit || 'DAY').toLowerCase();
+  const unit = (introPrice.periodUnit || 'DAY').toUpperCase();
   
-  // Convert 2 weeks to 14 days for display
-  if (unit === 'week' && units === 2) {
-    return '14-day';
+  // Convert to days
+  switch (unit) {
+    case 'DAY':
+      return units;
+    case 'WEEK':
+      return units * 7;
+    case 'MONTH':
+      return units * 30;
+    default:
+      return units;
   }
-  
-  // Convert weeks to days for cleaner display
-  if (unit === 'week') {
-    return `${units * 7}-day`;
-  }
-  
-  // Return the unit with proper singular form
-  return `${units}-${unit}`;
 };
 
 export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
@@ -197,7 +196,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
     availablePackages.forEach((pkg) => {
       const hasPricing = hasValidPricing(pkg);
       const hasTrial = hasFreeTrial(pkg);
-      const trialPeriod = formatTrialPeriod(pkg);
+      const trialDays = formatTrialDays(pkg);
       
       console.log(`Paywall Package: ${pkg.identifier}`, {
         packageType: pkg.packageType,
@@ -206,7 +205,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
         hasValidPricing: hasPricing,
         introPrice: pkg.product?.introPrice,
         hasFreeTrial: hasTrial,
-        trialPeriod: trialPeriod,
+        trialDays: trialDays,
       });
       
       if (!hasPricing) {
@@ -218,6 +217,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   // Render a package button with trial info
   const renderPackageButton = (pkg: PurchasesPackage) => {
     const hasTrial = hasFreeTrial(pkg);
+    const trialDays = formatTrialDays(pkg);
     const periodLabel = getPackageDuration(pkg.packageType);
     const priceString = pkg.product.priceString;
     const packageName = getPackageLabel(pkg.packageType);
@@ -231,13 +231,13 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
       >
         {purchasing ? (
           <Loader2 className="w-5 h-5 animate-spin" />
-        ) : hasTrial ? (
+        ) : hasTrial && trialDays ? (
           <>
             <span className="font-bold text-base">
               {packageName}
             </span>
             <span className="text-sm opacity-90">
-              Free for 14 days, then {priceString}{periodLabel}
+              Free for {trialDays} days, then {priceString}{periodLabel}
             </span>
           </>
         ) : (
@@ -251,13 +251,13 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
     );
   };
 
-  // Render the CTA text for a package button
+  // Render the CTA text for a package button (unused but kept for reference)
   const getCtaText = (pkg: PurchasesPackage): string => {
     const hasTrial = hasFreeTrial(pkg);
-    const trialPeriod = formatTrialPeriod(pkg);
+    const trialDays = formatTrialDays(pkg);
     
-    if (hasTrial && trialPeriod) {
-      return `Start ${trialPeriod} free trial`;
+    if (hasTrial && trialDays) {
+      return `Start ${trialDays}-day free trial`;
     }
     
     const priceString = pkg.product.priceString;
@@ -369,12 +369,10 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                 <div className="space-y-3">
                   {packagesWithValidPricing.map(renderPackageButton)}
                   
-                  {/* Show trial cancellation note if any package has a trial */}
-                  {packagesWithValidPricing.some(hasFreeTrial) && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      Cancel anytime during the trial in your App Store settings.
-                    </p>
-                  )}
+                  {/* Cancel note - always shown below plan buttons */}
+                  <p className="text-xs text-muted-foreground text-center">
+                    Cancel anytime in your App Store settings.
+                  </p>
                 </div>
               )}
 
