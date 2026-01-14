@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
 };
 
 interface WelcomeEmailRequest {
@@ -16,12 +16,12 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Validate authorization - must be service role key (from database trigger)
-    const authHeader = req.headers.get("authorization");
-    const expectedKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    // Validate internal secret header (from database trigger)
+    const internalSecret = req.headers.get("x-internal-secret");
+    const expectedSecret = Deno.env.get("INTERNAL_WEBHOOK_SECRET");
     
-    if (!authHeader || !authHeader.includes(expectedKey || "")) {
-      console.error("Unauthorized request - missing or invalid service role key");
+    if (!internalSecret || internalSecret !== expectedSecret) {
+      console.error("Unauthorized request - invalid internal secret");
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
