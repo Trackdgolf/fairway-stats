@@ -49,6 +49,11 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    const logoUrl = "https://app.trackdgolf.com/trackd-logo.png";
+    const appUrl = "https://app.trackdgolf.com";
+    const termsUrl = "https://www.trackdgolf.com/terms-of-use.pdf";
+    const privacyUrl = "https://www.trackdgolf.com/privacy-policy.pdf";
+
     const emailHtml = `
 <!DOCTYPE html>
 <html>
@@ -62,11 +67,18 @@ const handler = async (req: Request): Promise<Response> => {
     <tr>
       <td align="center" style="padding: 40px 20px;">
         <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          <!-- Header -->
+          <!-- Logo -->
           <tr>
             <td style="padding: 40px 40px 20px 40px; text-align: center;">
+              <img src="${logoUrl}" alt="TRACKD Golf" width="140" style="max-width: 140px; height: auto; display: block; margin: 0 auto;">
+            </td>
+          </tr>
+          
+          <!-- Header -->
+          <tr>
+            <td style="padding: 20px 40px 20px 40px; text-align: center;">
               <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #18181b;">
-                Welcome to TRACKD Golf! ⛳
+                Welcome to TRACKD Golf ⛳️
               </h1>
             </td>
           </tr>
@@ -74,8 +86,8 @@ const handler = async (req: Request): Promise<Response> => {
           <!-- Intro -->
           <tr>
             <td style="padding: 0 40px 30px 40px;">
-              <p style="margin: 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
-                Thanks for joining TRACKD Golf. You're now ready to start tracking your rounds and improving your game with data-driven insights.
+              <p style="margin: 0; font-size: 16px; line-height: 24px; color: #3f3f46; text-align: center;">
+                You're all set — here's the fastest way to get value from your first round.
               </p>
             </td>
           </tr>
@@ -84,18 +96,17 @@ const handler = async (req: Request): Promise<Response> => {
           <tr>
             <td style="padding: 0 40px 30px 40px;">
               <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: #18181b;">
-                Quick Start Guide
+                Get started in 60 seconds
               </h2>
               
               <!-- Step 1 -->
               <table role="presentation" style="width: 100%; margin-bottom: 16px;">
                 <tr>
                   <td style="width: 40px; vertical-align: top;">
-                    <div style="width: 32px; height: 32px; background-color: #22c55e; border-radius: 50%; text-align: center; line-height: 32px; color: white; font-weight: 600;">1</div>
+                    <div style="width: 32px; height: 32px; background-color: #1a5d3a; border-radius: 50%; text-align: center; line-height: 32px; color: white; font-weight: 600;">1</div>
                   </td>
                   <td style="vertical-align: top; padding-left: 12px;">
-                    <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: #18181b;">Track Your Rounds</h3>
-                    <p style="margin: 0; font-size: 14px; color: #71717a;">Log scores, fairways hit, greens in regulation, and club selections for each hole.</p>
+                    <p style="margin: 0; font-size: 15px; line-height: 22px; color: #3f3f46;">Start a round and track scores + key stats (fairways, GIR, putts).</p>
                   </td>
                 </tr>
               </table>
@@ -104,11 +115,10 @@ const handler = async (req: Request): Promise<Response> => {
               <table role="presentation" style="width: 100%; margin-bottom: 16px;">
                 <tr>
                   <td style="width: 40px; vertical-align: top;">
-                    <div style="width: 32px; height: 32px; background-color: #22c55e; border-radius: 50%; text-align: center; line-height: 32px; color: white; font-weight: 600;">2</div>
+                    <div style="width: 32px; height: 32px; background-color: #1a5d3a; border-radius: 50%; text-align: center; line-height: 32px; color: white; font-weight: 600;">2</div>
                   </td>
                   <td style="vertical-align: top; padding-left: 12px;">
-                    <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: #18181b;">Analyze Your Stats</h3>
-                    <p style="margin: 0; font-size: 14px; color: #71717a;">View detailed statistics and dispersion charts to understand your strengths and weaknesses.</p>
+                    <p style="margin: 0; font-size: 15px; line-height: 22px; color: #3f3f46;">Add club selections when you can — it improves your insights over time.</p>
                   </td>
                 </tr>
               </table>
@@ -117,14 +127,20 @@ const handler = async (req: Request): Promise<Response> => {
               <table role="presentation" style="width: 100%; margin-bottom: 0;">
                 <tr>
                   <td style="width: 40px; vertical-align: top;">
-                    <div style="width: 32px; height: 32px; background-color: #22c55e; border-radius: 50%; text-align: center; line-height: 32px; color: white; font-weight: 600;">3</div>
+                    <div style="width: 32px; height: 32px; background-color: #1a5d3a; border-radius: 50%; text-align: center; line-height: 32px; color: white; font-weight: 600;">3</div>
                   </td>
                   <td style="vertical-align: top; padding-left: 12px;">
-                    <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: #18181b;">Improve Your Game</h3>
-                    <p style="margin: 0; font-size: 14px; color: #71717a;">Use your data to make smarter decisions on the course and track your improvement over time.</p>
+                    <p style="margin: 0; font-size: 15px; line-height: 22px; color: #3f3f46;">Review your stats after the round to spot the easiest wins.</p>
                   </td>
                 </tr>
               </table>
+            </td>
+          </tr>
+          
+          <!-- CTA Button -->
+          <tr>
+            <td style="padding: 10px 40px 40px 40px; text-align: center;">
+              <a href="${appUrl}" style="display: inline-block; background-color: #1a5d3a; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; padding: 14px 32px; border-radius: 8px;">Open TRACKD Golf</a>
             </td>
           </tr>
           
@@ -138,11 +154,8 @@ const handler = async (req: Request): Promise<Response> => {
           <!-- Support -->
           <tr>
             <td style="padding: 30px 40px;">
-              <p style="margin: 0; font-size: 14px; line-height: 22px; color: #71717a;">
-                Need help getting started? Our support team is here for you.
-              </p>
-              <p style="margin: 8px 0 0 0; font-size: 14px;">
-                <a href="mailto:support@trackdgolf.com" style="color: #22c55e; text-decoration: none; font-weight: 500;">support@trackdgolf.com</a>
+              <p style="margin: 0; font-size: 14px; line-height: 22px; color: #71717a; text-align: center;">
+                Need a hand? Reply to this email or reach us at <a href="mailto:support@trackdgolf.com" style="color: #1a5d3a; text-decoration: none;">support@trackdgolf.com</a>.
               </p>
             </td>
           </tr>
@@ -151,12 +164,12 @@ const handler = async (req: Request): Promise<Response> => {
           <tr>
             <td style="padding: 20px 40px 40px 40px; background-color: #fafafa; border-radius: 0 0 12px 12px;">
               <p style="margin: 0 0 12px 0; font-size: 12px; color: #a1a1aa; text-align: center;">
-                <a href="https://www.trackdgolf.com/terms-of-use.pdf" style="color: #a1a1aa; text-decoration: underline;">Terms of Use</a>
+                <a href="${termsUrl}" style="color: #a1a1aa; text-decoration: underline;">Terms of Use</a>
                 &nbsp;•&nbsp;
-                <a href="https://www.trackdgolf.com/privacy-policy.pdf" style="color: #a1a1aa; text-decoration: underline;">Privacy Policy</a>
+                <a href="${privacyUrl}" style="color: #a1a1aa; text-decoration: underline;">Privacy Policy</a>
               </p>
               <p style="margin: 0; font-size: 12px; color: #a1a1aa; text-align: center;">
-                © ${new Date().getFullYear()} TRACKD Golf. All rights reserved.
+                © 2026 TRACKD Golf. All rights reserved.
               </p>
             </td>
           </tr>
@@ -168,6 +181,24 @@ const handler = async (req: Request): Promise<Response> => {
 </html>
     `;
 
+    const emailText = `Welcome to TRACKD Golf ⛳️
+
+You're all set — here's the fastest way to get value from your first round.
+
+Get started in 60 seconds:
+1) Start a round and track scores + key stats (fairways, GIR, putts).
+2) Add club selections when you can — it improves your insights over time.
+3) Review your stats after the round to spot the easiest wins.
+
+Open TRACKD Golf: ${appUrl}
+
+Need a hand? Reply to this email or contact support@trackdgolf.com
+
+Terms of Use: ${termsUrl}
+Privacy Policy: ${privacyUrl}
+
+© 2026 TRACKD Golf. All rights reserved.`;
+
     const resendResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -176,9 +207,11 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "TRACKD Golf <no-reply@send.trackdgolf.com>",
+        reply_to: "support@trackdgolf.com",
         to: [email],
-        subject: "Welcome to TRACKD Golf",
+        subject: "Welcome to TRACKD Golf ⛳️",
         html: emailHtml,
+        text: emailText,
       }),
     });
 
