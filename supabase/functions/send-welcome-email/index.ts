@@ -151,9 +151,9 @@ const handler = async (req: Request): Promise<Response> => {
           <tr>
             <td style="padding: 20px 40px 40px 40px; background-color: #fafafa; border-radius: 0 0 12px 12px;">
               <p style="margin: 0 0 12px 0; font-size: 12px; color: #a1a1aa; text-align: center;">
-                <a href="https://trackdgolf.com/terms" style="color: #a1a1aa; text-decoration: underline;">Terms of Service</a>
+                <a href="https://www.trackdgolf.com/terms-of-use.pdf" style="color: #a1a1aa; text-decoration: underline;">Terms of Use</a>
                 &nbsp;•&nbsp;
-                <a href="https://trackdgolf.com/privacy" style="color: #a1a1aa; text-decoration: underline;">Privacy Policy</a>
+                <a href="https://www.trackdgolf.com/privacy-policy.pdf" style="color: #a1a1aa; text-decoration: underline;">Privacy Policy</a>
               </p>
               <p style="margin: 0; font-size: 12px; color: #a1a1aa; text-align: center;">
                 © ${new Date().getFullYear()} TRACKD Golf. All rights reserved.
