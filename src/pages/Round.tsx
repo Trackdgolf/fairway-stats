@@ -393,7 +393,7 @@ const Round = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background dark:bg-[hsl(var(--round-bg))] pb-20">
+    <div className="min-h-screen bg-background dark:bg-[hsl(var(--round-bg))] pb-24" style={{ paddingBottom: 'calc(6rem + var(--safe-area-inset-bottom, 0px))' }}>
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-8 pb-6">

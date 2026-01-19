@@ -119,7 +119,7 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-20 relative">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-24 relative" style={{ paddingBottom: 'calc(6rem + var(--safe-area-inset-bottom, 0px))' }}>
       <PageHeader height="h-40" />
       <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
         {/* Header */}
