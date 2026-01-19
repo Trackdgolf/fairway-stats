@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -18,63 +18,232 @@ const passwordSchema = z.object({
   path: ["confirmPassword"],
 });
 
+// Helper to get masked project ref for debugging
+const getMaskedProjectRef = (): string => {
+  try {
+    const url = import.meta.env.VITE_SUPABASE_URL || '';
+    const hostname = new URL(url).hostname;
+    const ref = hostname.split('.')[0];
+    if (ref.length > 8) {
+      return `${ref.slice(0, 4)}…${ref.slice(-4)}`;
+    }
+    return ref;
+  } catch {
+    return 'unknown';
+  }
+};
+
+// Parse tokens from both URL hash and query string
+const parseRecoveryTokens = () => {
+  const hash = window.location.hash.substring(1); // Remove leading #
+  const search = window.location.search.substring(1); // Remove leading ?
+  
+  // Combine hash and query params
+  const hashParams = new URLSearchParams(hash);
+  const queryParams = new URLSearchParams(search);
+  
+  // Check for tokens in both locations
+  const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+  const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+  const type = hashParams.get('type') || queryParams.get('type');
+  const code = queryParams.get('code'); // PKCE code is typically in query string
+  
+  const hasTokens = !!(accessToken && refreshToken);
+  const hasCode = !!code;
+  const isRecovery = type === 'recovery';
+  
+  // Determine token source for debugging
+  let source = 'none';
+  if (hasTokens || hasCode) {
+    if (hashParams.get('access_token') || hashParams.get('code')) {
+      source = queryParams.get('access_token') || queryParams.get('code') ? 'both' : 'hash';
+    } else {
+      source = 'query';
+    }
+  }
+  
+  return {
+    accessToken,
+    refreshToken,
+    code,
+    type,
+    hasTokens,
+    hasCode,
+    isRecovery,
+    source,
+    hasAnyTokens: hasTokens || hasCode,
+  };
+};
+
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
   const [isValidSession, setIsValidSession] = useState(false);
+  const [sessionError, setSessionError] = useState<string | null>(null);
   
   const navigate = useNavigate();
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
+  const supabase = getSupabaseClient();
 
   // Use logoLight (darker version) in light mode for contrast on light background
   const logo = resolvedTheme === 'dark' ? logoDark : logoLight;
 
-  // Check if URL contains recovery tokens
-  const hasRecoveryTokens = () => {
-    const hash = window.location.hash;
-    return hash.includes('type=recovery') || 
-           hash.includes('access_token') || 
-           hash.includes('refresh_token');
-  };
-
   useEffect(() => {
     let redirectTimeout: NodeJS.Timeout;
+    let sessionEstablished = false;
+
+    const tokens = parseRecoveryTokens();
+    const maskedRef = getMaskedProjectRef();
+    
+    // Debug logging (no sensitive data)
+    console.log('[ResetPassword] Init:', {
+      project: maskedRef,
+      source: tokens.source,
+      hasTokens: tokens.hasTokens,
+      hasCode: tokens.hasCode,
+      isRecovery: tokens.isRecovery,
+      hashEmpty: window.location.hash.length <= 1,
+    });
+
+    // Attempt to establish session from tokens
+    const attemptSessionFromTokens = async () => {
+      if (tokens.hasCode && tokens.code) {
+        // PKCE flow: exchange code for session
+        console.log('[ResetPassword] Attempting PKCE code exchange...');
+        const { data, error } = await supabase.auth.exchangeCodeForSession(tokens.code);
+        
+        if (error) {
+          console.log('[ResetPassword] Code exchange failed:', error.message);
+          return { success: false, error: error.message };
+        }
+        
+        if (data.session) {
+          console.log('[ResetPassword] Code exchange successful');
+          return { success: true, error: null };
+        }
+      }
+      
+      if (tokens.hasTokens && tokens.accessToken && tokens.refreshToken) {
+        // Token-based flow: set session directly
+        console.log('[ResetPassword] Attempting setSession with tokens...');
+        const { data, error } = await supabase.auth.setSession({
+          access_token: tokens.accessToken,
+          refresh_token: tokens.refreshToken,
+        });
+        
+        if (error) {
+          console.log('[ResetPassword] setSession failed:', error.message);
+          return { success: false, error: error.message };
+        }
+        
+        if (data.session) {
+          console.log('[ResetPassword] setSession successful');
+          return { success: true, error: null };
+        }
+      }
+      
+      return { success: false, error: null }; // No tokens to attempt
+    };
 
     // Listen for auth state changes - catches PASSWORD_RECOVERY event
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('[ResetPassword] Auth event:', event, 'hasSession:', !!session);
         if (event === 'PASSWORD_RECOVERY' || session) {
+          sessionEstablished = true;
           setIsValidSession(true);
+          setSessionError(null);
           if (redirectTimeout) clearTimeout(redirectTimeout);
         }
       }
     );
 
-    // Check existing session after delay to allow URL token processing
-    redirectTimeout = setTimeout(async () => {
+    // Main initialization logic
+    const initialize = async () => {
+      // First, check if there's already a session
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        console.log('[ResetPassword] Existing session found');
+        sessionEstablished = true;
         setIsValidSession(true);
-      } else if (!hasRecoveryTokens()) {
-        // Only redirect if no tokens present - user may have navigated directly
-        toast({
-          title: 'Invalid or expired link',
-          description: 'Please request a new password reset link.',
-          variant: 'destructive',
-        });
-        navigate('/auth');
+        return;
       }
-      // If tokens present but no session yet, keep waiting (onAuthStateChange will handle it)
-    }, 5000);
+
+      // If we have tokens, try to establish session explicitly
+      if (tokens.hasAnyTokens) {
+        const result = await attemptSessionFromTokens();
+        
+        if (result.success) {
+          sessionEstablished = true;
+          setIsValidSession(true);
+          return;
+        }
+        
+        if (result.error) {
+          // Explicit failure from Supabase - show error
+          console.log('[ResetPassword] Token exchange failed with error:', result.error);
+          setSessionError(result.error);
+          toast({
+            title: 'Invalid or expired link',
+            description: 'Please request a new password reset link.',
+            variant: 'destructive',
+          });
+          // Don't redirect immediately - let user see the error
+          redirectTimeout = setTimeout(() => {
+            if (!sessionEstablished) {
+              navigate('/auth');
+            }
+          }, 3000);
+          return;
+        }
+      }
+
+      // Set up timeout for cases where:
+      // 1. No tokens found in URL (user navigated directly)
+      // 2. Tokens exist but onAuthStateChange should handle them (Supabase auto-detection)
+      redirectTimeout = setTimeout(async () => {
+        if (sessionEstablished) return;
+        
+        // Final session check
+        const { data: { session: finalSession } } = await supabase.auth.getSession();
+        if (finalSession) {
+          setIsValidSession(true);
+          return;
+        }
+        
+        // If tokens were present but still no session, something went wrong
+        if (tokens.hasAnyTokens) {
+          console.log('[ResetPassword] Tokens present but no session after timeout');
+          setSessionError('Unable to verify reset link');
+          toast({
+            title: 'Unable to verify link',
+            description: 'Please try clicking the link again or request a new one.',
+            variant: 'destructive',
+          });
+          navigate('/auth');
+        } else {
+          // No tokens at all - user navigated directly
+          console.log('[ResetPassword] No tokens found, redirecting to auth');
+          toast({
+            title: 'Invalid or expired link',
+            description: 'Please request a new password reset link.',
+            variant: 'destructive',
+          });
+          navigate('/auth');
+        }
+      }, 5000);
+    };
+
+    initialize();
 
     return () => {
       subscription.unsubscribe();
       if (redirectTimeout) clearTimeout(redirectTimeout);
     };
-  }, [navigate, toast]);
+  }, [navigate, toast, supabase]);
 
   const validateForm = () => {
     try {
@@ -125,7 +294,11 @@ const ResetPassword = () => {
   if (!isValidSession) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center p-4">
-        <p className="text-muted-foreground">Verifying...</p>
+        <div className="text-center">
+          <p className="text-muted-foreground">
+            {sessionError ? 'Redirecting...' : 'Verifying...'}
+          </p>
+        </div>
       </div>
     );
   }

@@ -74,26 +74,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const resetPassword = async (email: string) => {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-password-reset`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({ email }),
-        }
-      );
+      // Use supabase.functions.invoke for consistent project targeting
+      const { data, error } = await supabase.functions.invoke('send-password-reset', {
+        body: { email },
+      });
       
-      const data = await response.json();
+      if (error) {
+        console.log('[AuthContext] Password reset error:', error.message);
+        return { error: new Error(error.message || 'Failed to send reset email') };
+      }
       
-      if (!response.ok) {
-        return { error: new Error(data.error || 'Failed to send reset email') };
+      if (data?.error) {
+        return { error: new Error(data.error) };
       }
       
       return { error: null };
     } catch (error) {
+      console.log('[AuthContext] Password reset exception:', error);
       return { error: error as Error };
     }
   };
