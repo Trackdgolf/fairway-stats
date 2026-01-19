@@ -36,6 +36,30 @@ const StatsChart = ({ data, title, yAxisLabel }: StatsChartProps) => {
     return "hsl(var(--primary))";
   };
 
+  // Calculate Y-axis domain with padding above max value
+  const getYAxisDomain = (): [number, number] => {
+    if (!data || data.length === 0) return [0, 10];
+    
+    const values = data.map(d => d.value);
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    
+    // Calculate a nice interval based on the data range
+    const range = maxVal - minVal;
+    let interval = 1;
+    if (range > 50) interval = 10;
+    else if (range > 20) interval = 5;
+    else if (range > 10) interval = 2;
+    
+    // Round max up to next interval and add one more interval for padding
+    const paddedMax = Math.ceil(maxVal / interval) * interval + interval;
+    
+    // For min, use 0 or round down if there are negative values
+    const paddedMin = minVal >= 0 ? 0 : Math.floor(minVal / interval) * interval - interval;
+    
+    return [paddedMin, paddedMax];
+  };
+
   return (
     <Card className="p-6 mb-4">
       <h3 className="text-xl font-bold text-foreground mb-6 text-center">{title}</h3>
@@ -50,6 +74,7 @@ const StatsChart = ({ data, title, yAxisLabel }: StatsChartProps) => {
           <YAxis
             stroke="hsl(var(--muted-foreground))"
             tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+            domain={getYAxisDomain()}
           />
           <Tooltip content={<CustomTooltip />} />
           <Line
