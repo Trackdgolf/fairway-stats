@@ -196,6 +196,9 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
             toast.error('Purchase completed but activation pending. Try "Restore Purchases".');
             return false;
           }
+          
+          // Small delay to ensure state propagates before any navigation
+          await new Promise(resolve => setTimeout(resolve, 300));
         }
         
         toast.success('Purchase successful! Welcome to Premium.');

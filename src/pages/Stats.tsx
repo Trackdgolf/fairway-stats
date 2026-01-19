@@ -33,7 +33,7 @@ const Stats = () => {
   const [showPaywall, setShowPaywall] = useState(false);
   const { statPreferences: preferences } = useUserPreferences();
   const { data, isLoading } = useRoundStats(timeRange, courseFilter);
-  const { isPremium } = usePremiumStatus();
+  const { isPremium, status } = usePremiumStatus();
 
   const getChartData = () => {
     if (!data?.timeSeries) return [];
@@ -231,7 +231,8 @@ const Stats = () => {
         ) : (
           <div className="grid grid-cols-2 gap-4">
             {stats.map((stat) => {
-              const isLocked = !isPremium && PREMIUM_STATS.includes(stat.id);
+              // Only show locked state when status is definitively 'inactive'
+              const isLocked = status === 'inactive' && PREMIUM_STATS.includes(stat.id);
               
               if (isLocked) {
                 return (
