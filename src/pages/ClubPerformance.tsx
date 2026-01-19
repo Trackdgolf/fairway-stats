@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Crown, Lock } from "lucide-react";
+import { Settings, Crown, Loader2 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,7 +28,7 @@ const SCRAMBLE_SHOT_TYPES: { value: ScrambleShotTypeFilter; label: string }[] = 
 
 const ClubPerformance = () => {
   const navigate = useNavigate();
-  const { isPremium } = usePremiumStatus();
+  const { status } = usePremiumStatus();
   const [activeTab, setActiveTab] = useState<TabType>("teeShots");
   const [selectedTeeClub, setSelectedTeeClub] = useState<string>("all");
   const [selectedApproachClub, setSelectedApproachClub] = useState<string>("all");
@@ -38,12 +38,18 @@ const ClubPerformance = () => {
   const { clubs: bagClubs } = useUserPreferences();
   const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType);
 
-  // Show paywall automatically for non-premium users on first visit
-  useEffect(() => {
-    if (!isPremium) {
-      setShowPaywall(true);
-    }
-  }, [isPremium]);
+  // Show loading state while checking premium status
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground text-sm">Loading...</p>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   // Sort clubs by bag order, only include clubs with data
   const sortedTeeClubs = useMemo(() => {
@@ -196,8 +202,8 @@ const ClubPerformance = () => {
         )}
       </div>
 
-      {/* Premium Overlay for non-premium users */}
-      {!isPremium && (
+      {/* Premium Overlay - only show when status is definitively 'inactive' */}
+      {status === 'inactive' && (
         <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
           <Card className="w-full max-w-sm">
             <CardContent className="p-6 text-center">
