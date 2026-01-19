@@ -32,6 +32,14 @@ const ResetPassword = () => {
   // Use logoLight (darker version) in light mode for contrast on light background
   const logo = resolvedTheme === 'dark' ? logoDark : logoLight;
 
+  // Check if URL contains recovery tokens
+  const hasRecoveryTokens = () => {
+    const hash = window.location.hash;
+    return hash.includes('type=recovery') || 
+           hash.includes('access_token') || 
+           hash.includes('refresh_token');
+  };
+
   useEffect(() => {
     let redirectTimeout: NodeJS.Timeout;
 
@@ -50,7 +58,8 @@ const ResetPassword = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setIsValidSession(true);
-      } else {
+      } else if (!hasRecoveryTokens()) {
+        // Only redirect if no tokens present - user may have navigated directly
         toast({
           title: 'Invalid or expired link',
           description: 'Please request a new password reset link.',
@@ -58,7 +67,8 @@ const ResetPassword = () => {
         });
         navigate('/auth');
       }
-    }, 1500);
+      // If tokens present but no session yet, keep waiting (onAuthStateChange will handle it)
+    }, 5000);
 
     return () => {
       subscription.unsubscribe();
