@@ -16,10 +16,45 @@ const getEmailDomain = (email: string): string => {
   return parts.length === 2 ? parts[1] : "unknown";
 };
 
+// Helper to get masked project ref from URL (e.g., "sejy…emgx")
+const getMaskedProjectRef = (url: string): string => {
+  try {
+    const hostname = new URL(url).hostname;
+    const ref = hostname.split(".")[0];
+    if (ref.length > 8) {
+      return `${ref.slice(0, 4)}…${ref.slice(-4)}`;
+    }
+    return ref;
+  } catch {
+    return "unknown";
+  }
+};
+
+// Helper to analyze link shape without exposing tokens
+const analyzeLinkShape = (link: string): Record<string, boolean | string> => {
+  try {
+    const url = new URL(link);
+    const hash = url.hash;
+    const search = url.search;
+    
+    return {
+      has_hash: hash.length > 1,
+      has_query: search.length > 1,
+      has_type_recovery: hash.includes("type=recovery") || search.includes("type=recovery"),
+      has_access_token: hash.includes("access_token") || search.includes("access_token"),
+      has_refresh_token: hash.includes("refresh_token") || search.includes("refresh_token"),
+      has_code: search.includes("code="),
+      redirect_path: url.pathname,
+    };
+  } catch {
+    return { error: true };
+  }
+};
+
 // Helper to create structured log entry
-const logPasswordReset = (status: string, emailDomain: string, details?: string) => {
+const logPasswordReset = (status: string, emailDomain: string, projectRef: string, details?: string) => {
   const timestamp = new Date().toISOString();
-  const logEntry = `[${timestamp}] PASSWORD_RESET | domain: ${emailDomain} | status: ${status}${details ? ` | ${details}` : ""}`;
+  const logEntry = `[${timestamp}] PASSWORD_RESET | domain: ${emailDomain} | project: ${projectRef} | status: ${status}${details ? ` | ${details}` : ""}`;
   console.log(logEntry);
 };
 
@@ -29,12 +64,15 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+  const maskedRef = getMaskedProjectRef(supabaseUrl);
+
   try {
     const { email }: PasswordResetRequest = await req.json();
 
     // Validate email
     if (!email || typeof email !== "string") {
-      logPasswordReset("error", "unknown", "missing or invalid email");
+      logPasswordReset("error", "unknown", maskedRef, "missing or invalid email");
       return new Response(
         JSON.stringify({ error: "Email is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -44,17 +82,16 @@ const handler = async (req: Request): Promise<Response> => {
     const emailDomain = getEmailDomain(email);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      logPasswordReset("error", emailDomain, "invalid email format");
+      logPasswordReset("error", emailDomain, maskedRef, "invalid email format");
       return new Response(
         JSON.stringify({ error: "Invalid email format" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    logPasswordReset("received", emailDomain, "processing request");
+    logPasswordReset("received", emailDomain, maskedRef, "processing request");
 
     // Get environment variables
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const appBaseUrl = Deno.env.get("APP_BASE_URL");
@@ -77,7 +114,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Generate password recovery link
     const redirectTo = `${appBaseUrl}/reset-password`;
-    console.log("Generating recovery link for:", email, "redirecting to:", redirectTo);
+    console.log(`Generating recovery link for domain: ${emailDomain}, redirecting to: ${redirectTo}`);
 
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
@@ -88,7 +125,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (linkError) {
-      logPasswordReset("link_error", emailDomain, "user may not exist");
+      logPasswordReset("link_error", emailDomain, maskedRef, "user may not exist");
       // Don't reveal if user exists or not for security
       return new Response(
         JSON.stringify({ success: true, message: "If an account exists, a reset email has been sent." }),
@@ -100,14 +137,16 @@ const handler = async (req: Request): Promise<Response> => {
     const recoveryLink = linkData?.properties?.action_link;
     
     if (!recoveryLink) {
-      logPasswordReset("link_error", emailDomain, "no recovery link generated");
+      logPasswordReset("link_error", emailDomain, maskedRef, "no recovery link generated");
       return new Response(
         JSON.stringify({ success: true, message: "If an account exists, a reset email has been sent." }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    logPasswordReset("link_generated", emailDomain);
+    // Log link shape for debugging (no actual tokens)
+    const linkShape = analyzeLinkShape(recoveryLink);
+    logPasswordReset("link_generated", emailDomain, maskedRef, `link_shape: ${JSON.stringify(linkShape)}`);
 
     // Send email using Resend
     const emailHtml = `
@@ -173,14 +212,14 @@ const handler = async (req: Request): Promise<Response> => {
     const resendData = await resendResponse.json();
 
     if (!resendResponse.ok) {
-      logPasswordReset("email_error", emailDomain, `resend API failed: ${resendData?.message || "unknown"}`);
+      logPasswordReset("email_error", emailDomain, maskedRef, `resend API failed: ${resendData?.message || "unknown"}`);
       return new Response(
         JSON.stringify({ error: "Failed to send email. Please try again." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    logPasswordReset("success", emailDomain, `email_id: ${resendData?.id || "unknown"}`);
+    logPasswordReset("success", emailDomain, maskedRef, `email_id: ${resendData?.id || "unknown"}`);
 
     return new Response(
       JSON.stringify({ success: true, message: "Password reset email sent successfully." }),
@@ -188,7 +227,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error: any) {
-    logPasswordReset("error", "unknown", `exception: ${error.message || "unknown"}`);
+    logPasswordReset("error", "unknown", maskedRef, `exception: ${error.message || "unknown"}`);
     return new Response(
       JSON.stringify({ error: error.message || "An unexpected error occurred" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
