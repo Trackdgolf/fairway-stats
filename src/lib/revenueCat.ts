@@ -9,7 +9,7 @@ import {
 } from '@revenuecat/purchases-capacitor';
 
 // Entitlement identifier - MUST match RevenueCat dashboard exactly
-export const PREMIUM_ENTITLEMENT_ID = 'premium';
+export const PREMIUM_ENTITLEMENT_ID = 'Premium';
 
 // Check if we're running on a native platform
 export const isNativePlatform = (): boolean => {
