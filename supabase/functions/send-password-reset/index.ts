@@ -10,6 +10,19 @@ interface PasswordResetRequest {
   email: string;
 }
 
+// Helper to extract email domain (for logging without exposing full email)
+const getEmailDomain = (email: string): string => {
+  const parts = email.split("@");
+  return parts.length === 2 ? parts[1] : "unknown";
+};
+
+// Helper to create structured log entry
+const logPasswordReset = (status: string, emailDomain: string, details?: string) => {
+  const timestamp = new Date().toISOString();
+  const logEntry = `[${timestamp}] PASSWORD_RESET | domain: ${emailDomain} | status: ${status}${details ? ` | ${details}` : ""}`;
+  console.log(logEntry);
+};
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -21,21 +34,24 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Validate email
     if (!email || typeof email !== "string") {
-      console.error("Missing or invalid email");
+      logPasswordReset("error", "unknown", "missing or invalid email");
       return new Response(
         JSON.stringify({ error: "Email is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    const emailDomain = getEmailDomain(email);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      console.error("Invalid email format:", email);
+      logPasswordReset("error", emailDomain, "invalid email format");
       return new Response(
         JSON.stringify({ error: "Invalid email format" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    logPasswordReset("received", emailDomain, "processing request");
 
     // Get environment variables
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -72,7 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (linkError) {
-      console.error("Error generating recovery link:", linkError);
+      logPasswordReset("link_error", emailDomain, "user may not exist");
       // Don't reveal if user exists or not for security
       return new Response(
         JSON.stringify({ success: true, message: "If an account exists, a reset email has been sent." }),
@@ -84,14 +100,14 @@ const handler = async (req: Request): Promise<Response> => {
     const recoveryLink = linkData?.properties?.action_link;
     
     if (!recoveryLink) {
-      console.error("No recovery link generated");
+      logPasswordReset("link_error", emailDomain, "no recovery link generated");
       return new Response(
         JSON.stringify({ success: true, message: "If an account exists, a reset email has been sent." }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("Recovery link generated successfully");
+    logPasswordReset("link_generated", emailDomain);
 
     // Send email using Resend
     const emailHtml = `
@@ -157,14 +173,14 @@ const handler = async (req: Request): Promise<Response> => {
     const resendData = await resendResponse.json();
 
     if (!resendResponse.ok) {
-      console.error("Resend API error:", resendData);
+      logPasswordReset("email_error", emailDomain, `resend API failed: ${resendData?.message || "unknown"}`);
       return new Response(
         JSON.stringify({ error: "Failed to send email. Please try again." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("Password reset email sent successfully:", resendData);
+    logPasswordReset("success", emailDomain, `email_id: ${resendData?.id || "unknown"}`);
 
     return new Response(
       JSON.stringify({ success: true, message: "Password reset email sent successfully." }),
@@ -172,7 +188,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error: any) {
-    console.error("Error in send-password-reset function:", error);
+    logPasswordReset("error", "unknown", `exception: ${error.message || "unknown"}`);
     return new Response(
       JSON.stringify({ error: error.message || "An unexpected error occurred" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
