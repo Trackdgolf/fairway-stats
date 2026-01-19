@@ -66,16 +66,18 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     initRC();
   }, [revenueCatInitialized]);
 
-  // Set RevenueCat user ID when user logs in
+  // Set RevenueCat user ID when user logs in, logout when user logs out
   useEffect(() => {
     const setRCUser = async () => {
       if (user && revenueCatInitialized && isNativePlatform()) {
         try {
+          console.log('SubscriptionContext: Setting RevenueCat user', user.id.substring(0, 8) + '...');
           await setRevenueCatUserId(user.id);
         } catch (error) {
           console.error('Failed to set RevenueCat user:', error);
         }
       } else if (!user && revenueCatInitialized && isNativePlatform()) {
+        console.log('SubscriptionContext: Logging out RevenueCat user');
         await logOutRevenueCat();
       }
     };

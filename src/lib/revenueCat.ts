@@ -8,9 +8,27 @@ import {
   type PurchasesPackage
 } from '@revenuecat/purchases-capacitor';
 
+// Entitlement identifier - MUST match RevenueCat dashboard exactly
+export const PREMIUM_ENTITLEMENT_ID = 'premium';
+
 // Check if we're running on a native platform
 export const isNativePlatform = (): boolean => {
   return Capacitor.isNativePlatform();
+};
+
+// Debug logging helper - logs entitlement state without exposing secrets
+export const logCustomerInfoDebug = (customerInfo: CustomerInfo, context: string): void => {
+  const appUserID = customerInfo.originalAppUserId;
+  const entitlements = customerInfo.entitlements?.active || {};
+  const premiumEntitlement = entitlements[PREMIUM_ENTITLEMENT_ID];
+  
+  console.log(`RevenueCat Debug [${context}]:`, {
+    appUserID: appUserID ? appUserID.substring(0, 8) + '...' : 'anonymous',
+    isPremiumActive: !!premiumEntitlement,
+    entitlementIds: Object.keys(entitlements),
+    premiumExpiration: premiumEntitlement?.expirationDate || 'none',
+    willRenew: premiumEntitlement?.willRenew ?? null,
+  });
 };
 
 // Initialize RevenueCat SDK
@@ -115,12 +133,14 @@ export const restorePurchases = async (): Promise<CustomerInfo | null> => {
 };
 
 // Check if user has active premium entitlement
-export const hasActiveEntitlement = (customerInfo: CustomerInfo, entitlementId: string = 'premium'): boolean => {
-  return customerInfo.entitlements.active[entitlementId] !== undefined;
+export const hasActiveEntitlement = (customerInfo: CustomerInfo, entitlementId: string = PREMIUM_ENTITLEMENT_ID): boolean => {
+  const isActive = customerInfo.entitlements.active[entitlementId] !== undefined;
+  console.log(`RevenueCat: hasActiveEntitlement('${entitlementId}') = ${isActive}`);
+  return isActive;
 };
 
 // Get the active product ID if subscribed
-export const getActiveProductId = (customerInfo: CustomerInfo, entitlementId: string = 'premium'): string | null => {
+export const getActiveProductId = (customerInfo: CustomerInfo, entitlementId: string = PREMIUM_ENTITLEMENT_ID): string | null => {
   const entitlement = customerInfo.entitlements.active[entitlementId];
   return entitlement?.productIdentifier ?? null;
 };
