@@ -38,27 +38,13 @@ const ClubPerformance = () => {
   const { clubs: bagClubs } = useUserPreferences();
   const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType);
 
-  // Show loading state while checking premium status
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-muted-foreground text-sm">Loading...</p>
-        </div>
-        <BottomNav />
-      </div>
-    );
-  }
-
-  // Sort clubs by bag order, only include clubs with data
+  // Sort clubs by bag order, only include clubs with data - MUST be before early returns
   const sortedTeeClubs = useMemo(() => {
     const clubsWithData = stats?.teeClubs || [];
     const bagOrder = bagClubs.map(c => c.name);
     return clubsWithData.sort((a, b) => {
       const indexA = bagOrder.indexOf(a);
       const indexB = bagOrder.indexOf(b);
-      // If not in bag, put at end
       if (indexA === -1 && indexB === -1) return 0;
       if (indexA === -1) return 1;
       if (indexB === -1) return -1;
@@ -78,6 +64,19 @@ const ClubPerformance = () => {
       return indexA - indexB;
     });
   }, [stats?.approachClubs, bagClubs]);
+
+  // Show loading state while checking premium status
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-secondary flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground text-sm">Loading...</p>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   const clubs = activeTab === "teeShots" ? sortedTeeClubs : activeTab === "approach" ? sortedApproachClubs : [];
   const selectedClub = activeTab === "teeShots" ? selectedTeeClub : selectedApproachClub;
