@@ -241,9 +241,6 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
             <span className="text-sm opacity-90">
               Free for {trialPeriod}, then {priceString}{periodLabel}
             </span>
-            <span className="text-xs opacity-70">
-              (if eligible)
-            </span>
           </>
         ) : (
           <>
