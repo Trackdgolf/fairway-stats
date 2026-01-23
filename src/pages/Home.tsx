@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import { TrackdHandicap } from "@/components/TrackdHandicap";
-import { LockedTrackdHandicap } from "@/components/LockedTrackdHandicap";
 import { PaywallModal } from "@/components/PaywallModal";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useNavigate } from "react-router-dom";
@@ -189,16 +188,9 @@ const Home = () => {
           </div>
         )}
 
-        {/* Trackd Handicap */}
+        {/* Trackd Handicap - Free for all users */}
         <div className="mb-6">
-          {isPremium ? (
-            <TrackdHandicap />
-          ) : (
-            <LockedTrackdHandicap onUpgrade={() => {
-              console.log('Paywall opened');
-              setShowPaywall(true);
-            }} />
-          )}
+          <TrackdHandicap />
         </div>
 
         {/* Recent Rounds */}
