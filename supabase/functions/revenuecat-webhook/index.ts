@@ -77,9 +77,16 @@ interface RevenueCatEvent {
 }
 
 // Email template functions
-function getTrialConfirmationEmail(email: string): { subject: string; html: string; text: string } {
+
+const LOGO_URL = "https://app.trackdgolf.com/trackd-logo.png";
+const APP_URL = "https://app.trackdgolf.com";
+const TERMS_URL = "https://www.trackdgolf.com/terms-of-use.pdf";
+const PRIVACY_URL = "https://www.trackdgolf.com/privacy-policy.pdf";
+
+// Email #1 — Welcome to Premium (service email, send immediately)
+function getTrialConfirmationEmail(): { subject: string; html: string; text: string } {
   return {
-    subject: "Welcome to TRACKD Premium! 🎯",
+    subject: "Welcome to TRACKD Premium ⛳️",
     html: `
 <!DOCTYPE html>
 <html>
@@ -87,155 +94,65 @@ function getTrialConfirmationEmail(email: string): { subject: string; html: stri
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
     <tr>
       <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          <!-- Header -->
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Logo -->
           <tr>
-            <td style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); padding: 30px 40px; text-align: center;">
-              <img src="https://app.trackdgolf.com/trackd-logo.png" alt="TRACKD Golf" style="width: 140px; height: auto;">
+            <td style="padding: 40px 40px 20px 40px; text-align: center;">
+              <img src="${LOGO_URL}" alt="TRACKD Golf" width="140" style="max-width: 140px; height: auto; display: block; margin: 0 auto;">
             </td>
           </tr>
           
           <!-- Content -->
           <tr>
-            <td style="padding: 40px;">
-              <h1 style="margin: 0 0 20px; color: #1f2937; font-size: 28px; font-weight: 700;">Your Premium Trial Has Started! 🎉</h1>
+            <td style="padding: 20px 40px 40px 40px;">
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">Hi there,</p>
               
-              <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-                Welcome to TRACKD Premium! You now have full access to all our advanced features for the next 4 weeks.
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                Welcome to TRACKD Golf Premium — your free trial is now active. We are excited to have you onboard and appreciate your support.
               </p>
               
-              <div style="background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
-                <h3 style="margin: 0 0 15px; color: #166534; font-size: 18px;">Quick Start Tips:</h3>
-                <ul style="margin: 0; padding-left: 20px; color: #4b5563; font-size: 15px; line-height: 1.8;">
-                  <li><strong>Track every shot</strong> – Fairways, greens, putts, and club selection</li>
-                  <li><strong>Analyze your trends</strong> – View dispersion patterns and scoring insights</li>
-                  <li><strong>Customize your bag</strong> – Set up your clubs for accurate tracking</li>
-                  <li><strong>Watch your handicap</strong> – See your TRACKD Handicap evolve</li>
-                </ul>
-              </div>
-              
-              <p style="margin: 25px 0 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
-                Ready to start improving your game?
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                To help you with the app here are two quick setup steps to get you logging scores and stats in no time;
               </p>
               
-              <table role="presentation" style="margin: 30px 0;">
-                <tr>
-                  <td>
-                    <a href="https://app.trackdgolf.com" style="display: inline-block; background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">Open TRACKD</a>
-                  </td>
-                </tr>
-              </table>
-              
-              <p style="margin: 20px 0 0; color: #9ca3af; font-size: 14px;">
-                Your trial ends in 4 weeks. We'll remind you before it converts to a paid subscription.
-              </p>
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #f9fafb; padding: 25px 40px; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 10px; color: #6b7280; font-size: 13px; text-align: center;">
-                Questions? Reply to this email or contact us at support@trackdgolf.com
-              </p>
-              <p style="margin: 0; color: #9ca3af; font-size: 12px; text-align: center;">
-                <a href="https://www.trackdgolf.com/privacy-policy.pdf" style="color: #9ca3af;">Privacy Policy</a> • 
-                <a href="https://www.trackdgolf.com/terms-of-use.pdf" style="color: #9ca3af;">Terms of Use</a>
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`,
-    text: `Welcome to TRACKD Premium! 🎉
-
-Your Premium trial has started! You now have full access to all our advanced features for the next 4 weeks.
-
-Quick Start Tips:
-- Track every shot – Fairways, greens, putts, and club selection
-- Analyze your trends – View dispersion patterns and scoring insights
-- Customize your bag – Set up your clubs for accurate tracking
-- Watch your handicap – See your TRACKD Handicap evolve
-
-Open the app: https://app.trackdgolf.com
-
-Your trial ends in 4 weeks. We'll remind you before it converts to a paid subscription.
-
-Questions? Contact us at support@trackdgolf.com`,
-  };
-}
-
-function getCheckInEmail(email: string): { subject: string; html: string; text: string } {
-  return {
-    subject: "How's your golf game going? 🏌️",
-    html: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse;">
-    <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          <!-- Header -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); padding: 30px 40px; text-align: center;">
-              <img src="https://app.trackdgolf.com/trackd-logo.png" alt="TRACKD Golf" style="width: 140px; height: auto;">
-            </td>
-          </tr>
-          
-          <!-- Content -->
-          <tr>
-            <td style="padding: 40px;">
-              <h1 style="margin: 0 0 20px; color: #1f2937; font-size: 26px; font-weight: 700;">Two Weeks In – How's It Going?</h1>
-              
-              <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-                You're halfway through your Premium trial! We hope you're finding valuable insights in your game data.
-              </p>
-              
-              <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
-                <h3 style="margin: 0 0 10px; color: #1e40af; font-size: 16px;">💡 Pro Tip: Check Your Dispersion Patterns</h3>
-                <p style="margin: 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
-                  After a few rounds, your fairway and green dispersion charts reveal your shot tendencies. Use them to identify if you're consistently missing left, right, short, or long – then adjust your aim or club selection accordingly.
+              <!-- Step 1 -->
+              <div style="margin: 0 0 20px 0;">
+                <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #18181b;">1) Set up your bag (takes 30 seconds)</p>
+                <p style="margin: 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                  Go to Settings → My Bag and add your clubs. This ensures the correct club options appear when you're logging shots.
                 </p>
               </div>
               
-              <table role="presentation" style="margin: 30px 0;">
-                <tr>
-                  <td>
-                    <a href="https://app.trackdgolf.com/stats" style="display: inline-block; background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">View Your Stats</a>
-                  </td>
-                </tr>
-              </table>
+              <!-- Step 2 -->
+              <div style="margin: 0 0 30px 0;">
+                <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #18181b;">2) Choose the stats you want to track</p>
+                <p style="margin: 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                  In Settings → Stats, select the stats you care about and turn off anything you don't want to track. Less friction = better data.
+                </p>
+              </div>
               
-              <p style="margin: 20px 0 0; color: #9ca3af; font-size: 14px;">
-                2 weeks remaining in your trial.
+              <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                If you need help, just reply to this email — we'll get you sorted.
+              </p>
+              
+              <p style="margin: 0 0 5px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">— TRACKD Golf</p>
+              <p style="margin: 0; font-size: 16px; line-height: 24px; color: #71717a;">
+                <a href="mailto:support@trackdgolf.com" style="color: #1a5d3a; text-decoration: none;">support@trackdgolf.com</a>
               </p>
             </td>
           </tr>
           
           <!-- Footer -->
           <tr>
-            <td style="background-color: #f9fafb; padding: 25px 40px; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 10px; color: #6b7280; font-size: 13px; text-align: center;">
-                Questions? Reply to this email or contact us at support@trackdgolf.com
-              </p>
-              <p style="margin: 0 0 10px; color: #9ca3af; font-size: 12px; text-align: center;">
-                <a href="https://app.trackdgolf.com/settings" style="color: #9ca3af;">Manage email preferences</a>
-              </p>
-              <p style="margin: 0; color: #9ca3af; font-size: 12px; text-align: center;">
-                <a href="https://www.trackdgolf.com/privacy-policy.pdf" style="color: #9ca3af;">Privacy Policy</a> • 
-                <a href="https://www.trackdgolf.com/terms-of-use.pdf" style="color: #9ca3af;">Terms of Use</a>
+            <td style="padding: 20px 40px; background-color: #fafafa; border-radius: 0 0 12px 12px;">
+              <p style="margin: 0; font-size: 12px; color: #a1a1aa; text-align: center;">
+                <a href="${TERMS_URL}" style="color: #a1a1aa; text-decoration: underline;">Terms of Use</a>
+                &nbsp;•&nbsp;
+                <a href="${PRIVACY_URL}" style="color: #a1a1aa; text-decoration: underline;">Privacy Policy</a>
               </p>
             </td>
           </tr>
@@ -245,25 +162,29 @@ function getCheckInEmail(email: string): { subject: string; html: string; text: 
   </table>
 </body>
 </html>`,
-    text: `Two Weeks In – How's It Going?
+    text: `Hi there,
 
-You're halfway through your Premium trial! We hope you're finding valuable insights in your game data.
+Welcome to TRACKD Golf Premium — your free trial is now active. We are excited to have you onboard and appreciate your support.
 
-💡 Pro Tip: Check Your Dispersion Patterns
-After a few rounds, your fairway and green dispersion charts reveal your shot tendencies. Use them to identify if you're consistently missing left, right, short, or long – then adjust your aim or club selection accordingly.
+To help you with the app here are two quick setup steps to get you logging scores and stats in no time;
 
-View your stats: https://app.trackdgolf.com/stats
+1) Set up your bag (takes 30 seconds)
+Go to Settings → My Bag and add your clubs. This ensures the correct club options appear when you're logging shots.
 
-2 weeks remaining in your trial.
+2) Choose the stats you want to track
+In Settings → Stats, select the stats you care about and turn off anything you don't want to track. Less friction = better data.
 
-Questions? Contact us at support@trackdgolf.com
-Manage email preferences: https://app.trackdgolf.com/settings`,
+If you need help, just reply to this email — we'll get you sorted.
+
+— TRACKD Golf
+support@trackdgolf.com`,
   };
 }
 
-function getTrialEndingEmail(email: string, trialEndDate: string): { subject: string; html: string; text: string } {
+// Email #2 — Day 14 Check-in (marketing email, only if opt-in)
+function getCheckInEmail(): { subject: string; html: string; text: string } {
   return {
-    subject: "Your Premium trial ends in 3 days ⏰",
+    subject: "How's your tracking going? (Quick check-in)",
     html: `
 <!DOCTYPE html>
 <html>
@@ -271,61 +192,59 @@ function getTrialEndingEmail(email: string, trialEndDate: string): { subject: st
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
     <tr>
       <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          <!-- Header -->
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Logo -->
           <tr>
-            <td style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); padding: 30px 40px; text-align: center;">
-              <img src="https://app.trackdgolf.com/trackd-logo.png" alt="TRACKD Golf" style="width: 140px; height: auto;">
+            <td style="padding: 40px 40px 20px 40px; text-align: center;">
+              <img src="${LOGO_URL}" alt="TRACKD Golf" width="140" style="max-width: 140px; height: auto; display: block; margin: 0 auto;">
             </td>
           </tr>
           
           <!-- Content -->
           <tr>
-            <td style="padding: 40px;">
-              <h1 style="margin: 0 0 20px; color: #1f2937; font-size: 26px; font-weight: 700;">Your Trial Ends in 3 Days</h1>
+            <td style="padding: 20px 40px 40px 40px;">
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">Hi there,</p>
               
-              <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-                Your TRACKD Premium trial ends on <strong>${trialEndDate}</strong>.
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                You're about two weeks into Premium — quick check-in: have you tracked at least 2 rounds yet? That's usually the point where the trends start to become obvious.
               </p>
               
-              <div style="background-color: #fefce8; border-left: 4px solid #eab308; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
-                <h3 style="margin: 0 0 10px; color: #a16207; font-size: 16px;">⚠️ Important</h3>
-                <p style="margin: 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
-                  After your trial ends, your subscription will automatically convert to a paid plan. If you don't want to be charged, <strong>cancel at least 24 hours before the trial ends</strong>.
-                </p>
-              </div>
-              
-              <p style="margin: 20px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
-                To manage or cancel your subscription, open the app and go to <strong>Settings → Subscription</strong>, or manage it directly through the App Store.
+              <p style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: #18181b;">One tip to improve faster:</p>
+              <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                After each round, spend 30 seconds looking at one stat you want to move next round (e.g., Fairways, GIR, or Scrambles). Then set a single intention for your next round.
               </p>
               
-              <table role="presentation" style="margin: 30px 0;">
-                <tr>
-                  <td>
-                    <a href="https://app.trackdgolf.com/settings" style="display: inline-block; background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">Manage Subscription</a>
-                  </td>
-                </tr>
-              </table>
+              <p style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: #18181b;">Make sure your setup is still dialled:</p>
+              <ul style="margin: 0 0 24px 0; padding-left: 20px; font-size: 16px; line-height: 28px; color: #3f3f46;">
+                <li>Settings → My Bag: are your clubs accurate?</li>
+                <li>Settings → Stats: are you tracking only what matters to you?</li>
+              </ul>
               
-              <p style="margin: 20px 0 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
-                We hope you've enjoyed tracking your rounds with TRACKD Premium! If you have any questions about your subscription, we're here to help.
+              <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                If you tell us what you're trying to improve (breaking 90, more GIR, fewer doubles), we'll suggest some drills from our local pro to help you.
+              </p>
+              
+              <p style="margin: 0 0 5px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">— TRACKD Golf</p>
+              <p style="margin: 0; font-size: 16px; line-height: 24px; color: #71717a;">
+                <a href="mailto:support@trackdgolf.com" style="color: #1a5d3a; text-decoration: none;">support@trackdgolf.com</a>
               </p>
             </td>
           </tr>
           
           <!-- Footer -->
           <tr>
-            <td style="background-color: #f9fafb; padding: 25px 40px; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 10px; color: #6b7280; font-size: 13px; text-align: center;">
-                Questions? Reply to this email or contact us at support@trackdgolf.com
+            <td style="padding: 20px 40px; background-color: #fafafa; border-radius: 0 0 12px 12px;">
+              <p style="margin: 0 0 10px 0; font-size: 12px; color: #a1a1aa; text-align: center;">
+                <a href="${APP_URL}/settings" style="color: #a1a1aa; text-decoration: underline;">Manage email preferences</a>
               </p>
-              <p style="margin: 0; color: #9ca3af; font-size: 12px; text-align: center;">
-                <a href="https://www.trackdgolf.com/privacy-policy.pdf" style="color: #9ca3af;">Privacy Policy</a> • 
-                <a href="https://www.trackdgolf.com/terms-of-use.pdf" style="color: #9ca3af;">Terms of Use</a>
+              <p style="margin: 0; font-size: 12px; color: #a1a1aa; text-align: center;">
+                <a href="${TERMS_URL}" style="color: #a1a1aa; text-decoration: underline;">Terms of Use</a>
+                &nbsp;•&nbsp;
+                <a href="${PRIVACY_URL}" style="color: #a1a1aa; text-decoration: underline;">Privacy Policy</a>
               </p>
             </td>
           </tr>
@@ -335,20 +254,113 @@ function getTrialEndingEmail(email: string, trialEndDate: string): { subject: st
   </table>
 </body>
 </html>`,
-    text: `Your Trial Ends in 3 Days
+    text: `Hi there,
 
-Your TRACKD Premium trial ends on ${trialEndDate}.
+You're about two weeks into Premium — quick check-in: have you tracked at least 2 rounds yet? That's usually the point where the trends start to become obvious.
 
-⚠️ Important
-After your trial ends, your subscription will automatically convert to a paid plan. If you don't want to be charged, cancel at least 24 hours before the trial ends.
+One tip to improve faster:
+After each round, spend 30 seconds looking at one stat you want to move next round (e.g., Fairways, GIR, or Scrambles). Then set a single intention for your next round.
 
-To manage or cancel your subscription, open the app and go to Settings → Subscription, or manage it directly through the App Store.
+Make sure your setup is still dialled:
+• Settings → My Bag: are your clubs accurate?
+• Settings → Stats: are you tracking only what matters to you?
 
-Manage subscription: https://app.trackdgolf.com/settings
+If you tell us what you're trying to improve (breaking 90, more GIR, fewer doubles), we'll suggest some drills from our local pro to help you.
 
-We hope you've enjoyed tracking your rounds with TRACKD Premium! If you have any questions about your subscription, we're here to help.
+— TRACKD Golf
+support@trackdgolf.com
 
-Questions? Contact us at support@trackdgolf.com`,
+Manage email preferences: ${APP_URL}/settings`,
+  };
+}
+
+// Email #3 — Trial ending in 3 days (service email)
+function getTrialEndingEmail(): { subject: string; html: string; text: string } {
+  return {
+    subject: "Your Premium trial ends in 3 days",
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <!-- Logo -->
+          <tr>
+            <td style="padding: 40px 40px 20px 40px; text-align: center;">
+              <img src="${LOGO_URL}" alt="TRACKD Golf" width="140" style="max-width: 140px; height: auto; display: block; margin: 0 auto;">
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 20px 40px 40px 40px;">
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">Hi there,</p>
+              
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                A quick reminder that your TRACKD Golf Premium trial is due to end in 3 days.
+              </p>
+              
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                After the trial, your subscription will automatically continue at the standard price unless you cancel.
+              </p>
+              
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                If you don't want to be charged, please cancel at least 24 hours before the trial ends (Apple requires this window).
+              </p>
+              
+              <p style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: #18181b;">You can manage or cancel your subscription here:</p>
+              <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                iPhone/iPad: Settings → Apple ID → Subscriptions → TRACKD Golf
+              </p>
+              
+              <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">
+                Need a hand or have questions? Just reply and we'll help.
+              </p>
+              
+              <p style="margin: 0 0 5px 0; font-size: 16px; line-height: 24px; color: #3f3f46;">— TRACKD Golf</p>
+              <p style="margin: 0; font-size: 16px; line-height: 24px; color: #71717a;">
+                <a href="mailto:support@trackdgolf.com" style="color: #1a5d3a; text-decoration: none;">support@trackdgolf.com</a>
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 20px 40px; background-color: #fafafa; border-radius: 0 0 12px 12px;">
+              <p style="margin: 0; font-size: 12px; color: #a1a1aa; text-align: center;">
+                <a href="${TERMS_URL}" style="color: #a1a1aa; text-decoration: underline;">Terms of Use</a>
+                &nbsp;•&nbsp;
+                <a href="${PRIVACY_URL}" style="color: #a1a1aa; text-decoration: underline;">Privacy Policy</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+    text: `Hi there,
+
+A quick reminder that your TRACKD Golf Premium trial is due to end in 3 days.
+
+After the trial, your subscription will automatically continue at the standard price unless you cancel.
+
+If you don't want to be charged, please cancel at least 24 hours before the trial ends (Apple requires this window).
+
+You can manage or cancel your subscription here:
+iPhone/iPad: Settings → Apple ID → Subscriptions → TRACKD Golf
+
+Need a hand or have questions? Just reply and we'll help.
+
+— TRACKD Golf
+support@trackdgolf.com`,
   };
 }
 
@@ -589,7 +601,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     // --- Email #1: Send immediately ---
     if (shouldSendEmails) {
-      const email1Template = getTrialConfirmationEmail(userEmail);
+      const email1Template = getTrialConfirmationEmail();
       try {
         const email1Result = await sendEmail(resendApiKey, {
           to: userEmail,
@@ -616,7 +628,7 @@ const handler = async (req: Request): Promise<Response> => {
     // --- Email #2: Schedule for +14 days (only if marketing opt-in) ---
     if (hasMarketingOptIn) {
       if (shouldSendEmails) {
-        const email2Template = getCheckInEmail(userEmail);
+        const email2Template = getCheckInEmail();
         try {
           const email2Result = await sendEmail(resendApiKey, {
             to: userEmail,
@@ -651,7 +663,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // --- Email #3: Schedule for trial_end - 3 days (always send - service email) ---
     if (shouldSendEmails) {
-      const email3Template = getTrialEndingEmail(userEmail, trialEndFormatted);
+      const email3Template = getTrialEndingEmail();
       try {
         const email3Result = await sendEmail(resendApiKey, {
           to: userEmail,
