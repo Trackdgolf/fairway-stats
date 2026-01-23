@@ -6,7 +6,7 @@ export type PremiumStatus = 'loading' | 'active' | 'inactive';
 export const usePremiumStatus = () => {
   const forcePremium = import.meta.env.VITE_FORCE_PREMIUM === 'true';
   const { isPremium: isDbPremium, loading: dbLoading } = useSubscription();
-  const { isPremium: isRcPremium, loading: rcLoading, isNative } = useRevenueCat();
+  const { isPremium: isRcPremium, loading: rcLoading, isNative, isInitialized } = useRevenueCat();
 
   // Dev override takes precedence
   if (forcePremium) {
@@ -14,9 +14,11 @@ export const usePremiumStatus = () => {
     return { isPremium: true, loading: false, status: 'active' as PremiumStatus };
   }
 
-  // Use RevenueCat on native, database on web
+  // On native: wait for both SDK initialization AND customer info loading
+  // This prevents showing 'inactive' while RevenueCat is still initializing
+  const nativeLoading = rcLoading || !isInitialized;
+  const loading = isNative ? nativeLoading : dbLoading;
   const isPremium = isNative ? isRcPremium : isDbPremium;
-  const loading = isNative ? rcLoading : dbLoading;
 
   // Derive explicit status
   const status: PremiumStatus = loading 
@@ -29,7 +31,8 @@ export const usePremiumStatus = () => {
     status,
     isPremium, 
     source: isNative ? 'RevenueCat' : 'Database',
-    loading 
+    loading,
+    ...(isNative && { isInitialized, rcLoading })
   });
 
   return { isPremium, loading, status };
