@@ -3,6 +3,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_BASE = "https://api.resend.com";
 
+// Allowlisted email domains for sandbox testing
+const SANDBOX_ALLOWED_DOMAINS = ["trackdgolf.app", "trackdgolf.com"];
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -45,6 +48,12 @@ async function sendEmail(
   return { id: data.id };
 }
 
+// Check if email domain is allowed for sandbox
+function isEmailAllowedForSandbox(email: string): boolean {
+  const domain = email.split("@")[1]?.toLowerCase();
+  return SANDBOX_ALLOWED_DOMAINS.includes(domain);
+}
+
 // RevenueCat webhook event types we care about
 const TRIAL_START_EVENTS = ["INITIAL_PURCHASE", "RENEWAL"];
 
@@ -60,8 +69,9 @@ interface RevenueCatEvent {
     purchased_at_ms: number;
     expiration_at_ms: number;
     store: string;
-    environment: string;
+    environment: string; // "SANDBOX" | "PRODUCTION"
     is_trial_conversion?: boolean;
+    transaction_id?: string;
   };
   api_version: string;
 }
@@ -355,7 +365,9 @@ const handler = async (req: Request): Promise<Response> => {
   };
 
   try {
-    // Verify webhook authenticity using RevenueCat's authorization header
+    // ============================================
+    // 1) SECURITY: Validate Authorization header
+    // ============================================
     const authHeader = req.headers.get("Authorization");
     const webhookSecret = Deno.env.get("REVENUECAT_WEBHOOK_SECRET");
     
@@ -367,90 +379,132 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // RevenueCat sends: Authorization: Bearer <your_webhook_auth_key>
+    // Exact match: "Bearer " + secret
     const expectedAuth = `Bearer ${webhookSecret}`;
-    if (authHeader !== expectedAuth) {
-      console.error({ ...logContext, error: "Invalid authorization header", received: authHeader?.substring(0, 20) + "..." });
+    const authorized = authHeader === expectedAuth;
+    
+    if (!authorized) {
+      console.error({ 
+        ...logContext, 
+        authorized: false,
+        error: "Invalid or missing authorization header",
+        headerPresent: !!authHeader,
+      });
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Parse the webhook payload
+    // ============================================
+    // 2) Parse payload and log safely (no PII)
+    // ============================================
     const payload: RevenueCatEvent = await req.json();
     const event = payload.event;
+    const environment = event.environment || "UNKNOWN";
+    const isSandbox = environment === "SANDBOX";
     
+    // Log event details without PII
     console.log({
       ...logContext,
-      eventId: event.id,
+      authorized: true,
+      environment,
       eventType: event.type,
-      appUserId: event.app_user_id?.substring(0, 8) + "...",
+      eventId: event.id,
+      transactionId: event.transaction_id || null,
       periodType: event.period_type,
       store: event.store,
-      environment: event.environment,
+      productId: event.product_id,
     });
 
-    // Only process trial start events
+    // ============================================
+    // 3) Filter: Only process trial start events
+    // ============================================
     if (!TRIAL_START_EVENTS.includes(event.type)) {
-      console.log({ ...logContext, message: "Ignoring non-trial event", eventType: event.type });
+      console.log({ ...logContext, action: "ignored", reason: "non-trial-event", eventType: event.type });
       return new Response(JSON.stringify({ success: true, message: "Event ignored" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Only process TRIAL period types
     if (event.period_type !== "TRIAL") {
-      console.log({ ...logContext, message: "Ignoring non-trial period", periodType: event.period_type });
+      console.log({ ...logContext, action: "ignored", reason: "non-trial-period", periodType: event.period_type });
       return new Response(JSON.stringify({ success: true, message: "Not a trial" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Skip trial conversion events (user already had a trial)
     if (event.is_trial_conversion) {
-      console.log({ ...logContext, message: "Ignoring trial conversion event" });
+      console.log({ ...logContext, action: "ignored", reason: "trial-conversion" });
       return new Response(JSON.stringify({ success: true, message: "Trial conversion ignored" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Initialize clients
+    // ============================================
+    // 4) Initialize clients
+    // ============================================
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // The app_user_id should be the Supabase user ID (we set it during RevenueCat login)
     const userId = event.original_app_user_id || event.app_user_id;
     const trialStartAt = new Date(event.purchased_at_ms);
     const trialEndAt = new Date(event.expiration_at_ms);
 
-    // Check for idempotency - have we already processed this event?
+    // ============================================
+    // 5) IDEMPOTENCY: Check if already processed
+    // ============================================
     const { data: existingRecord } = await supabase
       .from("premium_lifecycle_emails")
-      .select("id, last_rc_event_id")
+      .select("id, last_rc_event_id, email1_sent_at")
       .eq("rc_app_user_id", userId)
       .eq("trial_start_at", trialStartAt.toISOString())
       .maybeSingle();
 
-    if (existingRecord?.last_rc_event_id === event.id) {
-      console.log({ ...logContext, message: "Duplicate event, already processed", eventId: event.id });
-      return new Response(JSON.stringify({ success: true, message: "Already processed" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // If we already processed this exact event OR already sent emails for this trial
+    if (existingRecord) {
+      if (existingRecord.last_rc_event_id === event.id) {
+        console.log({ ...logContext, action: "skipped", reason: "duplicate-event-id", eventId: event.id });
+        return new Response(JSON.stringify({ success: true, message: "Already processed" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      // Already processed this trial (different event ID but same user + trial start)
+      if (existingRecord.email1_sent_at) {
+        console.log({ 
+          ...logContext, 
+          action: "skipped", 
+          reason: "trial-already-processed",
+          existingRecordId: existingRecord.id,
+        });
+        // Update the last event ID to track this retry
+        await supabase
+          .from("premium_lifecycle_emails")
+          .update({ last_rc_event_id: event.id })
+          .eq("id", existingRecord.id);
+        
+        return new Response(JSON.stringify({ success: true, message: "Trial already processed" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
-    // Get user's email from auth.users
+    // ============================================
+    // 6) Get user email from auth.users
+    // ============================================
     const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
     
     if (userError || !userData.user?.email) {
-      console.error({ ...logContext, error: "Failed to get user email", userId, userError });
+      console.error({ ...logContext, error: "user-not-found", userId: userId.substring(0, 8) + "..." });
       return new Response(JSON.stringify({ error: "User not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -458,9 +512,44 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const userEmail = userData.user.email;
-    console.log({ ...logContext, message: "Processing trial start", userEmail: userEmail.split("@")[0] + "@..." });
+    const emailDomain = userEmail.split("@")[1] || "unknown";
+    
+    // ============================================
+    // 7) ENVIRONMENT HANDLING: Sandbox email gating
+    // ============================================
+    const allowSandboxEmails = Deno.env.get("ALLOW_SANDBOX_EMAILS") === "true";
+    const emailAllowedForSandbox = isEmailAllowedForSandbox(userEmail);
+    
+    // Determine if we should actually send emails
+    let shouldSendEmails = true;
+    let sandboxEmailReason = "";
+    
+    if (isSandbox) {
+      if (allowSandboxEmails) {
+        shouldSendEmails = true;
+        sandboxEmailReason = "ALLOW_SANDBOX_EMAILS=true";
+      } else if (emailAllowedForSandbox) {
+        shouldSendEmails = true;
+        sandboxEmailReason = "allowlisted-domain";
+      } else {
+        shouldSendEmails = false;
+        sandboxEmailReason = "sandbox-blocked";
+      }
+    }
+    
+    console.log({ 
+      ...logContext, 
+      action: "processing-trial",
+      environment,
+      isSandbox,
+      shouldSendEmails,
+      sandboxEmailReason: isSandbox ? sandboxEmailReason : "n/a",
+      emailDomain, // Log domain only, not full email
+    });
 
-    // Check marketing opt-in status for Email #2
+    // ============================================
+    // 8) Check marketing opt-in for Email #2
+    // ============================================
     const { data: marketingSub } = await supabase
       .from("marketing_subscribers")
       .select("id, unsubscribed_at")
@@ -470,11 +559,12 @@ const handler = async (req: Request): Promise<Response> => {
     const hasMarketingOptIn = marketingSub && !marketingSub.unsubscribed_at;
     console.log({ ...logContext, hasMarketingOptIn });
 
-    // Calculate schedule dates
+    // ============================================
+    // 9) Calculate schedule dates
+    // ============================================
     const email2ScheduleDate = new Date(trialStartAt.getTime() + 14 * 24 * 60 * 60 * 1000); // +14 days
     const email3ScheduleDate = new Date(trialEndAt.getTime() - 3 * 24 * 60 * 60 * 1000); // -3 days from end
 
-    // Format trial end date for email
     const trialEndFormatted = trialEndAt.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
@@ -482,7 +572,9 @@ const handler = async (req: Request): Promise<Response> => {
       day: "numeric",
     });
 
-    // Prepare record data
+    // ============================================
+    // 10) Prepare record data
+    // ============================================
     const recordData: Record<string, any> = {
       user_id: userId,
       rc_app_user_id: userId,
@@ -491,75 +583,107 @@ const handler = async (req: Request): Promise<Response> => {
       last_rc_event_id: event.id,
     };
 
+    // ============================================
+    // 11) SEND/SCHEDULE EMAILS
+    // ============================================
+    
     // --- Email #1: Send immediately ---
-    const email1Template = getTrialConfirmationEmail(userEmail);
-    try {
-      const email1Result = await sendEmail(resendApiKey, {
-        to: userEmail,
-        subject: email1Template.subject,
-        html: email1Template.html,
-        text: email1Template.text,
-      });
-      
-      if (email1Result.id) {
-        recordData.email1_sent_at = new Date().toISOString();
-        console.log({ ...logContext, message: "Email #1 sent", emailId: email1Result.id });
-      } else {
-        console.error({ ...logContext, error: "Failed to send Email #1", errorMsg: email1Result.error });
+    if (shouldSendEmails) {
+      const email1Template = getTrialConfirmationEmail(userEmail);
+      try {
+        const email1Result = await sendEmail(resendApiKey, {
+          to: userEmail,
+          subject: email1Template.subject,
+          html: email1Template.html,
+          text: email1Template.text,
+        });
+        
+        if (email1Result.id) {
+          recordData.email1_sent_at = new Date().toISOString();
+          console.log({ ...logContext, action: "email1-sent", resendEmailId: email1Result.id });
+        } else {
+          console.error({ ...logContext, action: "email1-failed", error: email1Result.error });
+        }
+      } catch (emailError: any) {
+        console.error({ ...logContext, action: "email1-error", error: emailError.message });
       }
-    } catch (emailError) {
-      console.error({ ...logContext, error: "Failed to send Email #1", emailError });
+    } else {
+      console.log({ ...logContext, action: "email1-skipped", reason: sandboxEmailReason });
+      // Still mark as "sent" for idempotency tracking in sandbox
+      recordData.email1_sent_at = new Date().toISOString();
     }
 
     // --- Email #2: Schedule for +14 days (only if marketing opt-in) ---
     if (hasMarketingOptIn) {
-      const email2Template = getCheckInEmail(userEmail);
-      try {
-        const email2Result = await sendEmail(resendApiKey, {
-          to: userEmail,
-          subject: email2Template.subject,
-          html: email2Template.html,
-          text: email2Template.text,
-          scheduled_at: email2ScheduleDate.toISOString(),
-        });
-        
-        if (email2Result.id) {
-          recordData.email2_resend_email_id = email2Result.id;
-          recordData.email2_scheduled_for = email2ScheduleDate.toISOString();
-          console.log({ ...logContext, message: "Email #2 scheduled", emailId: email2Result.id, scheduledFor: email2ScheduleDate.toISOString() });
-        } else {
-          console.error({ ...logContext, error: "Failed to schedule Email #2", errorMsg: email2Result.error });
+      if (shouldSendEmails) {
+        const email2Template = getCheckInEmail(userEmail);
+        try {
+          const email2Result = await sendEmail(resendApiKey, {
+            to: userEmail,
+            subject: email2Template.subject,
+            html: email2Template.html,
+            text: email2Template.text,
+            scheduled_at: email2ScheduleDate.toISOString(),
+          });
+          
+          if (email2Result.id) {
+            recordData.email2_resend_email_id = email2Result.id;
+            recordData.email2_scheduled_for = email2ScheduleDate.toISOString();
+            console.log({ 
+              ...logContext, 
+              action: "email2-scheduled", 
+              resendEmailId: email2Result.id,
+              scheduledFor: email2ScheduleDate.toISOString(),
+            });
+          } else {
+            console.error({ ...logContext, action: "email2-failed", error: email2Result.error });
+          }
+        } catch (emailError: any) {
+          console.error({ ...logContext, action: "email2-error", error: emailError.message });
         }
-      } catch (emailError) {
-        console.error({ ...logContext, error: "Failed to schedule Email #2", emailError });
+      } else {
+        console.log({ ...logContext, action: "email2-skipped", reason: sandboxEmailReason });
+        recordData.email2_scheduled_for = email2ScheduleDate.toISOString();
       }
     } else {
-      console.log({ ...logContext, message: "Skipping Email #2 - no marketing opt-in" });
+      console.log({ ...logContext, action: "email2-skipped", reason: "no-marketing-opt-in" });
     }
 
-    // --- Email #3: Schedule for trial_end - 3 days (always send) ---
-    const email3Template = getTrialEndingEmail(userEmail, trialEndFormatted);
-    try {
-      const email3Result = await sendEmail(resendApiKey, {
-        to: userEmail,
-        subject: email3Template.subject,
-        html: email3Template.html,
-        text: email3Template.text,
-        scheduled_at: email3ScheduleDate.toISOString(),
-      });
-      
-      if (email3Result.id) {
-        recordData.email3_resend_email_id = email3Result.id;
-        recordData.email3_scheduled_for = email3ScheduleDate.toISOString();
-        console.log({ ...logContext, message: "Email #3 scheduled", emailId: email3Result.id, scheduledFor: email3ScheduleDate.toISOString() });
-      } else {
-        console.error({ ...logContext, error: "Failed to schedule Email #3", errorMsg: email3Result.error });
+    // --- Email #3: Schedule for trial_end - 3 days (always send - service email) ---
+    if (shouldSendEmails) {
+      const email3Template = getTrialEndingEmail(userEmail, trialEndFormatted);
+      try {
+        const email3Result = await sendEmail(resendApiKey, {
+          to: userEmail,
+          subject: email3Template.subject,
+          html: email3Template.html,
+          text: email3Template.text,
+          scheduled_at: email3ScheduleDate.toISOString(),
+        });
+        
+        if (email3Result.id) {
+          recordData.email3_resend_email_id = email3Result.id;
+          recordData.email3_scheduled_for = email3ScheduleDate.toISOString();
+          console.log({ 
+            ...logContext, 
+            action: "email3-scheduled", 
+            resendEmailId: email3Result.id,
+            scheduledFor: email3ScheduleDate.toISOString(),
+          });
+        } else {
+          console.error({ ...logContext, action: "email3-failed", error: email3Result.error });
+        }
+      } catch (emailError: any) {
+        console.error({ ...logContext, action: "email3-error", error: emailError.message });
       }
-    } catch (emailError) {
-      console.error({ ...logContext, error: "Failed to schedule Email #3", emailError });
+    } else {
+      console.log({ ...logContext, action: "email3-skipped", reason: sandboxEmailReason });
+      recordData.email3_scheduled_for = email3ScheduleDate.toISOString();
     }
 
-    // Upsert the lifecycle record
+    // ============================================
+    // 12) Upsert lifecycle record
+    // ============================================
     const { error: upsertError } = await supabase
       .from("premium_lifecycle_emails")
       .upsert(recordData, {
@@ -567,15 +691,24 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
     if (upsertError) {
-      console.error({ ...logContext, error: "Failed to upsert lifecycle record", upsertError });
+      console.error({ ...logContext, action: "upsert-failed", error: upsertError.message });
     }
 
     const duration = Date.now() - startTime;
-    console.log({ ...logContext, message: "Webhook processed successfully", durationMs: duration });
+    console.log({ 
+      ...logContext, 
+      action: "webhook-complete",
+      durationMs: duration,
+      environment,
+      email1Sent: !!recordData.email1_sent_at,
+      email2Scheduled: !!recordData.email2_resend_email_id || !!recordData.email2_scheduled_for,
+      email3Scheduled: !!recordData.email3_resend_email_id || !!recordData.email3_scheduled_for,
+    });
 
     return new Response(
       JSON.stringify({
         success: true,
+        environment,
         email1Sent: !!recordData.email1_sent_at,
         email2Scheduled: !!recordData.email2_resend_email_id,
         email3Scheduled: !!recordData.email3_resend_email_id,
@@ -586,7 +719,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error: any) {
-    console.error({ ...logContext, error: error.message, stack: error.stack });
+    console.error({ ...logContext, action: "error", error: error.message });
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
       {
