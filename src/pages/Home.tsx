@@ -1,7 +1,18 @@
 import { useState } from "react";
-import { Play, Settings, Clock, Flag, Pencil } from "lucide-react";
+import { Play, Settings, Clock, Flag, Pencil, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import { TrackdHandicap } from "@/components/TrackdHandicap";
@@ -237,14 +248,27 @@ const Home = () => {
           )}
         </div>
 
-        {/* Sign Out Button */}
-        <Button 
-          variant="outline" 
-          className="w-full" 
-          onClick={signOut}
-        >
-          Sign Out
-        </Button>
+        {/* Sign Out Button with Confirmation */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" className="w-full">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Sign out?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to sign out of your account?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={signOut}>Sign Out</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <BottomNav />
