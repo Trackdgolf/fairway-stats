@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Purchases, type CustomerInfo, type PurchasesOfferings, type PurchasesPackage } from '@revenuecat/purchases-capacitor';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,6 +39,9 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Track if we've already fetched customer info for current user
+  const lastFetchedUserId = useRef<string | null>(null);
 
   const isNative = isNativePlatform();
 
@@ -70,59 +73,104 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
     }
   }, [user]);
 
-  // Initialize RevenueCat when user is authenticated
+  // Effect 1: Initialize RevenueCat SDK (no user dependency - runs once)
   useEffect(() => {
-    const init = async () => {
+    const initSDK = async () => {
       if (!isNative || !REVENUECAT_API_KEY) {
+        console.log('RevenueCat: Skipping init (not native or no API key)');
         setLoading(false);
         return;
       }
 
+      if (isInitialized) {
+        console.log('RevenueCat: Already initialized');
+        return;
+      }
+
       try {
+        console.log('RevenueCat: Initializing SDK...');
         await initializeRevenueCat(REVENUECAT_API_KEY);
         setIsInitialized(true);
-
-        if (user) {
-          // CRITICAL: Set user ID BEFORE fetching customer info
-          console.log('RevenueCat: Logging in user', user.id.substring(0, 8) + '...');
-          await setRevenueCatUserId(user.id);
-          
-          const info = await getCustomerInfo();
-          if (info) {
-            logCustomerInfoDebug(info, 'after-login');
-            
-            // Critical check: warn if appUserID doesn't match expected user
-            if (info.originalAppUserId !== user.id) {
-              console.warn('RevenueCat IDENTITY MISMATCH:', {
-                expected: user.id.substring(0, 8) + '...',
-                actual: info.originalAppUserId?.substring(0, 8) + '...',
-              });
-            }
-            
-            setCustomerInfo(info);
-            await syncSubscriptionToDatabase(info);
-          }
-
-          const offers = await getOfferings();
-          setOfferings(offers);
-        }
+        console.log('RevenueCat: SDK initialized successfully');
       } catch (error) {
-        console.error('Failed to initialize RevenueCat:', error);
+        console.error('RevenueCat: Failed to initialize SDK:', error);
+        setLoading(false);
+      }
+    };
+
+    initSDK();
+  }, [isNative]); // Only depends on isNative, NOT user
+
+  // Effect 2: Fetch customer info when SDK is ready AND user is available
+  useEffect(() => {
+    const fetchCustomerData = async () => {
+      // Skip if not native or SDK not ready
+      if (!isNative || !isInitialized) {
+        return;
+      }
+
+      // Handle logout case
+      if (!user) {
+        console.log('RevenueCat: No user, logging out...');
+        await logOutRevenueCat();
+        setCustomerInfo(null);
+        lastFetchedUserId.current = null;
+        setLoading(false);
+        return;
+      }
+
+      // Skip if we already fetched for this user
+      if (lastFetchedUserId.current === user.id) {
+        console.log('RevenueCat: Already fetched for this user, skipping');
+        return;
+      }
+
+      setLoading(true);
+      
+      try {
+        // CRITICAL: Set user ID BEFORE fetching customer info
+        console.log('RevenueCat: Setting user ID', user.id.substring(0, 8) + '...');
+        await setRevenueCatUserId(user.id);
+        
+        // Fetch customer info
+        console.log('RevenueCat: Fetching customer info...');
+        const info = await getCustomerInfo();
+        
+        if (info) {
+          logCustomerInfoDebug(info, 'startup-fetch');
+          
+          // Warn if appUserID doesn't match expected user
+          if (info.originalAppUserId !== user.id) {
+            console.warn('RevenueCat IDENTITY MISMATCH:', {
+              expected: user.id.substring(0, 8) + '...',
+              actual: info.originalAppUserId?.substring(0, 8) + '...',
+            });
+          }
+          
+          setCustomerInfo(info);
+          await syncSubscriptionToDatabase(info);
+        }
+
+        // Fetch offerings
+        const offers = await getOfferings();
+        console.log('RevenueCat: Offerings loaded', {
+          hasOfferings: !!offers,
+          currentOffering: offers?.current?.identifier || 'none',
+        });
+        setOfferings(offers);
+        
+        // Mark this user as fetched
+        lastFetchedUserId.current = user.id;
+        
+      } catch (error) {
+        console.error('RevenueCat: Failed to fetch customer data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    init();
-  }, [isNative, user, syncSubscriptionToDatabase]);
-
-  // Handle user logout
-  useEffect(() => {
-    if (!user && isInitialized) {
-      logOutRevenueCat();
-      setCustomerInfo(null);
-    }
-  }, [user, isInitialized]);
+    fetchCustomerData();
+  }, [isNative, isInitialized, user, syncSubscriptionToDatabase]);
 
   // Listen for customer info updates
   useEffect(() => {

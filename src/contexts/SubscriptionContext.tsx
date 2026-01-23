@@ -1,13 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Capacitor } from '@capacitor/core';
-import {
-  initializeRevenueCat,
-  setRevenueCatUserId,
-  logOutRevenueCat,
-  isNativePlatform,
-} from '@/lib/revenueCat';
 
 export type SubscriptionStatus = 'active' | 'inactive' | 'canceled' | 'past_due';
 export type PlanType = 'free' | 'premium';
@@ -33,9 +26,6 @@ interface SubscriptionContextType {
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
-// RevenueCat API key - public key, safe for client code
-const REVENUECAT_API_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_API_KEY || '';
-
 export const useSubscription = () => {
   const context = useContext(SubscriptionContext);
   if (!context) {
@@ -48,41 +38,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
-  const [revenueCatInitialized, setRevenueCatInitialized] = useState(false);
 
-  // Initialize RevenueCat on native platforms
-  useEffect(() => {
-    const initRC = async () => {
-      if (isNativePlatform() && REVENUECAT_API_KEY && !revenueCatInitialized) {
-        try {
-          await initializeRevenueCat(REVENUECAT_API_KEY);
-          setRevenueCatInitialized(true);
-          console.log('RevenueCat initialized in SubscriptionProvider');
-        } catch (error) {
-          console.error('Failed to initialize RevenueCat:', error);
-        }
-      }
-    };
-    initRC();
-  }, [revenueCatInitialized]);
-
-  // Set RevenueCat user ID when user logs in, logout when user logs out
-  useEffect(() => {
-    const setRCUser = async () => {
-      if (user && revenueCatInitialized && isNativePlatform()) {
-        try {
-          console.log('SubscriptionContext: Setting RevenueCat user', user.id.substring(0, 8) + '...');
-          await setRevenueCatUserId(user.id);
-        } catch (error) {
-          console.error('Failed to set RevenueCat user:', error);
-        }
-      } else if (!user && revenueCatInitialized && isNativePlatform()) {
-        console.log('SubscriptionContext: Logging out RevenueCat user');
-        await logOutRevenueCat();
-      }
-    };
-    setRCUser();
-  }, [user, revenueCatInitialized]);
+  // NOTE: RevenueCat initialization is handled entirely by useRevenueCat hook
+  // This context only handles database subscription state for web platform
 
   const fetchSubscription = useCallback(async () => {
     if (!user) {
