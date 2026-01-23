@@ -142,6 +142,60 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_lifecycle_emails: {
+        Row: {
+          created_at: string
+          email1_sent_at: string | null
+          email2_resend_email_id: string | null
+          email2_scheduled_for: string | null
+          email2_sent_at: string | null
+          email3_resend_email_id: string | null
+          email3_scheduled_for: string | null
+          email3_sent_at: string | null
+          id: string
+          last_rc_event_id: string | null
+          rc_app_user_id: string
+          trial_end_at: string
+          trial_start_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email1_sent_at?: string | null
+          email2_resend_email_id?: string | null
+          email2_scheduled_for?: string | null
+          email2_sent_at?: string | null
+          email3_resend_email_id?: string | null
+          email3_scheduled_for?: string | null
+          email3_sent_at?: string | null
+          id?: string
+          last_rc_event_id?: string | null
+          rc_app_user_id: string
+          trial_end_at: string
+          trial_start_at: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email1_sent_at?: string | null
+          email2_resend_email_id?: string | null
+          email2_scheduled_for?: string | null
+          email2_sent_at?: string | null
+          email3_resend_email_id?: string | null
+          email3_scheduled_for?: string | null
+          email3_sent_at?: string | null
+          id?: string
+          last_rc_event_id?: string | null
+          rc_app_user_id?: string
+          trial_end_at?: string
+          trial_start_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null

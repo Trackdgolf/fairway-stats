@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.marketing-preference]
 verify_jwt = false
+
+[functions.revenuecat-webhook]
+verify_jwt = false
