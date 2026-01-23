@@ -109,6 +109,39 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          opted_in_at: string
+          source: string
+          unsubscribed_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          opted_in_at?: string
+          source?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          opted_in_at?: string
+          source?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null

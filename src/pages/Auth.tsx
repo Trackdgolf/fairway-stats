@@ -5,8 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
 import logoLight from '@/assets/logo-light.png';
 import logoDark from '@/assets/logo-dark.png';
 
@@ -25,6 +27,7 @@ const Auth = () => {
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [resetEmailSent, setResetEmailSent] = useState(false);
@@ -108,7 +111,7 @@ const Auth = () => {
           });
         }
       } else {
-        const { error } = await signUp(email, password);
+        const { error, data } = await signUp(email, password);
         if (error) {
           if (error.message.includes('User already registered')) {
             toast({
@@ -124,6 +127,23 @@ const Auth = () => {
             });
           }
         } else {
+          // If marketing opt-in was checked, subscribe the user
+          if (marketingOptIn && data?.user) {
+            try {
+              await supabase.functions.invoke('marketing-subscribe', {
+                body: { 
+                  email: email.toLowerCase().trim(),
+                  source: 'app-signup',
+                  user_id: data.user.id
+                }
+              });
+              console.log('Marketing subscription successful');
+            } catch (marketingError) {
+              // Don't fail signup if marketing subscription fails
+              console.error('Marketing subscription error:', marketingError);
+            }
+          }
+          
           toast({
             title: 'Account created!',
             description: 'You can now start tracking your rounds.',
@@ -224,6 +244,29 @@ const Auth = () => {
                     {errors.password && (
                       <p className="text-sm text-destructive">{errors.password}</p>
                     )}
+                  </div>
+                )}
+
+                {/* Marketing opt-in checkbox - only shown on signup */}
+                {mode === 'signup' && (
+                  <div className="flex items-start space-x-3 py-2">
+                    <Checkbox
+                      id="marketing"
+                      checked={marketingOptIn}
+                      onCheckedChange={(checked) => setMarketingOptIn(checked === true)}
+                      className="mt-0.5"
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <label
+                        htmlFor="marketing"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        Email me product updates and tips (optional)
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        You can change this anytime in Settings.
+                      </p>
+                    </div>
                   </div>
                 )}
 

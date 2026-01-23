@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.send-welcome-email]
 verify_jwt = false
+
+[functions.marketing-subscribe]
+verify_jwt = false
+
+[functions.marketing-preference]
+verify_jwt = false
