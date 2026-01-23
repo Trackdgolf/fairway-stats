@@ -139,9 +139,8 @@ serve(async (req: Request): Promise<Response> => {
 
   } catch (error: unknown) {
     console.error("Error in marketing-subscribe:", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal server error";
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: "An error occurred. Please try again later." }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
