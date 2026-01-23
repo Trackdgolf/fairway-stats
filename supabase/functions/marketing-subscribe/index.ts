@@ -22,7 +22,7 @@ serve(async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    const resendAudienceId = Deno.env.get("RESEND_AUDIENCE_ID");
+    const resendSegmentId = Deno.env.get("RESEND_SEGMENT_ID");
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -49,8 +49,7 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log(`Marketing subscribe request for: ${normalizedEmail}, source: ${source}`);
 
-    // Upsert into marketing_subscribers table
-    // If exists and was unsubscribed, re-subscribe by setting opted_in_at and clearing unsubscribed_at
+    // Check if record exists
     const { data: existingRecord, error: selectError } = await supabase
       .from("marketing_subscribers")
       .select("*")
@@ -97,23 +96,22 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log("Database record created/updated successfully");
 
-    // Add to Resend audience if API key and audience ID are available
-    if (resendApiKey && resendAudienceId) {
+    // Sync with Resend using new Contacts API (global contacts + segments)
+    if (resendApiKey && resendSegmentId) {
       try {
-        const resendResponse = await fetch(
-          `https://api.resend.com/audiences/${resendAudienceId}/contacts`,
-          {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${resendApiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: normalizedEmail,
-              unsubscribed: false,
-            }),
-          }
-        );
+        // Create or update contact globally and add to segment
+        const resendResponse = await fetch("https://api.resend.com/contacts", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: normalizedEmail,
+            unsubscribed: false,
+            audience_id: resendSegmentId,
+          }),
+        });
 
         const resendData = await resendResponse.json();
         
@@ -127,7 +125,7 @@ serve(async (req: Request): Promise<Response> => {
         console.error("Resend API error (non-fatal):", resendError);
       }
     } else {
-      console.log("RESEND_API_KEY or RESEND_AUDIENCE_ID not configured, skipping Resend sync");
+      console.log("RESEND_API_KEY or RESEND_SEGMENT_ID not configured, skipping Resend sync");
     }
 
     return new Response(
