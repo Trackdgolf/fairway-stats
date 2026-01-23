@@ -75,24 +75,26 @@ const hasFreeTrial = (pkg: PurchasesPackage): boolean => {
          pkg.product.introPrice.price === 0;
 };
 
-// Format trial period for display (e.g., "14 days" from introPrice data)
-const formatTrialDays = (pkg: PurchasesPackage): number | null => {
+// Format trial period for display (e.g., "1 month", "2 weeks", "7 days")
+const formatTrialPeriod = (pkg: PurchasesPackage): string | null => {
   const introPrice = pkg.product?.introPrice;
   if (!introPrice || introPrice.price !== 0) return null;
   
   const units = introPrice.periodNumberOfUnits || 0;
   const unit = (introPrice.periodUnit || 'DAY').toUpperCase();
   
-  // Convert to days
+  // Format based on unit type for human-readable display
   switch (unit) {
     case 'DAY':
-      return units;
+      return units === 1 ? '1 day' : `${units} days`;
     case 'WEEK':
-      return units * 7;
+      return units === 1 ? '1 week' : `${units} weeks`;
     case 'MONTH':
-      return units * 30;
+      return units === 1 ? '1 month' : `${units} months`;
+    case 'YEAR':
+      return units === 1 ? '1 year' : `${units} years`;
     default:
-      return units;
+      return `${units} ${unit.toLowerCase()}s`;
   }
 };
 
@@ -196,7 +198,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
     availablePackages.forEach((pkg) => {
       const hasPricing = hasValidPricing(pkg);
       const hasTrial = hasFreeTrial(pkg);
-      const trialDays = formatTrialDays(pkg);
+      const trialPeriod = formatTrialPeriod(pkg);
       
       console.log(`Paywall Package: ${pkg.identifier}`, {
         packageType: pkg.packageType,
@@ -205,7 +207,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
         hasValidPricing: hasPricing,
         introPrice: pkg.product?.introPrice,
         hasFreeTrial: hasTrial,
-        trialDays: trialDays,
+        trialPeriod: trialPeriod,
       });
       
       if (!hasPricing) {
@@ -217,7 +219,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   // Render a package button with trial info
   const renderPackageButton = (pkg: PurchasesPackage) => {
     const hasTrial = hasFreeTrial(pkg);
-    const trialDays = formatTrialDays(pkg);
+    const trialPeriod = formatTrialPeriod(pkg);
     const periodLabel = getPackageDuration(pkg.packageType);
     const priceString = pkg.product.priceString;
     const packageName = getPackageLabel(pkg.packageType);
@@ -231,13 +233,16 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
       >
         {purchasing ? (
           <Loader2 className="w-5 h-5 animate-spin" />
-        ) : hasTrial && trialDays ? (
+        ) : hasTrial && trialPeriod ? (
           <>
             <span className="font-bold text-base">
               {packageName}
             </span>
             <span className="text-sm opacity-90">
-              Free for {trialDays} days, then {priceString}{periodLabel}
+              Free for {trialPeriod}, then {priceString}{periodLabel}
+            </span>
+            <span className="text-xs opacity-70">
+              (if eligible)
             </span>
           </>
         ) : (
@@ -254,10 +259,10 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   // Render the CTA text for a package button (unused but kept for reference)
   const getCtaText = (pkg: PurchasesPackage): string => {
     const hasTrial = hasFreeTrial(pkg);
-    const trialDays = formatTrialDays(pkg);
+    const trialPeriod = formatTrialPeriod(pkg);
     
-    if (hasTrial && trialDays) {
-      return `Start ${trialDays}-day free trial`;
+    if (hasTrial && trialPeriod) {
+      return `Start ${trialPeriod} free trial`;
     }
     
     const priceString = pkg.product.priceString;
@@ -347,7 +352,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                   
                   {/* Trial eligibility note */}
                   <p className="text-center text-sm text-foreground">
-                    Free for 14 days (if eligible), then prices shown at checkout.
+                    Free trial available (if eligible). See details at checkout.
                   </p>
                   
                   {/* Unavailable message */}
