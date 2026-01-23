@@ -1,6 +1,6 @@
-import { ArrowLeft, Plus, Trash2, RotateCcw, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, RotateCcw, Loader2, AlertTriangle, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageHeader from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -61,6 +61,77 @@ const Settings = () => {
   const [showRenameConfirm, setShowRenameConfirm] = useState(false);
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  
+  // Marketing email preference state
+  const [marketingEnabled, setMarketingEnabled] = useState(false);
+  const [marketingLoading, setMarketingLoading] = useState(true);
+  const [marketingUpdating, setMarketingUpdating] = useState(false);
+
+  // Fetch marketing preference on mount
+  useEffect(() => {
+    const fetchMarketingPreference = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setMarketingLoading(false);
+          return;
+        }
+
+        const { data, error } = await supabase.functions.invoke('marketing-preference', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+
+        if (error) {
+          console.error('Error fetching marketing preference:', error);
+        } else if (data) {
+          setMarketingEnabled(data.enabled || false);
+        }
+      } catch (err) {
+        console.error('Error fetching marketing preference:', err);
+      } finally {
+        setMarketingLoading(false);
+      }
+    };
+
+    fetchMarketingPreference();
+  }, [supabase]);
+
+  const handleMarketingToggle = async (enabled: boolean) => {
+    setMarketingUpdating(true);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please log in to update preferences');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('marketing-preference', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        },
+        body: { enabled }
+      });
+
+      if (error) {
+        console.error('Error updating marketing preference:', error);
+        toast.error('Failed to update preference');
+        return;
+      }
+
+      setMarketingEnabled(enabled);
+      toast.success(enabled ? 'Subscribed to marketing emails' : 'Unsubscribed from marketing emails');
+    } catch (err) {
+      console.error('Error updating marketing preference:', err);
+      toast.error('Failed to update preference');
+    } finally {
+      setMarketingUpdating(false);
+    }
+  };
 
   const statOptions: { key: keyof StatPreferences; label: string; description: string }[] = [
     { key: "fir", label: "FIR (Fairway in Regulation)", description: "Track fairway accuracy on tee shots" },
@@ -230,6 +301,25 @@ const Settings = () => {
         <div className="mb-6">
           <SubscriptionStatus />
         </div>
+
+        {/* Notifications Section */}
+        <Card className="p-4 mb-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Notifications</h2>
+          <div className="flex items-center justify-between">
+            <div className="flex items-start gap-3">
+              <Mail className="w-5 h-5 text-muted-foreground mt-0.5" />
+              <div>
+                <p className="font-medium text-foreground">Marketing emails</p>
+                <p className="text-sm text-muted-foreground">Receive product updates and tips</p>
+              </div>
+            </div>
+            <Switch
+              checked={marketingEnabled}
+              onCheckedChange={handleMarketingToggle}
+              disabled={marketingLoading || marketingUpdating}
+            />
+          </div>
+        </Card>
 
         {/* My Bag Section - Collapsible */}
         <Accordion type="single" collapsible className="mb-6">
