@@ -21,7 +21,7 @@ serve(async (req: Request): Promise<Response> => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    const resendAudienceId = Deno.env.get("RESEND_AUDIENCE_ID");
+    const resendSegmentId = Deno.env.get("RESEND_SEGMENT_ID");
 
     // Validate authorization header
     const authHeader = req.headers.get("Authorization");
@@ -174,25 +174,23 @@ serve(async (req: Request): Promise<Response> => {
 
       console.log("Database record updated successfully");
 
-      // Sync with Resend audience if API key and audience ID are available
-      if (resendApiKey && resendAudienceId) {
+      // Sync with Resend using new Contacts API
+      if (resendApiKey && resendSegmentId) {
         try {
           if (enabled) {
-            // Add/update contact as subscribed
-            const resendResponse = await fetch(
-              `https://api.resend.com/audiences/${resendAudienceId}/contacts`,
-              {
-                method: "POST",
-                headers: {
-                  "Authorization": `Bearer ${resendApiKey}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  email: normalizedEmail,
-                  unsubscribed: false,
-                }),
-              }
-            );
+            // Add/update contact as subscribed and add to segment
+            const resendResponse = await fetch("https://api.resend.com/contacts", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${resendApiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: normalizedEmail,
+                unsubscribed: false,
+                audience_id: resendSegmentId,
+              }),
+            });
             
             const resendData = await resendResponse.json();
             if (resendResponse.ok) {
@@ -202,27 +200,50 @@ serve(async (req: Request): Promise<Response> => {
             }
           } else {
             // Mark contact as unsubscribed in Resend
-            // Use PATCH to update existing contact
-            const resendResponse = await fetch(
-              `https://api.resend.com/audiences/${resendAudienceId}/contacts/${normalizedEmail}`,
+            // First, get the contact ID by email
+            const getContactResponse = await fetch(
+              `https://api.resend.com/audiences/${resendSegmentId}/contacts?email=${encodeURIComponent(normalizedEmail)}`,
               {
-                method: "PATCH",
+                method: "GET",
                 headers: {
                   "Authorization": `Bearer ${resendApiKey}`,
-                  "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                  unsubscribed: true,
-                }),
               }
             );
             
-            if (resendResponse.ok) {
-              const resendData = await resendResponse.json();
-              console.log("Resend contact unsubscribed:", resendData);
+            if (getContactResponse.ok) {
+              const contactData = await getContactResponse.json();
+              const contact = contactData.data?.find((c: { email: string }) => 
+                c.email.toLowerCase() === normalizedEmail
+              );
+              
+              if (contact?.id) {
+                // Update the contact to mark as unsubscribed
+                const updateResponse = await fetch(
+                  `https://api.resend.com/audiences/${resendSegmentId}/contacts/${contact.id}`,
+                  {
+                    method: "PATCH",
+                    headers: {
+                      "Authorization": `Bearer ${resendApiKey}`,
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      unsubscribed: true,
+                    }),
+                  }
+                );
+                
+                if (updateResponse.ok) {
+                  const updateData = await updateResponse.json();
+                  console.log("Resend contact unsubscribed:", updateData);
+                } else {
+                  console.log("Failed to update Resend contact");
+                }
+              } else {
+                console.log("Contact not found in Resend, skipping unsubscribe sync");
+              }
             } else {
-              // Contact might not exist in Resend, which is fine
-              console.log("Resend contact update skipped - contact may not exist");
+              console.log("Failed to fetch contact from Resend");
             }
           }
         } catch (resendError) {
@@ -230,7 +251,7 @@ serve(async (req: Request): Promise<Response> => {
           console.error("Resend API error (non-fatal):", resendError);
         }
       } else {
-        console.log("RESEND_API_KEY or RESEND_AUDIENCE_ID not configured, skipping Resend sync");
+        console.log("RESEND_API_KEY or RESEND_SEGMENT_ID not configured, skipping Resend sync");
       }
 
       return new Response(
