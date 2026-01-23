@@ -220,7 +220,7 @@ Privacy Policy: ${privacyUrl}
     if (!resendResponse.ok) {
       console.error("Resend API error:", resendData);
       return new Response(
-        JSON.stringify({ error: resendData.message || "Failed to send email" }),
+        JSON.stringify({ error: "Failed to send email. Please try again later." }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -234,7 +234,7 @@ Privacy Policy: ${privacyUrl}
   } catch (error: any) {
     console.error("Error in send-welcome-email function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "An error occurred. Please try again later." }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }

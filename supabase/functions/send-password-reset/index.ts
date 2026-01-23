@@ -229,7 +229,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     logPasswordReset("error", "unknown", maskedRef, `exception: ${error.message || "unknown"}`);
     return new Response(
-      JSON.stringify({ error: error.message || "An unexpected error occurred" }),
+      JSON.stringify({ error: "An error occurred. Please try again later." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
