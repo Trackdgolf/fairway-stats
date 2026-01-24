@@ -219,8 +219,40 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
   }, [syncSubscriptionToDatabase]);
 
   const purchase = useCallback(async (pkg: PurchasesPackage): Promise<boolean> => {
+    // CRITICAL: Verify user is logged in before allowing purchase
+    if (!user) {
+      console.error('RevenueCat: Cannot purchase - no authenticated user');
+      toast.error('Please log in to purchase.');
+      return false;
+    }
+
     setLoading(true);
     try {
+      // CRITICAL: Verify identity is correct before purchase
+      // This prevents purchases under anonymous IDs
+      const currentInfo = await getCustomerInfo();
+      const currentRcUserId = currentInfo?.originalAppUserId;
+      
+      console.log('RevenueCat: Pre-purchase identity check:', {
+        supabaseUserId: user.id.substring(0, 8) + '...',
+        rcAppUserId: currentRcUserId?.substring(0, 8) + '...',
+        identityMatch: currentRcUserId === user.id,
+      });
+      
+      if (currentRcUserId !== user.id) {
+        console.warn('RevenueCat: Identity mismatch detected, re-logging in before purchase');
+        await setRevenueCatUserId(user.id);
+        
+        // Verify login succeeded
+        const verifyInfo = await getCustomerInfo();
+        if (verifyInfo?.originalAppUserId !== user.id) {
+          console.error('RevenueCat: Failed to set correct user identity before purchase');
+          toast.error('Identity verification failed. Please restart the app and try again.');
+          return false;
+        }
+        console.log('RevenueCat: Identity corrected successfully');
+      }
+      
       const purchaseResult = await purchasePackage(pkg);
       
       if (purchaseResult) {
@@ -260,7 +292,7 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
     } finally {
       setLoading(false);
     }
-  }, [syncSubscriptionToDatabase]);
+  }, [user, syncSubscriptionToDatabase]);
 
   const restore = useCallback(async (): Promise<boolean> => {
     setLoading(true);
