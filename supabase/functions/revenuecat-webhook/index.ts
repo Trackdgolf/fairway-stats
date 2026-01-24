@@ -416,7 +416,17 @@ const handler = async (req: Request): Promise<Response> => {
     const environment = event.environment || "UNKNOWN";
     const isSandbox = environment === "SANDBOX";
     
-    // Log event details without PII
+    // Detect anonymous vs identified users
+    const appUserId = event.app_user_id || "";
+    const originalAppUserId = event.original_app_user_id || "";
+    const isAnonymousUser = appUserId.startsWith("$RCAnonymousID") || originalAppUserId.startsWith("$RCAnonymousID");
+    
+    // Safe masked user ID for logging (first 8 chars or "anonymous")
+    const maskedUserId = isAnonymousUser 
+      ? "anonymous-" + (originalAppUserId || appUserId).substring(0, 12)
+      : (originalAppUserId || appUserId).substring(0, 8) + "...";
+    
+    // Log event details without PII - ALWAYS log for debugging
     console.log({
       ...logContext,
       authorized: true,
@@ -427,7 +437,21 @@ const handler = async (req: Request): Promise<Response> => {
       periodType: event.period_type,
       store: event.store,
       productId: event.product_id,
+      maskedUserId,
+      isAnonymousUser,
     });
+    
+    // Warn about anonymous users - this is a problem for email linking
+    if (isAnonymousUser) {
+      console.warn({
+        ...logContext,
+        warning: "ANONYMOUS_USER_DETECTED",
+        message: "Purchase made with anonymous user ID - webhook cannot link to Supabase user",
+        appUserId: appUserId.substring(0, 20) + "...",
+        originalAppUserId: originalAppUserId.substring(0, 20) + "...",
+        recommendation: "Ensure Purchases.logIn(supabaseUserId) is called before purchase",
+      });
+    }
 
     // ============================================
     // 3) Filter: Only process trial start events

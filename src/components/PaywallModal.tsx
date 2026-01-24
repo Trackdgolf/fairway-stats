@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
+import { useAuth } from '@/contexts/AuthContext';
 import type { PurchasesPackage } from '@revenuecat/purchases-capacitor';
 
 interface PaywallModalProps {
@@ -98,11 +99,36 @@ const formatTrialPeriod = (pkg: PurchasesPackage): string | null => {
 };
 
 export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
-  const { offerings, purchase, restore, loading, isNative, refreshCustomerInfo } = useRevenueCat();
+  const { offerings, purchase, restore, loading, isNative, refreshCustomerInfo, customerInfo } = useRevenueCat();
+  const { user } = useAuth();
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const [fetchError, setFetchError] = useState(false);
+
+  // Log identity state when paywall opens on native
+  useEffect(() => {
+    if (open && isNative) {
+      const supabaseUserId = user?.id;
+      const rcAppUserId = customerInfo?.originalAppUserId;
+      const identityMatch = supabaseUserId === rcAppUserId;
+      
+      console.log('Paywall Identity Check:', {
+        supabaseUserId: supabaseUserId ? supabaseUserId.substring(0, 8) + '...' : 'none',
+        rcAppUserId: rcAppUserId ? rcAppUserId.substring(0, 8) + '...' : 'none',
+        identityMatch,
+        isAnonymous: rcAppUserId?.startsWith('$RCAnonymousID'),
+      });
+      
+      if (!identityMatch) {
+        console.warn('Paywall: IDENTITY MISMATCH - RevenueCat user does not match Supabase user');
+      }
+      
+      if (rcAppUserId?.startsWith('$RCAnonymousID')) {
+        console.warn('Paywall: User is anonymous in RevenueCat - purchases may not link correctly');
+      }
+    }
+  }, [open, isNative, user, customerInfo]);
 
   const handlePurchase = async (pkg: PurchasesPackage) => {
     console.log('Paywall: Purchase initiated for', pkg.identifier);
