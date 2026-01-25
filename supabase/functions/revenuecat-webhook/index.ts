@@ -55,7 +55,8 @@ function isEmailAllowedForSandbox(email: string): boolean {
 }
 
 // RevenueCat webhook event types we care about
-const TRIAL_START_EVENTS = ["INITIAL_PURCHASE", "RENEWAL"];
+// TRANSFER: When subscription moves from anonymous ID to Supabase UUID
+const TRIAL_START_EVENTS = ["INITIAL_PURCHASE", "RENEWAL", "TRANSFER"];
 
 interface RevenueCatEvent {
   event: {
@@ -573,7 +574,24 @@ const handler = async (req: Request): Promise<Response> => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const userId = event.original_app_user_id || event.app_user_id;
+    // For TRANSFER events, use app_user_id (the NEW owner/Supabase UUID)
+    // For other events, use original_app_user_id (or fall back to app_user_id)
+    const isTransferEvent = event.type === "TRANSFER";
+    const userId = isTransferEvent 
+      ? event.app_user_id   // TRANSFER: new owner (Supabase UUID)
+      : (event.original_app_user_id || event.app_user_id);
+    
+    // Log transfer event details for debugging
+    if (isTransferEvent) {
+      console.log({
+        ...logContext,
+        action: "transfer-event-detected",
+        fromUserId: (event.original_app_user_id || "").substring(0, 12) + "...",
+        toUserId: (event.app_user_id || "").substring(0, 8) + "...",
+        message: "Using app_user_id (new owner) for email lookup",
+      });
+    }
+    
     const trialStartAt = new Date(event.purchased_at_ms);
     const trialEndAt = new Date(event.expiration_at_ms);
 
