@@ -1,6 +1,6 @@
 import { ArrowLeft, Plus, Trash2, RotateCcw, Loader2, AlertTriangle, Mail } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import PageHeader from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -41,9 +41,11 @@ import {
 
 const Settings = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const supabase = getSupabaseClient();
   const { signOut } = useAuth();
+  const myBagRef = useRef<HTMLDivElement>(null);
   const { 
     clubs, 
     renameClub, 
@@ -66,6 +68,24 @@ const Settings = () => {
   const [marketingEnabled, setMarketingEnabled] = useState(false);
   const [marketingLoading, setMarketingLoading] = useState(true);
   const [marketingUpdating, setMarketingUpdating] = useState(false);
+  
+  // Controlled accordion state for deep linking
+  const [openAccordion, setOpenAccordion] = useState<string | undefined>(undefined);
+
+  // Handle deep linking to specific sections (e.g., from WelcomeModal)
+  useEffect(() => {
+    if (location.state?.openSection === 'my-bag') {
+      setOpenAccordion('my-bag');
+      
+      // Scroll to the section after a brief delay for render
+      setTimeout(() => {
+        myBagRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      
+      // Clear the state to prevent re-opening on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Fetch marketing preference on mount
   useEffect(() => {
@@ -322,8 +342,8 @@ const Settings = () => {
         </Card>
 
         {/* My Bag Section - Collapsible */}
-        <Accordion type="single" collapsible className="mb-6">
-          <AccordionItem value="my-bag" className="border rounded-lg bg-card px-4">
+        <Accordion type="single" collapsible className="mb-6" value={openAccordion} onValueChange={setOpenAccordion}>
+          <AccordionItem value="my-bag" className="border rounded-lg bg-card px-4" ref={myBagRef}>
             <AccordionTrigger className="hover:no-underline py-4">
               <div className="text-left">
                 <h2 className="text-lg font-semibold text-foreground">My Bag</h2>

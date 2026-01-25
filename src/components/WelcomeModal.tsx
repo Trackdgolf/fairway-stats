@@ -22,7 +22,7 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
 
   const handleSetUpBag = () => {
     onClose();
-    navigate('/settings');
+    navigate('/settings', { state: { openSection: 'my-bag' } });
   };
 
   return (
