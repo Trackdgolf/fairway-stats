@@ -549,13 +549,36 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    if (event.period_type !== "TRIAL") {
-      console.log({ ...logContext, action: "ignored", reason: "non-trial-period", periodType: event.period_type });
+    // For TRANSFER events, period_type may be missing even for active trials
+    // Check if it's an active subscription that should trigger emails
+    const isTransferEvent = event.type === "TRANSFER";
+    const hasTrialPeriod = event.period_type === "TRIAL";
+    const hasActiveSubscription = event.expiration_at_ms && 
+      new Date(event.expiration_at_ms) > new Date();
+
+    // Allow TRANSFER events with active subscriptions, or any event with TRIAL period
+    if (!hasTrialPeriod && !(isTransferEvent && hasActiveSubscription)) {
+      console.log({ 
+        ...logContext, 
+        action: "ignored", 
+        reason: "non-trial-period",
+        periodType: event.period_type,
+        isTransfer: isTransferEvent,
+        hasActiveSubscription,
+        expirationAt: event.expiration_at_ms 
+      });
       return new Response(JSON.stringify({ success: true, message: "Not a trial" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Log why we're proceeding
+    console.log({
+      ...logContext,
+      action: "processing-trial-event",
+      reason: hasTrialPeriod ? "trial-period" : "transfer-with-active-subscription",
+    });
 
     if (event.is_trial_conversion) {
       console.log({ ...logContext, action: "ignored", reason: "trial-conversion" });
@@ -576,7 +599,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // For TRANSFER events, use app_user_id (the NEW owner/Supabase UUID)
     // For other events, use original_app_user_id (or fall back to app_user_id)
-    const isTransferEvent = event.type === "TRANSFER";
+    // Note: isTransferEvent is already defined above in the period_type check
     const userId = isTransferEvent 
       ? event.app_user_id   // TRANSFER: new owner (Supabase UUID)
       : (event.original_app_user_id || event.app_user_id);
