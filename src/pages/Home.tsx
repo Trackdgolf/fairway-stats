@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Play, Settings, Clock, Flag, Pencil, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,10 +17,11 @@ import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import { TrackdHandicap } from "@/components/TrackdHandicap";
 import { PaywallModal } from "@/components/PaywallModal";
+import { WelcomeModal } from "@/components/WelcomeModal";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { format } from "date-fns";
 import { useTheme } from "next-themes";
@@ -78,8 +79,46 @@ const Home = () => {
   const { user, signOut } = useAuth();
   const { resolvedTheme } = useTheme();
   const supabase = getSupabaseClient();
+  const queryClient = useQueryClient();
   const { isPremium } = usePremiumStatus();
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  // Check if user has seen welcome modal
+  const { data: profile } = useQuery({
+    queryKey: ["profile-welcome", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("has_seen_welcome")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Show welcome modal if user hasn't seen it
+  useEffect(() => {
+    if (profile && profile.has_seen_welcome === false) {
+      setShowWelcome(true);
+    }
+  }, [profile]);
+
+  const handleWelcomeClose = async () => {
+    setShowWelcome(false);
+    if (user) {
+      await supabase
+        .from("profiles")
+        .update({ has_seen_welcome: true })
+        .eq("id", user.id);
+      // Invalidate the query so it doesn't show again
+      queryClient.invalidateQueries({ queryKey: ["profile-welcome", user.id] });
+    }
+  };
 
   // Fetch in-progress rounds
   const { data: inProgressRounds } = useQuery({
@@ -273,6 +312,7 @@ const Home = () => {
 
       <BottomNav />
       <PaywallModal open={showPaywall} onOpenChange={setShowPaywall} />
+      <WelcomeModal open={showWelcome} onClose={handleWelcomeClose} />
     </div>
   );
 };
