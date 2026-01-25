@@ -1,4 +1,5 @@
-import { Check, Crown, Lightbulb } from "lucide-react";
+import { Check, Crown, Lightbulb, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,12 @@ interface WelcomeModalProps {
 
 export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
   const { resolvedTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleSetUpBag = () => {
+    onClose();
+    navigate('/settings');
+  };
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -104,6 +111,27 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
               </li>
             </ul>
           </div>
+
+          {/* Before You Start - Bag Setup */}
+          <div className="bg-muted/50 rounded-lg p-4 border border-border">
+            <div className="flex items-center gap-2 text-foreground font-semibold mb-2">
+              <Settings className="w-5 h-5 text-primary" />
+              <span>Before You Start</span>
+            </div>
+            <p className="text-sm text-muted-foreground mb-3">
+              Make sure to set up your bag in Settings with the clubs you actually carry. 
+              This ensures accurate club tracking when you record your rounds.
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSetUpBag}
+              className="w-full"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Set Up My Bag
+            </Button>
+          </div>
         </div>
 
         <Button 
@@ -113,6 +141,18 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
         >
           Get Started
         </Button>
+
+        <p className="text-center text-xs text-muted-foreground mt-3">
+          Need more help?{" "}
+          <a 
+            href="#" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Watch our how-to video
+          </a>
+        </p>
       </DialogContent>
     </Dialog>
   );
