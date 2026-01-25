@@ -145,7 +145,7 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
         <p className="text-center text-xs text-muted-foreground mt-3">
           Need more help?{" "}
           <a 
-            href="#" 
+            href="https://www.trackdgolf.com/guide" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-primary hover:underline"
