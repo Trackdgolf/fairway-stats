@@ -3,12 +3,41 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface PasswordResetRequest {
   email: string;
 }
+
+// Simple in-memory rate limiting
+// Note: This resets on function cold starts, but provides basic protection
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_MAX_REQUESTS = 3; // Max 3 requests per email per hour
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+const IP_RATE_LIMIT_MAX = 10; // Max 10 requests per IP per hour
+const ipRateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+const checkRateLimit = (key: string, map: Map<string, { count: number; resetTime: number }>, maxRequests: number): boolean => {
+  const now = Date.now();
+  const record = map.get(key);
+  
+  if (!record || now > record.resetTime) {
+    // First request or window expired - reset
+    map.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return true; // Allowed
+  }
+  
+  if (record.count >= maxRequests) {
+    return false; // Rate limited
+  }
+  
+  // Increment counter
+  record.count++;
+  return true; // Allowed
+};
 
 // Helper to extract email domain (for logging without exposing full email)
 const getEmailDomain = (email: string): string => {
@@ -58,6 +87,24 @@ const logPasswordReset = (status: string, emailDomain: string, projectRef: strin
   console.log(logEntry);
 };
 
+// Helper to get client IP from request
+const getClientIP = (req: Request): string => {
+  // Try various headers that might contain the client IP
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0].trim();
+  }
+  const realIP = req.headers.get("x-real-ip");
+  if (realIP) {
+    return realIP;
+  }
+  const cfConnectingIP = req.headers.get("cf-connecting-ip");
+  if (cfConnectingIP) {
+    return cfConnectingIP;
+  }
+  return "unknown";
+};
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -86,6 +133,30 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(
         JSON.stringify({ error: "Invalid email format" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Rate limiting checks
+    const clientIP = getClientIP(req);
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    // Check IP-based rate limit first
+    if (!checkRateLimit(clientIP, ipRateLimitMap, IP_RATE_LIMIT_MAX)) {
+      logPasswordReset("rate_limited", emailDomain, maskedRef, `ip: ${clientIP.slice(0, 8)}...`);
+      // Return generic response to not reveal rate limiting mechanism
+      return new Response(
+        JSON.stringify({ success: true, message: "If an account exists, a reset email has been sent." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // Check email-based rate limit
+    if (!checkRateLimit(normalizedEmail, rateLimitMap, RATE_LIMIT_MAX_REQUESTS)) {
+      logPasswordReset("rate_limited", emailDomain, maskedRef, "email rate limit exceeded");
+      // Return generic response to not reveal rate limiting mechanism
+      return new Response(
+        JSON.stringify({ success: true, message: "If an account exists, a reset email has been sent." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
