@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const logoUrl = "https://app.trackdgolf.com/trackd-logo.png";
-    const appUrl = "https://www.trackdgolf.com/guide";
+    const appUrl = "https://app.trackdgolf.com";
     const termsUrl = "https://www.trackdgolf.com/terms-of-use.pdf";
     const privacyUrl = "https://www.trackdgolf.com/privacy-policy.pdf";
 
