@@ -370,11 +370,95 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const url = new URL(req.url);
   const startTime = Date.now();
   const logContext = {
     timestamp: new Date().toISOString(),
     function: "revenuecat-webhook",
   };
+
+  // ============================================
+  // HEALTH CHECK: GET /revenuecat-webhook/health
+  // ============================================
+  if (req.method === "GET" && url.pathname.endsWith("/health")) {
+    console.log({ ...logContext, action: "health-check", status: "ok" });
+    return new Response(JSON.stringify({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      message: "RevenueCat webhook is reachable"
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  // ============================================
+  // TEST TRIGGER: POST /revenuecat-webhook/test
+  // Simulates an INITIAL_PURCHASE trial event
+  // ============================================
+  if (req.method === "POST" && url.pathname.endsWith("/test")) {
+    const testSecret = Deno.env.get("REVENUECAT_WEBHOOK_SECRET");
+    const authHeader = req.headers.get("Authorization");
+    
+    if (!testSecret || authHeader !== `Bearer ${testSecret}`) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    try {
+      const body = await req.json();
+      const testEmail = body.email;
+      
+      if (!testEmail) {
+        return new Response(JSON.stringify({ error: "Missing 'email' in request body" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      console.log({ ...logContext, action: "test-trigger", email: testEmail });
+
+      const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
+      
+      // Send all 3 email templates as a test
+      const email1 = getTrialConfirmationEmail();
+      const email2 = getCheckInEmail();
+      const email3 = getTrialEndingEmail();
+
+      const result1 = await sendEmail(resendApiKey, { to: testEmail, ...email1 });
+      const result2 = await sendEmail(resendApiKey, { to: testEmail, ...email2 });
+      const result3 = await sendEmail(resendApiKey, { to: testEmail, ...email3 });
+
+      console.log({ 
+        ...logContext, 
+        action: "test-emails-sent", 
+        email1: result1.id || result1.error,
+        email2: result2.id || result2.error,
+        email3: result3.id || result3.error,
+      });
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: "Test emails sent",
+        results: {
+          trialConfirmation: result1,
+          checkIn: result2,
+          trialEnding: result3,
+        }
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } catch (err) {
+      console.error({ ...logContext, action: "test-trigger-error", error: String(err) });
+      return new Response(JSON.stringify({ error: "Test trigger failed" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
 
   try {
     // ============================================
