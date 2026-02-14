@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCoursePerformance, type CoursePerformance } from "@/hooks/useCoursePerformance";
 
-const getOverParColor = (val: number) => {
-  if (val < 0) return "text-green-500";
-  if (val === 0) return "text-yellow-500";
-  if (val <= 0.5) return "text-orange-400";
-  if (val <= 1) return "text-orange-500";
+const getOverParColor = (val: number, min: number, max: number) => {
+  if (min === max) return "text-yellow-500";
+  const pct = (val - min) / (max - min);
+  if (pct <= 0.2) return "text-green-500";
+  if (pct <= 0.4) return "text-yellow-500";
+  if (pct <= 0.6) return "text-orange-400";
+  if (pct <= 0.8) return "text-orange-500";
   return "text-red-500";
 };
 
@@ -71,6 +73,8 @@ const Courses = () => {
           <div className="space-y-4">
             {/* Front 9 vs Back 9 Summary */}
             {(() => {
+              const holeMin = Math.min(...selectedCourse.holes.map(h => h.avgOverPar));
+              const holeMax = Math.max(...selectedCourse.holes.map(h => h.avgOverPar));
               const front9 = selectedCourse.holes.filter(h => h.holeNumber <= 9);
               const back9 = selectedCourse.holes.filter(h => h.holeNumber > 9);
               const front9Avg = front9.length > 0 ? front9.reduce((sum, h) => sum + h.avgOverPar, 0) / front9.length : 0;
@@ -85,7 +89,7 @@ const Courses = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center">
                         <p className="text-xs text-muted-foreground mb-1">Front 9</p>
-                        <p className={`text-2xl font-bold ${getOverParColor(front9Avg)}`}>
+                        <p className={`text-2xl font-bold ${getOverParColor(front9Avg, holeMin, holeMax)}`}>
                           {formatOverPar(Number(front9Total.toFixed(1)))}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -94,7 +98,7 @@ const Courses = () => {
                       </div>
                       <div className="text-center border-l border-border">
                         <p className="text-xs text-muted-foreground mb-1">Back 9</p>
-                        <p className={`text-2xl font-bold ${getOverParColor(back9Avg)}`}>
+                        <p className={`text-2xl font-bold ${getOverParColor(back9Avg, holeMin, holeMax)}`}>
                           {formatOverPar(Number(back9Total.toFixed(1)))}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -135,12 +139,15 @@ const Courses = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedHoles.map((hole) => (
+                    {(() => {
+                      const holeMin = Math.min(...selectedCourse.holes.map(h => h.avgOverPar));
+                      const holeMax = Math.max(...selectedCourse.holes.map(h => h.avgOverPar));
+                      return sortedHoles.map((hole) => (
                       <TableRow key={hole.holeNumber}>
                         <TableCell className="font-medium">{hole.holeNumber}</TableCell>
                         <TableCell className="text-center">{hole.par}</TableCell>
                         <TableCell className="text-center">{hole.avgScore.toFixed(1)}</TableCell>
-                        <TableCell className={`text-center font-semibold ${getOverParColor(hole.avgOverPar)}`}>
+                        <TableCell className={`text-center font-semibold ${getOverParColor(hole.avgOverPar, holeMin, holeMax)}`}>
                           {formatOverPar(hole.avgOverPar)}
                         </TableCell>
                         <TableCell className="text-center">
@@ -149,7 +156,8 @@ const Courses = () => {
                           </Badge>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ));
+                    })()}
                   </TableBody>
                 </Table>
               </CardContent>
