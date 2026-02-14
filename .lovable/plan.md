@@ -1,31 +1,53 @@
 
 
-## Add "Last Round" Time Filter to Stats Page
+## Fix Y-Axis Scaling on Stats Chart
 
-### What It Does
+### The Problem
 
-Adds a new "LAST" button alongside the existing 3M / 6M / 1Y / MAX time range buttons. When selected, it filters all stats to show only the data from your most recent round. The chart will display a single data point, and all stat tiles will reflect that one round's performance.
+The `getYAxisDomain` function always starts the Y-axis at 0 for positive values (line 58). This works for stats like "Avg Over Par" (which can be negative) and "Scramble%" (which might range near 0), but creates massive dead space for stats like GIR% (40-65%), Avg Score (75-95), and FIR% (30-70%).
 
-### How It Works
+### The Fix
 
-Since the stats are already calculated per-round in the `useRoundStats` hook, we just need to:
+**File: `src/components/StatsChart.tsx`**
 
-1. Add a new time range option "LAST" that fetches all rounds but then slices down to only the most recent one
-2. The stat tiles will show that single round's numbers instead of averages
-3. The chart will show a single point (or be hidden/replaced with a summary since one point doesn't make a trend line)
+Replace the `getYAxisDomain` function with logic that pads both the min and max based on the actual data range, rather than forcing min to 0:
 
-### Technical Details
+```tsx
+const getYAxisDomain = (): [number, number] => {
+  if (!data || data.length === 0) return [0, 10];
 
-**File: `src/hooks/useRoundStats.ts`**
+  const values = data.map(d => d.value);
+  const minVal = Math.min(...values);
+  const maxVal = Math.max(...values);
+  const range = maxVal - minVal;
 
-- Add `"LAST"` to the `TimeRange` type: `"3M" | "6M" | "1Y" | "MAX" | "LAST"`
-- When `timeRange === "LAST"`, fetch all rounds (no date cutoff), then after the query returns, slice to keep only the most recent round (last by `played_at`)
-- All downstream stat calculations (FIR%, GIR%, putts, etc.) will naturally work since they already operate on whatever rounds are in the filtered set
+  // Pick a nice tick interval based on the spread
+  let interval = 1;
+  if (range > 50) interval = 10;
+  else if (range > 20) interval = 5;
+  else if (range > 10) interval = 2;
 
-**File: `src/pages/Stats.tsx`**
+  // If all values are the same, pad symmetrically
+  if (range === 0) {
+    return [
+      Math.floor(minVal / interval) * interval - interval,
+      Math.ceil(maxVal / interval) * interval + interval,
+    ];
+  }
 
-- Update the `TimeRange` type to include `"LAST"`
-- Add a "LAST" button to the time range button group (renders alongside 3M, 6M, 1Y, MAX)
-- The chart and stat tiles will automatically reflect the single-round data since they consume the same hook output
+  // Pad one interval below the min and one above the max
+  const paddedMin = Math.floor(minVal / interval) * interval - interval;
+  const paddedMax = Math.ceil(maxVal / interval) * interval + interval;
 
-No changes needed to `StatsChart.tsx` or `StatTile.tsx` -- they already handle any number of data points including one.
+  // Don't go below 0 for percentage or score stats (never negative)
+  return [Math.max(paddedMin, 0), paddedMax];
+};
+```
+
+Key changes:
+- The min is now calculated from the actual data, not forced to 0
+- Both ends get one interval of padding so data points never sit on the edge
+- A `Math.max(paddedMin, 0)` guard still prevents negative Y-axis values for stats that can't be negative (scores, percentages, putts)
+- "Avg Over Par" still works correctly because its values can be negative, so the guard won't kick in
+
+This is a single function change in one file. No other files need updating.
