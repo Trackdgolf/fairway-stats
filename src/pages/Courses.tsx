@@ -57,6 +57,44 @@ const Courses = () => {
         ) : selectedCourse ? (
           /* Detail View */
           <div className="space-y-4">
+            {/* Front 9 vs Back 9 Summary */}
+            {(() => {
+              const front9 = selectedCourse.holes.filter(h => h.holeNumber <= 9);
+              const back9 = selectedCourse.holes.filter(h => h.holeNumber > 9);
+              const front9Avg = front9.length > 0 ? front9.reduce((sum, h) => sum + h.avgOverPar, 0) / front9.length : 0;
+              const back9Avg = back9.length > 0 ? back9.reduce((sum, h) => sum + h.avgOverPar, 0) / back9.length : 0;
+              const front9Total = front9.reduce((sum, h) => sum + h.avgOverPar, 0);
+              const back9Total = back9.reduce((sum, h) => sum + h.avgOverPar, 0);
+
+              return front9.length > 0 && back9.length > 0 ? (
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm font-medium text-muted-foreground mb-3">Avg Performance vs Par</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Front 9</p>
+                        <p className={`text-2xl font-bold ${getOverParColor(front9Avg)}`}>
+                          {formatOverPar(Number(front9Total.toFixed(1)))}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatOverPar(Number(front9Avg.toFixed(1)))} per hole
+                        </p>
+                      </div>
+                      <div className="text-center border-l border-border">
+                        <p className="text-xs text-muted-foreground mb-1">Back 9</p>
+                        <p className={`text-2xl font-bold ${getOverParColor(back9Avg)}`}>
+                          {formatOverPar(Number(back9Total.toFixed(1)))}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatOverPar(Number(back9Avg.toFixed(1)))} per hole
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : null;
+            })()}
+
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
                 Based on {selectedCourse.roundCount} rounds
