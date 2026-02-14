@@ -168,7 +168,7 @@ const Courses = () => {
             {courses.map((course) => (
               <Card
                 key={course.courseId}
-                className="cursor-pointer hover:bg-accent/50 transition-colors"
+                className="cursor-pointer active:opacity-80"
                 onClick={() => {
                   setSelectedCourse(course);
                   setSortByDifficulty(false);
