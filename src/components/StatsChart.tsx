@@ -39,25 +39,28 @@ const StatsChart = ({ data, title, yAxisLabel }: StatsChartProps) => {
   // Calculate Y-axis domain with padding above max value
   const getYAxisDomain = (): [number, number] => {
     if (!data || data.length === 0) return [0, 10];
-    
+
     const values = data.map(d => d.value);
     const minVal = Math.min(...values);
     const maxVal = Math.max(...values);
-    
-    // Calculate a nice interval based on the data range
     const range = maxVal - minVal;
+
     let interval = 1;
     if (range > 50) interval = 10;
     else if (range > 20) interval = 5;
     else if (range > 10) interval = 2;
-    
-    // Round max up to next interval and add one more interval for padding
+
+    if (range === 0) {
+      return [
+        Math.floor(minVal / interval) * interval - interval,
+        Math.ceil(maxVal / interval) * interval + interval,
+      ];
+    }
+
+    const paddedMin = Math.floor(minVal / interval) * interval - interval;
     const paddedMax = Math.ceil(maxVal / interval) * interval + interval;
-    
-    // For min, use 0 or round down if there are negative values
-    const paddedMin = minVal >= 0 ? 0 : Math.floor(minVal / interval) * interval - interval;
-    
-    return [paddedMin, paddedMax];
+
+    return [Math.max(paddedMin, 0), paddedMax];
   };
 
   return (
