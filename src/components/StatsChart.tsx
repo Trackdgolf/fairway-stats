@@ -74,6 +74,7 @@ const StatsChart = ({ data, title, yAxisLabel }: StatsChartProps) => {
             dataKey="date" 
             stroke="hsl(var(--muted-foreground))"
             tick={false}
+            label={{ value: "Rounds", position: "insideBottom", offset: 0, fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
           />
           <YAxis
             stroke="hsl(var(--muted-foreground))"
