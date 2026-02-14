@@ -1,13 +1,18 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
-import { Share2, X, Download } from "lucide-react";
+import { Share2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 import logoDark from "@/assets/logo-dark.png";
 import logoLight from "@/assets/logo-light.png";
 
@@ -37,9 +42,11 @@ const RoundSummaryModal = ({
   holeStats,
   playedAt,
 }: RoundSummaryModalProps) => {
-  const cardRef = useRef<HTMLDivElement>(null);
+  const lightCardRef = useRef<HTMLDivElement>(null);
+  const darkCardRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // Calculate stats
   const totalPar = holeStats.reduce((sum, h) => sum + (h.par || 0), 0);
@@ -71,6 +78,7 @@ const RoundSummaryModal = ({
     : new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
   const handleShare = async () => {
+    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
     if (!cardRef.current) return;
     setIsSharing(true);
 
@@ -96,7 +104,6 @@ const RoundSummaryModal = ({
           text: `Shot ${totalScore} (${scoreVsParStr}) at ${courseName} 🏌️`,
         });
       } else {
-        // Fallback: download
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -105,7 +112,6 @@ const RoundSummaryModal = ({
         URL.revokeObjectURL(url);
       }
     } catch (err) {
-      // User cancelled share or error
       console.error("Share error:", err);
     } finally {
       setIsSharing(false);
@@ -124,56 +130,87 @@ const RoundSummaryModal = ({
     { label: "Avg Putts", value: avgPutts ?? "—" },
   ];
 
+  const cardContent = (logo: string, textColor: string, subtextColor: string, statBg: string, statTextColor: string) => (
+    <div className={`p-6 ${textColor}`}>
+      <div className="flex justify-center mb-4">
+        <img src={logo} alt="Trackd" className="h-12 object-contain" />
+      </div>
+      <div className="text-center mb-5">
+        <h2 className="text-xl font-bold tracking-tight">{courseName}</h2>
+        <p className={`text-sm ${subtextColor} mt-1`}>{dateStr}</p>
+      </div>
+      <div className="text-center mb-6">
+        <div className="text-6xl font-extrabold tracking-tight">{totalScore}</div>
+        <div className={`text-lg font-semibold ${subtextColor} mt-1`}>{scoreVsParStr}</div>
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {stats.map((s) => (
+          <div key={s.label} className={`${statBg} backdrop-blur-sm rounded-xl p-3 text-center`}>
+            <div className={`text-lg font-bold ${statTextColor}`}>{s.value}</div>
+            <div className={`text-[10px] uppercase tracking-wider ${subtextColor} mt-0.5`}>
+              {s.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
       <DialogContent className="max-w-sm p-0 border-none bg-transparent shadow-none [&>button]:hidden">
         <DialogTitle className="sr-only">Round Summary</DialogTitle>
 
-        {/* Shareable graphic card */}
-        <div
-          ref={cardRef}
-          className="rounded-2xl overflow-hidden"
-          style={{
-            background: "linear-gradient(145deg, hsl(158 47% 18%), hsl(153 41% 30%), hsl(152 39% 41%))",
+        <Carousel
+          opts={{ align: "center", loop: true }}
+          className="w-full"
+          setApi={(api) => {
+            api?.on("select", () => setActiveIndex(api.selectedScrollSnap()));
           }}
         >
-          <div className="p-6 text-white">
-            {/* Logo */}
-            <div className="flex justify-center mb-4">
-              <img src={logoLight} alt="Trackd" className="h-8 object-contain" />
-            </div>
+          <CarouselContent>
+            {/* Light theme card */}
+            <CarouselItem>
+              <div
+                ref={lightCardRef}
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  background: "linear-gradient(145deg, hsl(158 47% 18%), hsl(153 41% 30%), hsl(152 39% 41%))",
+                }}
+              >
+                {cardContent(logoLight, "text-white", "text-white/70", "bg-white/15", "text-white")}
+              </div>
+            </CarouselItem>
 
-            {/* Course & Date */}
-            <div className="text-center mb-5">
-              <h2 className="text-xl font-bold tracking-tight">{courseName}</h2>
-              <p className="text-sm text-white/70 mt-1">{dateStr}</p>
-            </div>
+            {/* Dark theme card */}
+            <CarouselItem>
+              <div
+                ref={darkCardRef}
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  background: "linear-gradient(145deg, hsl(222 47% 11%), hsl(217 33% 17%), hsl(217 19% 27%))",
+                }}
+              >
+                {cardContent(logoDark, "text-[hsl(210_40%_96%)]", "text-[hsl(215_16%_65%)]", "bg-[hsl(217_19%_27%)]", "text-[hsl(152_44%_52%)]")}
+              </div>
+            </CarouselItem>
+          </CarouselContent>
+        </Carousel>
 
-            {/* Score */}
-            <div className="text-center mb-6">
-              <div className="text-6xl font-extrabold tracking-tight">{totalScore}</div>
-              <div className="text-lg font-semibold text-white/80 mt-1">{scoreVsParStr}</div>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-4 gap-2">
-              {stats.map((s) => (
-                <div
-                  key={s.label}
-                  className="bg-white/15 backdrop-blur-sm rounded-xl p-3 text-center"
-                >
-                  <div className="text-lg font-bold">{s.value}</div>
-                  <div className="text-[10px] uppercase tracking-wider text-white/70 mt-0.5">
-                    {s.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Dot indicators */}
+        <div className="flex justify-center gap-2 mt-3">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className={`w-2 h-2 rounded-full transition-colors ${
+                activeIndex === i ? "bg-primary" : "bg-muted-foreground/30"
+              }`}
+            />
+          ))}
         </div>
 
-        {/* Action buttons below the card */}
-        <div className="flex gap-3 mt-4 px-2">
+        {/* Action buttons */}
+        <div className="flex gap-3 mt-3 px-2">
           <Button
             variant="outline"
             className="flex-1 bg-card border-border text-foreground"
