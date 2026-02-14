@@ -34,9 +34,9 @@ const Courses = () => {
     : [];
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24">
       <PageHeader />
-      <div className="relative z-10 px-4 pt-6">
+      <div className="relative z-10 px-4 pt-20">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           {selectedCourse && (
