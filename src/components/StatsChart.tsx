@@ -45,10 +45,11 @@ const StatsChart = ({ data, title, yAxisLabel }: StatsChartProps) => {
     const maxVal = Math.max(...values);
     const range = maxVal - minVal;
 
-    let interval = 1;
+    let interval = 0.5;
     if (range > 50) interval = 10;
     else if (range > 20) interval = 5;
     else if (range > 10) interval = 2;
+    else if (range > 2) interval = 1;
 
     if (range === 0) {
       return [
