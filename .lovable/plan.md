@@ -1,25 +1,25 @@
 
 
-## Add Courses Tab to Bottom Navigation
+## Fix: Courses Page Header Spacing
 
-The Courses page exists and has a route, but it was never added to the bottom navigation bar. 
+The content area currently uses `pt-6` for top padding, which causes it to overlap with the `PageHeader` banner. Other pages in the app use `pt-20` to properly clear the header.
 
 ### Change
 
-**File: `src/components/BottomNav.tsx`**
+**File: `src/pages/Courses.tsx` (line 39)**
 
-Add a new navigation item for Courses using the `MapPin` icon (consistent with the Courses page) to the `navItems` array:
+Update the top padding from `pt-6` to `pt-20` to match the standard layout used across all other pages (Home, Stats, Clubs, Settings).
 
-```typescript
-import { Home, BarChart3, Target, MapPin } from "lucide-react";
+```
+// Before
+<div className="relative z-10 px-4 pt-6">
 
-const navItems = [
-  { to: "/", icon: Home, label: "Home" },
-  { to: "/stats", icon: BarChart3, label: "Stats" },
-  { to: "/clubs", icon: Target, label: "Clubs" },
-  { to: "/courses", icon: MapPin, label: "Courses" },
-];
+// After
+<div className="relative z-10 px-4 pt-20">
 ```
 
-This is a one-line addition plus updating the import. The bottom nav will then show four tabs: Home, Stats, Clubs, and Courses.
+Also update `pb-20` to `pb-24` on the outer wrapper (line 37) to match the safe-area spacing convention used on other pages.
+
+### Files Modified
+- `src/pages/Courses.tsx` -- two class name adjustments
 
