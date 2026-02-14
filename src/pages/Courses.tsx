@@ -38,15 +38,20 @@ const Courses = () => {
       <PageHeader />
       <div className="relative z-10 px-4 pt-20">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          {selectedCourse && (
-            <Button variant="ghost" size="icon" onClick={() => setSelectedCourse(null)} className="text-primary-foreground">
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
+        <div className="mb-6 relative">
+          {selectedCourse ? (
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => setSelectedCourse(null)} className="text-header-foreground">
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <h1 className="text-3xl font-bold text-header-foreground">{selectedCourse.courseName}</h1>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-header-foreground mb-2">Courses</h1>
+              <p className="text-header-foreground/80">Your personal hole difficulty rankings</p>
+            </>
           )}
-          <h1 className="text-2xl font-bold text-primary-foreground">
-            {selectedCourse ? selectedCourse.courseName : "Courses"}
-          </h1>
         </div>
 
         {/* Content */}
