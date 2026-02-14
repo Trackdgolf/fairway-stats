@@ -16,6 +16,7 @@ import EditRound from "./pages/EditRound";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import Courses from "./pages/Courses";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
                 <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
                 <Route path="/clubs" element={<ProtectedRoute><ClubPerformance /></ProtectedRoute>} />
+                <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
                 <Route path="/course-search" element={<ProtectedRoute><CourseSearch /></ProtectedRoute>} />
                 <Route path="/round" element={<ProtectedRoute><Round /></ProtectedRoute>} />
                 <Route path="/edit-round/:roundId" element={<ProtectedRoute><EditRound /></ProtectedRoute>} />
