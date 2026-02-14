@@ -34,9 +34,9 @@ const Courses = () => {
     : [];
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-24 relative" style={{ paddingBottom: 'calc(6rem + var(--safe-area-inset-bottom, 0px))' }}>
       <PageHeader />
-      <div className="relative z-10 px-4 pt-20">
+      <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
         {/* Header */}
         <div className="mb-6 relative">
           {selectedCourse ? (
