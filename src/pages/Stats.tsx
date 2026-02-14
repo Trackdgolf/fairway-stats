@@ -9,7 +9,7 @@ import { LockedStatTile } from "@/components/LockedStatTile";
 import { PaywallModal } from "@/components/PaywallModal";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
-import { useRoundStats } from "@/hooks/useRoundStats";
+import { useRoundStats, type TimeRange } from "@/hooks/useRoundStats";
 import {
   Select,
   SelectContent,
@@ -23,7 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const PREMIUM_STATS: StatType[] = ["avgPutts", "firPercent", "girPercent", "scramblePercent"];
 
 type StatType = "totalRounds" | "bestScore" | "avgScore" | "avgOverPar" | "avgPutts" | "firPercent" | "girPercent" | "scramblePercent";
-type TimeRange = "3M" | "6M" | "1Y" | "MAX";
+
 
 const Stats = () => {
   const navigate = useNavigate();
@@ -209,7 +209,7 @@ const Stats = () => {
 
         {/* Time Range Buttons */}
         <div className="flex gap-2 mb-6">
-          {(["3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+          {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
             <Button
               key={range}
               onClick={() => setTimeRange(range)}

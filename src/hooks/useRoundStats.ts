@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 
-type TimeRange = "3M" | "6M" | "1Y" | "MAX";
+export type TimeRange = "3M" | "6M" | "1Y" | "MAX" | "LAST";
 
 interface ChartDataPoint {
   date: string;
@@ -88,8 +88,13 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
         roundsQuery = roundsQuery.eq("course_name", courseFilter);
       }
 
-      const { data: rounds, error: roundsError } = await roundsQuery;
+      let { data: rounds, error: roundsError } = await roundsQuery;
       if (roundsError) throw roundsError;
+
+      // For "LAST", slice to only the most recent round
+      if (timeRange === "LAST" && rounds && rounds.length > 0) {
+        rounds = [rounds[rounds.length - 1]];
+      }
 
       if (!rounds || rounds.length === 0) {
         // Fetch all courses for the dropdown even if filtered results are empty
