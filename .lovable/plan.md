@@ -1,46 +1,30 @@
 
-## Add Subtitle to Courses Page Header
 
-The Stats and Club Performance pages both have a consistent header pattern with a title and subtitle. The Courses page currently uses a different structure and is missing the subtitle.
+## Fix: Courses Page Header Spacing
+
+The header text is positioned too low because the content container uses `pt-20` while the Stats and Clubs pages use `pt-8`. This pushes the title and subtitle below the green banner instead of inside it.
 
 ### Change
 
-**File: `src/pages/Courses.tsx` (lines 41-50)**
+**File: `src/pages/Courses.tsx`**
 
-Restructure the header section to match the pattern used on Stats and Club Performance pages:
+Two adjustments:
 
-- When on the **course list view**: Show "Courses" as the title with subtitle "Your personal hole difficulty rankings" using the same styling (`text-3xl font-bold text-header-foreground mb-2` for the title, `text-header-foreground/80` for the subtitle, wrapped in a `mb-6 relative` div).
-- When on the **course detail view**: Keep the back button and course name title, but update the text styling to use `text-header-foreground` instead of `text-primary-foreground` for consistency.
+1. **Line 37** -- Update the outer wrapper to use the same gradient background and safe-area padding as Stats and Clubs:
+   - Change `min-h-screen bg-background pb-24` to `min-h-screen bg-gradient-to-b from-background to-secondary pb-24 relative` with the safe-area style.
+
+2. **Line 39** -- Change the content container from `px-4 pt-20` to `max-w-md mx-auto px-4 pt-8` to match Stats and Clubs pages exactly. This moves the title and subtitle up into the green banner area.
 
 ```tsx
-// Before
-<div className="flex items-center gap-3 mb-6">
-  {selectedCourse && (
-    <Button variant="ghost" size="icon" onClick={() => setSelectedCourse(null)} className="text-primary-foreground">
-      <ChevronLeft className="w-5 h-5" />
-    </Button>
-  )}
-  <h1 className="text-2xl font-bold text-primary-foreground">
-    {selectedCourse ? selectedCourse.courseName : "Courses"}
-  </h1>
-</div>
+// Before (line 37-39)
+<div className="min-h-screen bg-background pb-24">
+  <PageHeader />
+  <div className="relative z-10 px-4 pt-20">
 
 // After
-<div className="mb-6 relative">
-  {selectedCourse ? (
-    <div className="flex items-center gap-3">
-      <Button variant="ghost" size="icon" onClick={() => setSelectedCourse(null)} className="text-header-foreground">
-        <ChevronLeft className="w-5 h-5" />
-      </Button>
-      <h1 className="text-3xl font-bold text-header-foreground">{selectedCourse.courseName}</h1>
-    </div>
-  ) : (
-    <>
-      <h1 className="text-3xl font-bold text-header-foreground mb-2">Courses</h1>
-      <p className="text-header-foreground/80">Your personal hole difficulty rankings</p>
-    </>
-  )}
-</div>
+<div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-24 relative" style={{ paddingBottom: 'calc(6rem + var(--safe-area-inset-bottom, 0px))' }}>
+  <PageHeader />
+  <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
 ```
 
-This matches the exact font size (`text-3xl`), weight (`font-bold`), color (`text-header-foreground`), spacing (`mb-2`), and subtitle style (`text-header-foreground/80`) used on the Stats and Club Performance pages.
+This matches the exact structure used by the Stats page (`pt-8`, `max-w-md mx-auto`, gradient background, safe-area padding), ensuring the "Courses" title and subtitle sit inside the green header banner.
