@@ -73,7 +73,7 @@ const StatsChart = ({ data, title, yAxisLabel }: StatsChartProps) => {
           <XAxis 
             dataKey="date" 
             stroke="hsl(var(--muted-foreground))"
-            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+            tick={false}
           />
           <YAxis
             stroke="hsl(var(--muted-foreground))"
