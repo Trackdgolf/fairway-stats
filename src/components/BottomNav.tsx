@@ -1,4 +1,4 @@
-import { Home, BarChart3, Target } from "lucide-react";
+import { Home, BarChart3, Target, MapPin } from "lucide-react";
 import { NavLink } from "./NavLink";
 
 const BottomNav = () => {
@@ -6,6 +6,7 @@ const BottomNav = () => {
     { to: "/", icon: Home, label: "Home" },
     { to: "/stats", icon: BarChart3, label: "Stats" },
     { to: "/clubs", icon: Target, label: "Clubs" },
+    { to: "/courses", icon: MapPin, label: "Courses" },
   ];
 
   return (
