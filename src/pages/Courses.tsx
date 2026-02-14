@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { MapPin, ChevronLeft, ArrowUpDown, Info } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MapPin, ChevronLeft, ArrowUpDown, Info, Settings } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +33,7 @@ const getCourseNameClass = (name: string) => {
 };
 
 const Courses = () => {
+  const navigate = useNavigate();
   const { data: courses, isLoading } = useCoursePerformance();
   const [selectedCourse, setSelectedCourse] = useState<CoursePerformance | null>(null);
   const [sortByDifficulty, setSortByDifficulty] = useState(false);
@@ -48,6 +50,12 @@ const Courses = () => {
       <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
         {/* Header */}
         <div className="mb-6 relative">
+          <button
+            onClick={() => navigate('/settings')}
+            className="absolute right-0 top-0 p-2 text-header-foreground hover:text-header-foreground/70 transition-colors"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
           {selectedCourse ? (
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" onClick={() => setSelectedCourse(null)} className="text-header-foreground">
