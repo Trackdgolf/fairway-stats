@@ -22,6 +22,13 @@ const formatOverPar = (val: number) => {
   return val.toFixed(1);
 };
 
+const getCourseNameClass = (name: string) => {
+  if (name.length > 35) return "text-lg";
+  if (name.length > 25) return "text-xl";
+  if (name.length > 18) return "text-2xl";
+  return "text-3xl";
+};
+
 const Courses = () => {
   const { data: courses, isLoading } = useCoursePerformance();
   const [selectedCourse, setSelectedCourse] = useState<CoursePerformance | null>(null);
@@ -44,7 +51,7 @@ const Courses = () => {
               <Button variant="ghost" size="icon" onClick={() => setSelectedCourse(null)} className="text-header-foreground">
                 <ChevronLeft className="w-5 h-5" />
               </Button>
-              <h1 className="text-3xl font-bold text-header-foreground">{selectedCourse.courseName}</h1>
+              <h1 className={`${getCourseNameClass(selectedCourse.courseName)} font-bold text-header-foreground`}>{selectedCourse.courseName}</h1>
             </div>
           ) : (
             <>
