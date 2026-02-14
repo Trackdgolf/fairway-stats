@@ -1,0 +1,164 @@
+import { useState } from "react";
+import { MapPin, ChevronLeft, ArrowUpDown, Info } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
+import BottomNav from "@/components/BottomNav";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useCoursePerformance, type CoursePerformance } from "@/hooks/useCoursePerformance";
+
+const getOverParColor = (val: number) => {
+  if (val < 0) return "text-green-500";
+  if (val === 0) return "text-yellow-500";
+  if (val <= 0.5) return "text-orange-400";
+  if (val <= 1) return "text-orange-500";
+  return "text-red-500";
+};
+
+const formatOverPar = (val: number) => {
+  if (val > 0) return `+${val.toFixed(1)}`;
+  if (val === 0) return "E";
+  return val.toFixed(1);
+};
+
+const Courses = () => {
+  const { data: courses, isLoading } = useCoursePerformance();
+  const [selectedCourse, setSelectedCourse] = useState<CoursePerformance | null>(null);
+  const [sortByDifficulty, setSortByDifficulty] = useState(false);
+
+  const sortedHoles = selectedCourse
+    ? [...selectedCourse.holes].sort((a, b) =>
+        sortByDifficulty ? a.personalStrokeIndex - b.personalStrokeIndex : a.holeNumber - b.holeNumber
+      )
+    : [];
+
+  return (
+    <div className="min-h-screen bg-background pb-20">
+      <PageHeader />
+      <div className="relative z-10 px-4 pt-6">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          {selectedCourse && (
+            <Button variant="ghost" size="icon" onClick={() => setSelectedCourse(null)} className="text-primary-foreground">
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+          )}
+          <h1 className="text-2xl font-bold text-primary-foreground">
+            {selectedCourse ? selectedCourse.courseName : "Courses"}
+          </h1>
+        </div>
+
+        {/* Content */}
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        ) : selectedCourse ? (
+          /* Detail View */
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Based on {selectedCourse.roundCount} rounds
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSortByDifficulty(!sortByDifficulty)}
+                className="gap-1.5"
+              >
+                <ArrowUpDown className="w-3.5 h-3.5" />
+                {sortByDifficulty ? "By Hole" : "By Difficulty"}
+              </Button>
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-14">Hole</TableHead>
+                      <TableHead className="w-14 text-center">Par</TableHead>
+                      <TableHead className="w-14 text-center">Avg</TableHead>
+                      <TableHead className="w-14 text-center">+/-</TableHead>
+                      <TableHead className="w-14 text-center">SI</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedHoles.map((hole) => (
+                      <TableRow key={hole.holeNumber}>
+                        <TableCell className="font-medium">{hole.holeNumber}</TableCell>
+                        <TableCell className="text-center">{hole.par}</TableCell>
+                        <TableCell className="text-center">{hole.avgScore.toFixed(1)}</TableCell>
+                        <TableCell className={`text-center font-semibold ${getOverParColor(hole.avgOverPar)}`}>
+                          {formatOverPar(hole.avgOverPar)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge className="w-7 h-7 rounded-full flex items-center justify-center p-0 text-xs">
+                            {hole.personalStrokeIndex}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-muted/50">
+              <CardContent className="p-4 flex gap-3">
+                <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <div className="text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground mb-1">Personal Stroke Index (SI)</p>
+                  <p>
+                    Your personal SI ranks holes from hardest (SI 1) to easiest (SI 18) based on your
+                    average score relative to par. This helps you identify which holes to focus on to
+                    lower your scores.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : courses?.length ? (
+          /* Course List View */
+          <div className="space-y-3">
+            {courses.map((course) => (
+              <Card
+                key={course.courseId}
+                className="cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => {
+                  setSelectedCourse(course);
+                  setSortByDifficulty(false);
+                }}
+              >
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <MapPin className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{course.courseName}</p>
+                    <p className="text-sm text-muted-foreground">{course.roundCount} rounds played</p>
+                  </div>
+                  <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          /* Empty State */
+          <Card>
+            <CardContent className="p-8 text-center">
+              <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                Play the same course at least 3 times to see your personal hole difficulty rankings.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+      <BottomNav />
+    </div>
+  );
+};
+
+export default Courses;
