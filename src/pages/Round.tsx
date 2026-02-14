@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import ClubSelectorDrawer from "@/components/ClubSelectorDrawer";
+import RoundSummaryModal from "@/components/RoundSummaryModal";
 
 type FirDirection = 'hit' | 'left' | 'right' | 'short' | null;
 type GirDirection = 'hit' | 'left' | 'right' | 'long' | 'short' | null;
@@ -189,6 +190,8 @@ const Round = () => {
   const [teeClubDrawerOpen, setTeeClubDrawerOpen] = useState(false);
   const [approachClubDrawerOpen, setApproachClubDrawerOpen] = useState(false);
   const [scrambleClubDrawerOpen, setScrambleClubDrawerOpen] = useState(false);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [savedTotalScore, setSavedTotalScore] = useState(0);
   const [holeStats, setHoleStats] = useState<HoleStats[]>(
     restoredStats || course?.holes?.map((hole: { par?: number }) => ({
       score: hole?.par || null,
@@ -340,11 +343,8 @@ const Round = () => {
       // Delete in-progress round after successful save
       await deleteInProgressRound();
 
-      toast({
-        title: "Round saved!",
-        description: `Your round at ${course.course_name || course.club_name} has been recorded.`,
-      });
-      navigate('/');
+      setSavedTotalScore(totalScore);
+      setShowSummaryModal(true);
     } catch (error) {
       console.error('Error saving round:', error);
       toast({
@@ -747,6 +747,21 @@ const Round = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <RoundSummaryModal
+        open={showSummaryModal}
+        onClose={() => setShowSummaryModal(false)}
+        courseName={course.course_name || course.club_name}
+        totalScore={savedTotalScore}
+        holeStats={holeStats.map((stat, idx) => ({
+          score: stat.score,
+          fir: course.holes?.[idx]?.par === 3 ? null : stat.fir,
+          gir: stat.gir,
+          scramble: stat.scramble,
+          putts: stat.putts,
+          par: course.holes?.[idx]?.par,
+        }))}
+      />
     </div>
   );
 };
