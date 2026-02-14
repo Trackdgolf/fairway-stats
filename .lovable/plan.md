@@ -1,30 +1,31 @@
 
 
-## Fix: Courses Page Header Spacing
-
-The header text is positioned too low because the content container uses `pt-20` while the Stats and Clubs pages use `pt-8`. This pushes the title and subtitle below the green banner instead of inside it.
-
-### Change
+## Dynamic Course Name Font Sizing
 
 **File: `src/pages/Courses.tsx`**
 
-Two adjustments:
+Add a helper function that returns an appropriate Tailwind font-size class based on the length of the course name. This ensures long names like "Heythrop Park Hotel Golf and Country Club" shrink to fit within the green header, while short names like "Wentworth" remain at the standard size.
 
-1. **Line 37** -- Update the outer wrapper to use the same gradient background and safe-area padding as Stats and Clubs:
-   - Change `min-h-screen bg-background pb-24` to `min-h-screen bg-gradient-to-b from-background to-secondary pb-24 relative` with the safe-area style.
+### Implementation
 
-2. **Line 39** -- Change the content container from `px-4 pt-20` to `max-w-md mx-auto px-4 pt-8` to match Stats and Clubs pages exactly. This moves the title and subtitle up into the green banner area.
+Add a utility function above the component:
 
 ```tsx
-// Before (line 37-39)
-<div className="min-h-screen bg-background pb-24">
-  <PageHeader />
-  <div className="relative z-10 px-4 pt-20">
-
-// After
-<div className="min-h-screen bg-gradient-to-b from-background to-secondary pb-24 relative" style={{ paddingBottom: 'calc(6rem + var(--safe-area-inset-bottom, 0px))' }}>
-  <PageHeader />
-  <div className="max-w-md mx-auto px-4 pt-8 relative z-10">
+const getCourseNameClass = (name: string) => {
+  if (name.length > 35) return "text-lg";
+  if (name.length > 25) return "text-xl";
+  if (name.length > 18) return "text-2xl";
+  return "text-3xl";
+};
 ```
 
-This matches the exact structure used by the Stats page (`pt-8`, `max-w-md mx-auto`, gradient background, safe-area padding), ensuring the "Courses" title and subtitle sit inside the green header banner.
+Then update the course detail header title (currently `text-3xl font-bold text-header-foreground`) to use this function:
+
+```tsx
+<h1 className={`${getCourseNameClass(selectedCourse.courseName)} font-bold text-header-foreground`}>
+  {selectedCourse.courseName}
+</h1>
+```
+
+This keeps the font at `text-3xl` (matching the "Courses" list title) for short names, and steps down through `text-2xl`, `text-xl`, and `text-lg` as the name gets longer -- preventing overflow while avoiding an unnaturally small font for shorter names.
+
