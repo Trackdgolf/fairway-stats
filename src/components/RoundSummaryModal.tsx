@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
-import { Share2, X } from "lucide-react";
+import { Share2, X, MapPin, Flag, Circle, Grip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -124,10 +124,10 @@ const RoundSummaryModal = ({
   };
 
   const stats = [
-    { label: "FIR", value: firPct !== null ? `${firPct}%` : "—" },
-    { label: "GIR", value: girPct !== null ? `${girPct}%` : "—" },
-    { label: "Scramble", value: scramblePct !== null ? `${scramblePct}%` : "—" },
-    { label: "Avg Putts", value: avgPutts ?? "—" },
+    { label: "FIR", value: firPct !== null ? `${firPct}%` : "—", icon: MapPin, color: "bg-green-500/20", iconColor: "text-green-400" },
+    { label: "GIR", value: girPct !== null ? `${girPct}%` : "—", icon: Flag, color: "bg-pink-500/20", iconColor: "text-pink-400" },
+    { label: "Scramble", value: scramblePct !== null ? `${scramblePct}%` : "—", icon: Circle, color: "bg-orange-500/20", iconColor: "text-orange-400" },
+    { label: "Avg Putts", value: avgPutts ?? "—", icon: Grip, color: "bg-purple-500/20", iconColor: "text-purple-400" },
   ];
 
   const cardContent = (logo: string, textColor: string, subtextColor: string, statBg: string, statTextColor: string) => (
@@ -146,6 +146,9 @@ const RoundSummaryModal = ({
       <div className="grid grid-cols-4 gap-2">
         {stats.map((s) => (
           <div key={s.label} className={`${statBg} backdrop-blur-sm rounded-xl p-3 text-center`}>
+            <div className={`w-8 h-8 rounded-full ${s.color} flex items-center justify-center mx-auto mb-1.5`}>
+              <s.icon className={`w-4 h-4 ${s.iconColor}`} />
+            </div>
             <div className={`text-lg font-bold ${statTextColor}`}>{s.value}</div>
             <div className={`text-[10px] uppercase tracking-wider ${subtextColor} mt-0.5`}>
               {s.label}
