@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
 import { Share2, X, MapPin, Flag, Circle, Grip } from "lucide-react";
+import { useTrackdHandicap } from "@/hooks/useTrackdHandicap";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -47,11 +48,18 @@ const RoundSummaryModal = ({
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { handicap } = useTrackdHandicap();
 
   // Calculate stats
   const totalPar = holeStats.reduce((sum, h) => sum + (h.par || 0), 0);
   const scoreVsPar = totalScore - totalPar;
   const scoreVsParStr = scoreVsPar === 0 ? "E" : scoreVsPar > 0 ? `+${scoreVsPar}` : `${scoreVsPar}`;
+
+  // Net score calculation
+  const netScoreVsPar = handicap !== null ? scoreVsPar - Math.round(handicap) : null;
+  const netScoreVsParStr = netScoreVsPar !== null
+    ? (netScoreVsPar === 0 ? "E" : netScoreVsPar > 0 ? `+${netScoreVsPar}` : `${netScoreVsPar}`)
+    : "—";
 
   const getScoreVsParColor = (val: number) => {
     if (val <= 0) return "text-green-400";
@@ -61,6 +69,7 @@ const RoundSummaryModal = ({
     return "text-red-500";
   };
   const scoreVsParColor = getScoreVsParColor(scoreVsPar);
+  const netScoreVsParColor = netScoreVsPar !== null ? getScoreVsParColor(netScoreVsPar) : "text-muted-foreground";
 
   const firHoles = holeStats.filter((h) => h.par !== 3 && h.fir !== null);
   const firPct = firHoles.length > 0
@@ -150,7 +159,12 @@ const RoundSummaryModal = ({
       </div>
       <div className="text-center mb-6">
         <div className="text-6xl font-extrabold tracking-tight">{totalScore}</div>
-        <div className={`text-lg font-semibold ${scoreVsParColor} mt-1`}>{scoreVsParStr}</div>
+        <div className={`text-[10px] uppercase tracking-wider ${subtextColor} mt-2 mb-0.5`}>Gross / Nett</div>
+        <div className="flex items-center justify-center gap-1.5">
+          <span className={`text-lg font-semibold ${scoreVsParColor}`}>{scoreVsParStr}</span>
+          <span className={`text-lg font-semibold ${subtextColor}`}>/</span>
+          <span className={`text-lg font-semibold ${netScoreVsParColor}`}>{netScoreVsParStr}</span>
+        </div>
       </div>
       <div className="grid grid-cols-4 gap-2">
         {stats.map((s) => (
