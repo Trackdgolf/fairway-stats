@@ -53,6 +53,15 @@ const RoundSummaryModal = ({
   const scoreVsPar = totalScore - totalPar;
   const scoreVsParStr = scoreVsPar === 0 ? "E" : scoreVsPar > 0 ? `+${scoreVsPar}` : `${scoreVsPar}`;
 
+  const getScoreVsParColor = (val: number) => {
+    if (val <= 0) return "text-green-400";
+    if (val <= 3) return "text-yellow-400";
+    if (val <= 6) return "text-orange-400";
+    if (val <= 10) return "text-orange-500";
+    return "text-red-500";
+  };
+  const scoreVsParColor = getScoreVsParColor(scoreVsPar);
+
   const firHoles = holeStats.filter((h) => h.par !== 3 && h.fir !== null);
   const firPct = firHoles.length > 0
     ? Math.round((firHoles.filter((h) => h.fir).length / firHoles.length) * 100)
@@ -141,7 +150,7 @@ const RoundSummaryModal = ({
       </div>
       <div className="text-center mb-6">
         <div className="text-6xl font-extrabold tracking-tight">{totalScore}</div>
-        <div className={`text-lg font-semibold ${subtextColor} mt-1`}>{scoreVsParStr}</div>
+        <div className={`text-lg font-semibold ${scoreVsParColor} mt-1`}>{scoreVsParStr}</div>
       </div>
       <div className="grid grid-cols-4 gap-2">
         {stats.map((s) => (
