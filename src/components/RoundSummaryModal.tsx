@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
-import { Share2, X, MapPin, Flag, Circle, Grip } from "lucide-react";
+import { Share2, X, MapPin, Flag, Circle, Grip, Download } from "lucide-react";
 import { useTrackdHandicap } from "@/hooks/useTrackdHandicap";
 import { Button } from "@/components/ui/button";
 import {
@@ -136,6 +136,28 @@ const RoundSummaryModal = ({
     }
   };
 
+  const handleSaveImage = async () => {
+    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
+    if (!cardRef.current) return;
+    setIsSharing(true);
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+      });
+      const url = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "trackd-round-summary.png";
+      a.click();
+    } catch (err) {
+      console.error("Save error:", err);
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   const handleClose = () => {
     onClose();
     navigate("/");
@@ -246,12 +268,21 @@ const RoundSummaryModal = ({
             Close
           </Button>
           <Button
+            variant="outline"
+            className="flex-1 bg-card border-border text-foreground"
+            onClick={handleSaveImage}
+            disabled={isSharing}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Save
+          </Button>
+          <Button
             className="flex-1"
             onClick={handleShare}
             disabled={isSharing}
           >
             <Share2 className="w-4 h-4 mr-2" />
-            {isSharing ? "Sharing..." : "Share"}
+            Share
           </Button>
         </div>
       </DialogContent>
