@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
-import { Share2, X, MapPin, Flag, Circle, Grip, Download } from "lucide-react";
+import { Share2, X, MapPin, Flag, Circle, Grip, Download, Instagram } from "lucide-react";
+import { canShareToInstagram, shareToInstagramStory } from "@/lib/instagramShare";
 import { useTrackdHandicap } from "@/hooks/useTrackdHandicap";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,7 +49,12 @@ const RoundSummaryModal = ({
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [instagramAvailable, setInstagramAvailable] = useState(false);
   const { handicap } = useTrackdHandicap();
+
+  useEffect(() => {
+    canShareToInstagram().then(setInstagramAvailable);
+  }, []);
 
   // Calculate stats
   const totalPar = holeStats.reduce((sum, h) => sum + (h.par || 0), 0);
@@ -158,6 +164,24 @@ const RoundSummaryModal = ({
     }
   };
 
+  const handleInstagramShare = async () => {
+    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
+    if (!cardRef.current) return;
+    setIsSharing(true);
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+      });
+      await shareToInstagramStory(canvas, handleShare);
+    } catch (err) {
+      console.error("Instagram share error:", err);
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   const handleClose = () => {
     onClose();
     navigate("/");
@@ -258,30 +282,45 @@ const RoundSummaryModal = ({
         </div>
 
         {/* Action buttons */}
-        <div className="flex gap-3 mt-3 px-2">
+        <div className="flex gap-2 mt-3 px-2">
           <Button
             variant="outline"
+            size="sm"
             className="flex-1 bg-card border-border text-foreground"
             onClick={handleClose}
           >
-            <X className="w-4 h-4 mr-2" />
+            <X className="w-4 h-4 mr-1" />
             Close
           </Button>
           <Button
             variant="outline"
+            size="sm"
             className="flex-1 bg-card border-border text-foreground"
             onClick={handleSaveImage}
             disabled={isSharing}
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="w-4 h-4 mr-1" />
             Save
           </Button>
+          {instagramAvailable && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 bg-card border-border text-foreground"
+              onClick={handleInstagramShare}
+              disabled={isSharing}
+            >
+              <Instagram className="w-4 h-4 mr-1" />
+              Story
+            </Button>
+          )}
           <Button
+            size="sm"
             className="flex-1"
             onClick={handleShare}
             disabled={isSharing}
           >
-            <Share2 className="w-4 h-4 mr-2" />
+            <Share2 className="w-4 h-4 mr-1" />
             Share
           </Button>
         </div>
