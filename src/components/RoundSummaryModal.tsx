@@ -181,7 +181,7 @@ const RoundSummaryModal = ({
       </div>
       <div className="text-center mb-6">
         <div className="text-6xl font-extrabold tracking-tight">{totalScore}</div>
-        <div className={`text-[10px] uppercase tracking-wider ${subtextColor}`} style={{ marginTop: '8px', marginBottom: '4px', lineHeight: '1' }}>Gross / Nett</div>
+        <div className={`text-[10px] uppercase tracking-wider ${subtextColor}`} style={{ marginTop: '14px', marginBottom: '8px', lineHeight: '1', paddingTop: '4px' }}>Gross / Nett</div>
         <div className="flex items-center justify-center gap-1.5" style={{ marginTop: '4px' }}>
           <span className={`text-lg font-semibold ${scoreVsParColor}`}>{scoreVsParStr}</span>
           <span className={`text-lg font-semibold ${subtextColor}`}>/</span>
