@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Play, Settings, Clock, Flag, Pencil, LogOut } from "lucide-react";
+import { Play, Settings, Clock, Flag, Pencil, LogOut, Share2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -84,28 +84,44 @@ const Home = () => {
   const { isPremium } = usePremiumStatus();
   const [showPaywall, setShowPaywall] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [summaryData, setSummaryData] = useState<{
+    courseName: string;
+    totalScore: number | null;
+    holeStats: Array<{ score: number | null; fir: boolean | null; gir: boolean | null; scramble: 'yes' | 'no' | 'n/a' | null; putts: number | null; par: number | null }>;
+  } | null>(null);
+  const [loadingShareId, setLoadingShareId] = useState<string | null>(null);
 
-  const sampleHoleStats = [
-    { score: 4, fir: true, gir: true, scramble: null as 'yes'|'no'|'n/a'|null, putts: 2, par: 4 },
-    { score: 5, fir: false, gir: false, scramble: 'yes' as const, putts: 2, par: 4 },
-    { score: 3, fir: null, gir: true, scramble: null, putts: 1, par: 3 },
-    { score: 5, fir: true, gir: false, scramble: 'no' as const, putts: 2, par: 4 },
-    { score: 4, fir: true, gir: true, scramble: null, putts: 2, par: 4 },
-    { score: 6, fir: false, gir: false, scramble: 'no' as const, putts: 3, par: 5 },
-    { score: 3, fir: null, gir: true, scramble: null, putts: 1, par: 3 },
-    { score: 5, fir: true, gir: true, scramble: null, putts: 2, par: 5 },
-    { score: 4, fir: true, gir: false, scramble: 'yes' as const, putts: 2, par: 4 },
-    { score: 5, fir: false, gir: false, scramble: 'no' as const, putts: 2, par: 4 },
-    { score: 4, fir: true, gir: true, scramble: null, putts: 2, par: 4 },
-    { score: 3, fir: null, gir: false, scramble: 'yes' as const, putts: 1, par: 3 },
-    { score: 5, fir: true, gir: true, scramble: null, putts: 2, par: 5 },
-    { score: 4, fir: false, gir: false, scramble: 'no' as const, putts: 2, par: 4 },
-    { score: 4, fir: true, gir: true, scramble: null, putts: 2, par: 4 },
-    { score: 5, fir: true, gir: false, scramble: 'yes' as const, putts: 2, par: 4 },
-    { score: 3, fir: null, gir: true, scramble: null, putts: 1, par: 3 },
-    { score: 5, fir: false, gir: true, scramble: null, putts: 2, par: 5 },
-  ];
+  const handleShareRound = async (round: CompletedRound) => {
+    setLoadingShareId(round.id);
+    try {
+      const { data, error } = await supabase
+        .from('hole_stats')
+        .select('score, par, fir, gir, scramble, putts')
+        .eq('round_id', round.id)
+        .order('hole_number');
+
+      if (error) throw error;
+
+      setSummaryData({
+        courseName: round.course_name,
+        totalScore: round.total_score,
+        holeStats: (data || []).map(h => ({
+          score: h.score,
+          fir: h.fir,
+          gir: h.gir,
+          scramble: h.scramble as 'yes' | 'no' | 'n/a' | null,
+          putts: h.putts,
+          par: h.par,
+        })),
+      });
+      setShowSummary(true);
+    } catch (err) {
+      console.error('Failed to fetch hole stats:', err);
+    } finally {
+      setLoadingShareId(null);
+    }
+  };
 
   // Check if user has seen welcome modal
   const { data: profile } = useQuery({
@@ -292,6 +308,17 @@ const Home = () => {
                         )}
                       </div>
                       <button
+                        onClick={(e) => { e.stopPropagation(); handleShareRound(round); }}
+                        className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                        disabled={loadingShareId === round.id}
+                      >
+                        {loadingShareId === round.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Share2 className="w-4 h-4" />
+                        )}
+                      </button>
+                      <button
                         onClick={() => navigate(`/edit-round/${round.id}`)}
                         className="p-2 text-muted-foreground hover:text-foreground transition-colors"
                       >
@@ -309,16 +336,6 @@ const Home = () => {
             </Card>
           )}
         </div>
-
-        {/* Preview Summary Button (temporary) */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full mb-3 text-muted-foreground"
-          onClick={() => setShowPreview(true)}
-        >
-          Preview Summary Graphic
-        </Button>
 
         {/* Sign Out Button with Confirmation */}
         <AlertDialog>
@@ -346,13 +363,15 @@ const Home = () => {
       <BottomNav />
       <PaywallModal open={showPaywall} onOpenChange={setShowPaywall} />
       <WelcomeModal open={showWelcome} onClose={handleWelcomeClose} />
-      <RoundSummaryModal
-        open={showPreview}
-        onClose={() => setShowPreview(false)}
-        courseName="St Andrews Old Course"
-        totalScore={78}
-        holeStats={sampleHoleStats}
-      />
+      {summaryData && (
+        <RoundSummaryModal
+          open={showSummary}
+          onClose={() => { setShowSummary(false); setSummaryData(null); }}
+          courseName={summaryData.courseName}
+          totalScore={summaryData.totalScore}
+          holeStats={summaryData.holeStats}
+        />
+      )}
     </div>
   );
 };
