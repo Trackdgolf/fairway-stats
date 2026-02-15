@@ -19,6 +19,7 @@ import { TrackdHandicap } from "@/components/TrackdHandicap";
 import { PaywallModal } from "@/components/PaywallModal";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import RoundSummaryModal from "@/components/RoundSummaryModal";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -83,6 +84,28 @@ const Home = () => {
   const { isPremium } = usePremiumStatus();
   const [showPaywall, setShowPaywall] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const sampleHoleStats = [
+    { score: 4, fir: true, gir: true, scramble: null as 'yes'|'no'|'n/a'|null, putts: 2, par: 4 },
+    { score: 5, fir: false, gir: false, scramble: 'yes' as const, putts: 2, par: 4 },
+    { score: 3, fir: null, gir: true, scramble: null, putts: 1, par: 3 },
+    { score: 5, fir: true, gir: false, scramble: 'no' as const, putts: 2, par: 4 },
+    { score: 4, fir: true, gir: true, scramble: null, putts: 2, par: 4 },
+    { score: 6, fir: false, gir: false, scramble: 'no' as const, putts: 3, par: 5 },
+    { score: 3, fir: null, gir: true, scramble: null, putts: 1, par: 3 },
+    { score: 5, fir: true, gir: true, scramble: null, putts: 2, par: 5 },
+    { score: 4, fir: true, gir: false, scramble: 'yes' as const, putts: 2, par: 4 },
+    { score: 5, fir: false, gir: false, scramble: 'no' as const, putts: 2, par: 4 },
+    { score: 4, fir: true, gir: true, scramble: null, putts: 2, par: 4 },
+    { score: 3, fir: null, gir: false, scramble: 'yes' as const, putts: 1, par: 3 },
+    { score: 5, fir: true, gir: true, scramble: null, putts: 2, par: 5 },
+    { score: 4, fir: false, gir: false, scramble: 'no' as const, putts: 2, par: 4 },
+    { score: 4, fir: true, gir: true, scramble: null, putts: 2, par: 4 },
+    { score: 5, fir: true, gir: false, scramble: 'yes' as const, putts: 2, par: 4 },
+    { score: 3, fir: null, gir: true, scramble: null, putts: 1, par: 3 },
+    { score: 5, fir: false, gir: true, scramble: null, putts: 2, par: 5 },
+  ];
 
   // Check if user has seen welcome modal
   const { data: profile } = useQuery({
@@ -287,6 +310,16 @@ const Home = () => {
           )}
         </div>
 
+        {/* Preview Summary Button (temporary) */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full mb-3 text-muted-foreground"
+          onClick={() => setShowPreview(true)}
+        >
+          Preview Summary Graphic
+        </Button>
+
         {/* Sign Out Button with Confirmation */}
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -313,6 +346,13 @@ const Home = () => {
       <BottomNav />
       <PaywallModal open={showPaywall} onOpenChange={setShowPaywall} />
       <WelcomeModal open={showWelcome} onClose={handleWelcomeClose} />
+      <RoundSummaryModal
+        open={showPreview}
+        onClose={() => setShowPreview(false)}
+        courseName="St Andrews Old Course"
+        totalScore={78}
+        holeStats={sampleHoleStats}
+      />
     </div>
   );
 };
