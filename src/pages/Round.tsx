@@ -305,6 +305,7 @@ const Round = () => {
           course_id: course.id?.toString(),
           total_score: totalScore,
           user_id: user.id,
+          country: course.location?.country || null,
         })
         .select()
         .single();
