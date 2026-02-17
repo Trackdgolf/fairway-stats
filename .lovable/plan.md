@@ -1,20 +1,28 @@
 
+# Fix Challenge Counter to Show True Total (74)
 
-# Link GOAT Challenges to Progressive Sequences
+## Problem
 
-## What Changes
+The counter currently shows `completed/visible` (e.g., 5/52) because it uses `filterSequentialChallenges` which excludes hidden sequential milestones. The total should always be 74 (all challenges), and the completed count should include all completed challenges regardless of visibility.
 
-Two challenges currently in the GOAT category need to be tagged as the final milestones of existing progressive sequences so they stay hidden until the previous milestone is completed:
+## Solution
 
-1. **"I didn't think this was possible!"** (200 rounds) -- becomes `sequence: "rounds-played", sequenceOrder: 7` (follows "Triple Digits!" at sequenceOrder 6)
-2. **"1000 miles club"** (1000 miles) -- becomes `sequence: "distance", sequenceOrder: 14` (follows "LEJOG" at sequenceOrder 13)
+In `src/pages/Achievements.tsx`, change the counter logic at the "Challenges" header from:
 
-They remain in the "goat" group for display purposes, but the existing `filterSequentialChallenges` logic will automatically hide them until the previous milestone in their sequence is completed.
+```
+const allVisible = filterSequentialChallenges(data.challenges);
+const completed = allVisible.filter(c => c.isCompleted).length;
+return `${completed}/${allVisible.length}`;
+```
 
-No other files need to change -- the filtering logic in Achievements.tsx already handles cross-group sequences.
+To:
 
-## Technical Details
+```
+const completed = data.challenges.filter(c => c.isCompleted).length;
+return `${completed}/${data.challenges.length}`;
+```
 
-### File to modify:
-- **`src/lib/challengeDefinitions.ts`** -- Add `sequence` and `sequenceOrder` properties to these two challenge definitions
+This uses `data.challenges` directly (all 74) for both the completed count and the total, without applying the sequential filter.
 
+## File to modify
+- **`src/pages/Achievements.tsx`** -- Update the counter calculation (lines ~308-311)
