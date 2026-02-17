@@ -284,17 +284,8 @@ const shortGameChallenges: ChallengeDefinition[] = [
 
 // ── GOAT Challenges (11) ────────────────────────────────────────────────────
 const goatChallenges: ChallengeDefinition[] = [
-  {
-    id: "6-and-9-anyway-up",
-    title: "6 & 9 anyway up",
-    description: "Shoot Under 70 for 18 holes",
-    group: "goat",
-    evaluate: (s) => ({
-      isCompleted: s.bestScore !== null && s.bestScore < 70,
-      progress: s.bestScore !== null ? Math.min(s.bestScore, 70) : 0,
-      target: 70,
-    }),
-  },
+  boolChallenge("6-and-9-anyway-up", "6 & 9 anyway up", "Shoot Under 70 for 18 holes", "goat",
+    (s) => s.bestScore !== null && s.bestScore < 70),
   boolChallenge("scratch", "Scratch", "Shoot Level par", "goat",
     (s) => s.hasScratchRound),
   boolChallenge("ready-to-turn-pro", "Ready to turn Pro?", "Break Level Par", "goat",
