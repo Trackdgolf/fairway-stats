@@ -356,6 +356,13 @@ const Achievements = () => {
                           <div className="flex items-center gap-2">
                             <GroupIcon className="w-4 h-4 text-muted-foreground" />
                             <span className="text-sm font-medium">{group.title}</span>
+                            <span className="text-xs text-muted-foreground font-normal ml-1">
+                              {(() => {
+                                const allInGroup = (data?.challenges || []).filter(c => c.group === group.id);
+                                const completedInGroup = allInGroup.filter(c => c.isCompleted).length;
+                                return `${completedInGroup}/${allInGroup.length}`;
+                              })()}
+                            </span>
                           </div>
                         </AccordionTrigger>
                         <AccordionContent>
