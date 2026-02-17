@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Trophy, Target, CheckCircle2, Lock, MapPin, Star, Bird, Feather, X, AlertCircle, LucideIcon, RotateCcw, Crosshair, Flag, Crown, EyeOff } from "lucide-react";
+import { Settings, Trophy, Target, CheckCircle2, Lock, MapPin, Star, Bird, Feather, X, AlertCircle, LucideIcon, RotateCcw, Crosshair, Flag, Crown, EyeOff, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
@@ -24,6 +24,7 @@ const GROUP_ICONS: Record<ChallengeGroup, LucideIcon> = {
   distance: MapPin,
   goat: Crown,
   hidden: EyeOff,
+  completionist: Award,
 };
 
 // Filter sequential challenges: show completed + next active milestone per sequence, hide the rest
