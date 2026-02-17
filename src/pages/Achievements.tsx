@@ -26,6 +26,38 @@ const GROUP_ICONS: Record<ChallengeGroup, LucideIcon> = {
   hidden: EyeOff,
 };
 
+// Filter sequential challenges: show completed + next active milestone per sequence, hide the rest
+const filterSequentialChallenges = (challenges: Challenge[]): Challenge[] => {
+  const sequenceMap = new Map<string, Challenge[]>();
+  const nonSequence: Challenge[] = [];
+
+  for (const c of challenges) {
+    if (c.sequence) {
+      if (!sequenceMap.has(c.sequence)) sequenceMap.set(c.sequence, []);
+      sequenceMap.get(c.sequence)!.push(c);
+    } else {
+      nonSequence.push(c);
+    }
+  }
+
+  const visible: Challenge[] = [...nonSequence];
+
+  for (const [, seqChallenges] of sequenceMap) {
+    seqChallenges.sort((a, b) => (a.sequenceOrder || 0) - (b.sequenceOrder || 0));
+    let foundActive = false;
+    for (const c of seqChallenges) {
+      if (c.isCompleted) {
+        visible.push(c);
+      } else if (!foundActive) {
+        visible.push(c);
+        foundActive = true;
+      }
+    }
+  }
+
+  return visible;
+};
+
 const Achievements = () => {
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState<TimeRange>("MAX");
@@ -301,10 +333,11 @@ const Achievements = () => {
                 <Accordion type="multiple" defaultValue={["score"]} className="space-y-2 pb-4">
                   {CHALLENGE_GROUPS.map((group) => {
                     const GroupIcon = GROUP_ICONS[group.id];
-                    const groupChallenges = data?.challenges.filter(
+                    const allGroupChallenges = data?.challenges.filter(
                       (c) => c.group === group.id
                     ) || [];
-                    const filteredChallenges = groupChallenges.filter((c) =>
+                    const visibleChallenges = filterSequentialChallenges(allGroupChallenges);
+                    const filteredChallenges = visibleChallenges.filter((c) =>
                       challengeFilter === "open" ? !c.isCompleted : c.isCompleted
                     );
 
