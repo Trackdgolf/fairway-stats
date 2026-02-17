@@ -1,0 +1,1 @@
+ALTER TABLE public.hole_stats ADD COLUMN yardage integer NULL;

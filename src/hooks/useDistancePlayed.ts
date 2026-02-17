@@ -85,13 +85,23 @@ export const useDistancePlayed = (timeRange: TimeRange) => {
         };
       }
 
-      // Note: yardage column doesn't exist yet in hole_stats.
-      // Distance will show 0 until the column is added via migration.
+      const roundIds = rounds.map(r => r.id);
+      const { data: holeStats, error: statsError } = await supabase
+        .from("hole_stats")
+        .select("yardage")
+        .in("round_id", roundIds);
+
+      if (statsError) throw statsError;
+
+      const totalYards = (holeStats || []).reduce((sum, h) => sum + ((h as any).yardage || 0), 0);
+      const totalMiles = totalYards / 1760;
+      const totalKm = totalYards * 0.0009144;
+
       return {
-        totalYards: 0,
-        totalMiles: 0,
-        totalKm: 0,
-        holesPlayed: 0,
+        totalYards,
+        totalMiles: Math.round(totalMiles * 100) / 100,
+        totalKm: Math.round(totalKm * 100) / 100,
+        holesPlayed: (holeStats || []).length,
         roundsPlayed: rounds.length,
       };
     },
