@@ -328,6 +328,7 @@ const Achievements = () => {
                             <div className="space-y-2 pb-2">
                               {filteredChallenges.map((challenge) => {
                                 const status = getChallengeStatus(challenge);
+                                const isHiddenAndLocked = group.id === "hidden" && !challenge.isCompleted;
                                 return (
                                   <Card
                                     key={challenge.id}
@@ -337,10 +338,16 @@ const Achievements = () => {
                                       <div className="flex items-center gap-3">
                                         <div className="flex-shrink-0">{status.icon}</div>
                                         <div className="flex-1 min-w-0">
-                                          <h3 className="font-semibold text-sm">{challenge.title}</h3>
-                                          <p className="text-xs text-muted-foreground">
-                                            {challenge.description}
-                                          </p>
+                                          {isHiddenAndLocked ? (
+                                            <p className="text-sm text-muted-foreground italic">Play more golf...</p>
+                                          ) : (
+                                            <>
+                                              <h3 className="font-semibold text-sm">{challenge.title}</h3>
+                                              <p className="text-xs text-muted-foreground">
+                                                {challenge.description}
+                                              </p>
+                                            </>
+                                          )}
                                         </div>
                                         <div className="text-right flex-shrink-0">
                                           <div className={`text-xs font-medium ${status.statusClass}`}>
