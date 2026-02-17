@@ -331,12 +331,13 @@ const Achievements = () => {
                 </div>
               ) : (
                 <Accordion type="multiple" defaultValue={["score"]} className="space-y-2 pb-4">
-                  {CHALLENGE_GROUPS.map((group) => {
+                  {(() => {
+                    // Filter sequences across ALL groups first, then split by group
+                    const allVisible = filterSequentialChallenges(data?.challenges || []);
+                    const visibleIds = new Set(allVisible.map(c => c.id));
+                    return CHALLENGE_GROUPS.map((group) => {
                     const GroupIcon = GROUP_ICONS[group.id];
-                    const allGroupChallenges = data?.challenges.filter(
-                      (c) => c.group === group.id
-                    ) || [];
-                    const visibleChallenges = filterSequentialChallenges(allGroupChallenges);
+                    const visibleChallenges = allVisible.filter(c => c.group === group.id);
                     const filteredChallenges = visibleChallenges.filter((c) =>
                       challengeFilter === "open" ? !c.isCompleted : c.isCompleted
                     );
@@ -397,7 +398,8 @@ const Achievements = () => {
                         </AccordionContent>
                       </AccordionItem>
                     );
-                  })}
+                   });
+                  })()}
                 </Accordion>
               )}
             </AccordionContent>
