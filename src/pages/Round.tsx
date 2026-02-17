@@ -331,6 +331,7 @@ const Round = () => {
           approach_club: isPar3 ? (stat.teeClub || null) : (stat.approachClub || null),
           scramble_club: stat.scrambleClub || null,
           scramble_shot_type: stat.scrambleShotType || null,
+          yardage: course.holes?.[idx]?.length_meters || null,
         };
       });
 
