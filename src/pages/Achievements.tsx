@@ -202,24 +202,32 @@ const Achievements = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-3 gap-3 pb-4">
-                  {achievementTiles.map((tile) => (
-                    <Card
-                      key={tile.key}
-                      className="transition-all hover:scale-[1.02]"
-                    >
-                      <CardContent className="p-3 text-center">
-                        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-1", tile.iconColor)}>
-                          <tile.icon className={cn("w-5 h-5", tile.iconTextColor)} />
-                        </div>
-                        <div className="text-xl font-bold text-foreground">
-                          {tile.count}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {tile.label}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {achievementTiles.map((tile) => {
+                    const totalHoles = data?.stats.totalHolesPlayed ?? 0;
+                    const pct = totalHoles > 0 ? (tile.count / totalHoles) * 100 : 0;
+                    const displayPct = Math.round(pct);
+                    return (
+                      <Card
+                        key={tile.key}
+                        className="transition-all hover:scale-[1.02]"
+                      >
+                        <CardContent className="p-3 text-center relative">
+                          <span className="absolute top-1.5 right-1.5 text-[10px] font-medium text-muted-foreground">
+                            {displayPct}%
+                          </span>
+                          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-1", tile.iconColor)}>
+                            <tile.icon className={cn("w-5 h-5", tile.iconTextColor)} />
+                          </div>
+                          <div className="text-xl font-bold text-foreground">
+                            {tile.count}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {tile.label}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </AccordionContent>
