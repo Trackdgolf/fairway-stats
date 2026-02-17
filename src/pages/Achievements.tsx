@@ -305,10 +305,9 @@ const Achievements = () => {
                 <h2 className="text-lg font-semibold">Challenges</h2>
                 {!isLoading && data?.challenges && (
                   <span className="text-xs text-muted-foreground font-normal ml-1">
-                    {(() => {
-                      const allVisible = filterSequentialChallenges(data.challenges);
-                      const completed = allVisible.filter(c => c.isCompleted).length;
-                      return `${completed}/${allVisible.length}`;
+                  {(() => {
+                      const completed = data.challenges.filter(c => c.isCompleted).length;
+                      return `${completed}/${data.challenges.length}`;
                     })()}
                   </span>
                 )}
