@@ -16,7 +16,7 @@ export interface AchievementStats {
   totalHolesPlayed: number;
 }
 
-export type ChallengeGroup = "rounds" | "score" | "accuracy" | "short-game" | "distance" | "goat" | "hidden";
+export type ChallengeGroup = "rounds" | "score" | "accuracy" | "short-game" | "distance" | "goat" | "hidden" | "completionist";
 
 export interface Challenge {
   id: string;
@@ -44,6 +44,7 @@ export const CHALLENGE_GROUPS: ChallengeGroupInfo[] = [
   { id: "distance", title: "Distance Played", iconName: "MapPin" },
   { id: "goat", title: "GOAT", iconName: "Crown" },
   { id: "hidden", title: "Hidden", iconName: "EyeOff" },
+  { id: "completionist", title: "Completionist", iconName: "Award" },
 ];
 
 export interface AchievementsData {
@@ -452,6 +453,38 @@ export const useAchievements = (timeRange: TimeRange) => {
           sequenceOrder: def.sequenceOrder,
         };
       });
+
+      // Build completionist challenges based on evaluated results
+      const categoryGroups: ChallengeGroup[] = ["rounds", "score", "accuracy", "short-game", "distance", "goat", "hidden"];
+      const completionistChallenges: Challenge[] = categoryGroups.map(groupId => {
+        const groupChallenges = challenges.filter(c => c.group === groupId);
+        const completed = groupChallenges.filter(c => c.isCompleted).length;
+        const total = groupChallenges.length;
+        const groupInfo = CHALLENGE_GROUPS.find(g => g.id === groupId);
+        return {
+          id: `completionist-${groupId}`,
+          title: `${groupInfo?.title || groupId} Master`,
+          description: `Complete all ${groupInfo?.title || groupId} challenges`,
+          target: total,
+          isCompleted: completed >= total && total > 0,
+          progress: completed,
+          group: "completionist" as ChallengeGroup,
+        };
+      });
+
+      // The ultimate challenge: complete all 7 category completionist challenges
+      const completionistDone = completionistChallenges.filter(c => c.isCompleted).length;
+      completionistChallenges.push({
+        id: "completionist-ultimate",
+        title: "The Complete Golfer",
+        description: "Complete all challenge categories",
+        target: 7,
+        isCompleted: completionistDone >= 7,
+        progress: completionistDone,
+        group: "completionist" as ChallengeGroup,
+      });
+
+      challenges.push(...completionistChallenges);
 
       // Time-filtered stats for the achievement counters
       const filteredRoundIds = (rounds || []).map(r => r.id);
