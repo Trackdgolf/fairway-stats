@@ -1,41 +1,20 @@
 
 
-# Progressive Challenge Sequences
+# Link GOAT Challenges to Progressive Sequences
 
 ## What Changes
 
-### 1. Add sequence metadata to ChallengeDefinition (`src/lib/challengeDefinitions.ts`)
+Two challenges currently in the GOAT category need to be tagged as the final milestones of existing progressive sequences so they stay hidden until the previous milestone is completed:
 
-Add two optional fields to `ChallengeDefinition`:
-- `sequence`: string identifier grouping challenges in the same progression (e.g., `"rounds-played"`)
-- `sequenceOrder`: number defining the order within the sequence (1, 2, 3...)
+1. **"I didn't think this was possible!"** (200 rounds) -- becomes `sequence: "rounds-played", sequenceOrder: 7` (follows "Triple Digits!" at sequenceOrder 6)
+2. **"1000 miles club"** (1000 miles) -- becomes `sequence: "distance", sequenceOrder: 14` (follows "LEJOG" at sequenceOrder 13)
 
-Apply to these progressive groups:
-- **rounds-played** (6 challenges): Welcome friend (1) -> Fun Right? (10) -> Someones getting addicted (25) -> There's no stopping you! (50) -> Serious Dedication (75) -> Triple Digits! (100)
-- **courses-played** (3 challenges): Course Collector (5) -> Course Connoisseur (10) -> Well Travelled (25)
-- **scramble-saves** (4 challenges): Short Game Pro (10) -> Hero (25) -> Legend (50) -> God (100)
-- **distance** (13 challenges): Half Marathon (13.1) -> ... -> LEJOG (874)
+They remain in the "goat" group for display purposes, but the existing `filterSequentialChallenges` logic will automatically hide them until the previous milestone in their sequence is completed.
 
-### 2. Filter visible challenges in UI (`src/pages/Achievements.tsx`)
-
-Before rendering challenges in each group, apply sequence visibility logic:
-- For each sequence, find the first uncompleted challenge (the "active" milestone)
-- Show all completed challenges in the sequence
-- Show the active (next) milestone with full title, description, and progress
-- Hide all subsequent milestones entirely (don't render them at all)
-
-Progress carries over naturally since the underlying stat (e.g., `totalRounds = 10`) is already used -- when a user completes 10 rounds, the next milestone (25) shows progress starting at 10/25.
-
-### 3. Update challenge counts
-
-The category header counts (e.g., "3/10") should only count visible challenges, so the total reflects what the user can currently see, not all 74.
+No other files need to change -- the filtering logic in Achievements.tsx already handles cross-group sequences.
 
 ## Technical Details
 
-### Files to modify:
-1. **`src/lib/challengeDefinitions.ts`** - Add `sequence?: string` and `sequenceOrder?: number` to `ChallengeDefinition` interface, then tag the 26 progressive challenges with their sequence info
-2. **`src/pages/Achievements.tsx`** - Add a `filterSequentialChallenges` helper that takes the challenges array and returns only the visible ones (completed + next active milestone per sequence), apply before rendering
-3. **`src/hooks/useAchievements.ts`** - Pass through the new `sequence` and `sequenceOrder` fields in the Challenge type
-
-### No database changes required.
+### File to modify:
+- **`src/lib/challengeDefinitions.ts`** -- Add `sequence` and `sequenceOrder` properties to these two challenge definitions
 
