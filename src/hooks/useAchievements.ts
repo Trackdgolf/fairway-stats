@@ -13,6 +13,7 @@ export interface AchievementStats {
   pars: number;
   bogeys: number;
   doubleBogeys: number;
+  totalHolesPlayed: number;
 }
 
 export type ChallengeGroup = "rounds" | "score" | "accuracy" | "short-game" | "distance" | "goat" | "hidden";
@@ -464,6 +465,7 @@ export const useAchievements = (timeRange: TimeRange) => {
         pars: 0,
         bogeys: 0,
         doubleBogeys: 0,
+        totalHolesPlayed: filteredHoleStats.filter(h => h.score !== null && h.par !== null).length,
       };
 
       filteredHoleStats.forEach((hole) => {
