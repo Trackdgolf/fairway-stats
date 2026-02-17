@@ -303,6 +303,15 @@ const Achievements = () => {
               <div className="flex items-center gap-2">
                 <Target className="w-5 h-5 text-primary" />
                 <h2 className="text-lg font-semibold">Challenges</h2>
+                {!isLoading && data?.challenges && (
+                  <span className="text-xs text-muted-foreground font-normal ml-1">
+                    {(() => {
+                      const allVisible = filterSequentialChallenges(data.challenges);
+                      const completed = allVisible.filter(c => c.isCompleted).length;
+                      return `${completed}/${allVisible.length}`;
+                    })()}
+                  </span>
+                )}
               </div>
             </AccordionTrigger>
             <AccordionContent>
