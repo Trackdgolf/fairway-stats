@@ -137,10 +137,10 @@ const Achievements = () => {
     }
     if (challenge.progress > 0) {
       return {
-        icon: <Target className="w-6 h-6 text-primary" />,
-        bgClass: "border-primary/30 bg-primary/10",
+        icon: <Target className="w-6 h-6 text-orange-500" />,
+        bgClass: "border-orange-500/30 bg-orange-500/10",
         statusText: `${challenge.progress} / ${challenge.target}`,
-        statusClass: "text-primary",
+        statusClass: "text-orange-500",
       };
     }
     return {
