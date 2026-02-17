@@ -114,7 +114,7 @@ const Achievements = () => {
     return {
       icon: <Lock className="w-6 h-6 text-muted-foreground" />,
       bgClass: "border-muted bg-muted/50",
-      statusText: "Not attempted",
+      statusText: "",
       statusClass: "text-muted-foreground",
     };
   };
