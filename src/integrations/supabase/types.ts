@@ -32,6 +32,7 @@ export type Database = {
           scramble_club: string | null
           scramble_shot_type: string | null
           tee_club: string | null
+          yardage: number | null
         }
         Insert: {
           approach_club?: string | null
@@ -50,6 +51,7 @@ export type Database = {
           scramble_club?: string | null
           scramble_shot_type?: string | null
           tee_club?: string | null
+          yardage?: number | null
         }
         Update: {
           approach_club?: string | null
@@ -68,6 +70,7 @@ export type Database = {
           scramble_club?: string | null
           scramble_shot_type?: string | null
           tee_club?: string | null
+          yardage?: number | null
         }
         Relationships: [
           {
