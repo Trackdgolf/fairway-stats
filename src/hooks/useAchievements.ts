@@ -25,6 +25,8 @@ export interface Challenge {
   isCompleted: boolean;
   progress: number;
   group: ChallengeGroup;
+  sequence?: string;
+  sequenceOrder?: number;
 }
 
 export interface ChallengeGroupInfo {
@@ -445,6 +447,8 @@ export const useAchievements = (timeRange: TimeRange) => {
           isCompleted: result.isCompleted,
           progress: result.progress,
           group: def.group,
+          sequence: def.sequence,
+          sequenceOrder: def.sequenceOrder,
         };
       });
 

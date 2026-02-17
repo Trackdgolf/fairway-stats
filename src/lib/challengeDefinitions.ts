@@ -144,6 +144,8 @@ export interface ChallengeDefinition {
   title: string;
   description: string;
   group: ChallengeGroup;
+  sequence?: string;
+  sequenceOrder?: number;
   evaluate: (stats: UserStats) => ChallengeEvalResult;
 }
 
@@ -230,15 +232,15 @@ const scoreChallenges: ChallengeDefinition[] = [
 
 // ── Rounds Challenges (10) ──────────────────────────────────────────────────
 const roundsChallenges: ChallengeDefinition[] = [
-  threshold("welcome-friend", "Welcome friend", "Play 1 Round", "rounds", (s) => s.totalRounds, 1),
-  threshold("fun-right", "Fun Right?", "Play 10 Rounds", "rounds", (s) => s.totalRounds, 10),
-  threshold("someones-getting-addicted", "Someones getting addicted…", "Play 25 Rounds", "rounds", (s) => s.totalRounds, 25),
-  threshold("theres-no-stopping-you", "There's no stopping you!", "Play 50 Rounds", "rounds", (s) => s.totalRounds, 50),
-  threshold("serious-dedication", "Serious Dedication", "Play 75 Rounds", "rounds", (s) => s.totalRounds, 75),
-  threshold("triple-digits", "Triple Digits!", "Play 100 Rounds", "rounds", (s) => s.totalRounds, 100),
-  threshold("course-collector", "Course Collector", "Play 5 Different courses", "rounds", (s) => s.distinctCourseCount, 5),
-  threshold("course-connoisseur", "Course Connoisseur", "Play 10 Different courses", "rounds", (s) => s.distinctCourseCount, 10),
-  threshold("well-travelled", "Well Travelled", "Play 25 Different courses", "rounds", (s) => s.distinctCourseCount, 25),
+  { ...threshold("welcome-friend", "Welcome friend", "Play 1 Round", "rounds", (s) => s.totalRounds, 1), sequence: "rounds-played", sequenceOrder: 1 },
+  { ...threshold("fun-right", "Fun Right?", "Play 10 Rounds", "rounds", (s) => s.totalRounds, 10), sequence: "rounds-played", sequenceOrder: 2 },
+  { ...threshold("someones-getting-addicted", "Someones getting addicted…", "Play 25 Rounds", "rounds", (s) => s.totalRounds, 25), sequence: "rounds-played", sequenceOrder: 3 },
+  { ...threshold("theres-no-stopping-you", "There's no stopping you!", "Play 50 Rounds", "rounds", (s) => s.totalRounds, 50), sequence: "rounds-played", sequenceOrder: 4 },
+  { ...threshold("serious-dedication", "Serious Dedication", "Play 75 Rounds", "rounds", (s) => s.totalRounds, 75), sequence: "rounds-played", sequenceOrder: 5 },
+  { ...threshold("triple-digits", "Triple Digits!", "Play 100 Rounds", "rounds", (s) => s.totalRounds, 100), sequence: "rounds-played", sequenceOrder: 6 },
+  { ...threshold("course-collector", "Course Collector", "Play 5 Different courses", "rounds", (s) => s.distinctCourseCount, 5), sequence: "courses-played", sequenceOrder: 1 },
+  { ...threshold("course-connoisseur", "Course Connoisseur", "Play 10 Different courses", "rounds", (s) => s.distinctCourseCount, 10), sequence: "courses-played", sequenceOrder: 2 },
+  { ...threshold("well-travelled", "Well Travelled", "Play 25 Different courses", "rounds", (s) => s.distinctCourseCount, 25), sequence: "courses-played", sequenceOrder: 3 },
   threshold("tee-time-tourist", "Tee-time tourist", "Play in 3 different countries", "rounds", (s) => s.distinctCountries.length, 3),
 ];
 
@@ -274,14 +276,10 @@ const shortGameChallenges: ChallengeDefinition[] = [
     (s) => s.hasPitchPlease),
   boolChallenge("fish-and-chips", "Fish and Chips", "Up n down from a chip", "short-game",
     (s) => s.hasFishAndChips),
-  threshold("short-game-pro", "Short Game Pro", "Record 10 up n downs", "short-game",
-    (s) => s.totalScrambleSaves, 10),
-  threshold("short-game-hero", "Short Game Hero", "Record 25 up n downs", "short-game",
-    (s) => s.totalScrambleSaves, 25),
-  threshold("short-game-legend", "Short Game Legend", "Record 50 up n downs", "short-game",
-    (s) => s.totalScrambleSaves, 50),
-  threshold("short-game-god", "Short Game God", "Record 100 up n downs", "short-game",
-    (s) => s.totalScrambleSaves, 100),
+  { ...threshold("short-game-pro", "Short Game Pro", "Record 10 up n downs", "short-game", (s) => s.totalScrambleSaves, 10), sequence: "scramble-saves", sequenceOrder: 1 },
+  { ...threshold("short-game-hero", "Short Game Hero", "Record 25 up n downs", "short-game", (s) => s.totalScrambleSaves, 25), sequence: "scramble-saves", sequenceOrder: 2 },
+  { ...threshold("short-game-legend", "Short Game Legend", "Record 50 up n downs", "short-game", (s) => s.totalScrambleSaves, 50), sequence: "scramble-saves", sequenceOrder: 3 },
+  { ...threshold("short-game-god", "Short Game God", "Record 100 up n downs", "short-game", (s) => s.totalScrambleSaves, 100), sequence: "scramble-saves", sequenceOrder: 4 },
 ];
 
 // ── GOAT Challenges (11) ────────────────────────────────────────────────────
@@ -354,19 +352,19 @@ const hiddenChallenges: ChallengeDefinition[] = [
 
 // ── Distance Challenges (13) ────────────────────────────────────────────────
 const distanceChallenges: ChallengeDefinition[] = [
-  threshold("half-marathon", "Half Marathon", "13.1 Miles", "distance", (s) => s.totalDistanceMiles, 13.1),
-  threshold("marathon", "Marathon", "26.2 Miles", "distance", (s) => s.totalDistanceMiles, 26.2),
-  threshold("ultra-marathon", "Ultra Marathon", "50 Miles", "distance", (s) => s.totalDistanceMiles, 50),
-  threshold("hadrians-wall", "Hadrians Wall", "73 Miles", "distance", (s) => s.totalDistanceMiles, 73),
-  threshold("100-miler", "100 Miler", "100 Miles", "distance", (s) => s.totalDistanceMiles, 100),
-  threshold("m25-lap", "M25 Lap", "117 Miles", "distance", (s) => s.totalDistanceMiles, 117),
-  threshold("offas-dyke-path", "Offa's Dyke Path", "177 miles", "distance", (s) => s.totalDistanceMiles, 177),
-  threshold("coast-to-coast", "Coast to Coast (Wainwright)", "190 miles", "distance", (s) => s.totalDistanceMiles, 190),
-  threshold("london-to-paris", "London to Paris", "214 miles", "distance", (s) => s.totalDistanceMiles, 214),
-  threshold("london-to-home-of-golf", "London to the Home of Golf", "351.5 miles", "distance", (s) => s.totalDistanceMiles, 351.5),
-  threshold("500-miles-club", "500 miles club", "500 Miles", "distance", (s) => s.totalDistanceMiles, 500),
-  threshold("south-west-coastal-path", "South West Coastal Path", "630 Miles", "distance", (s) => s.totalDistanceMiles, 630),
-  threshold("lejog", "LEJOG", "874 miles", "distance", (s) => s.totalDistanceMiles, 874),
+  { ...threshold("half-marathon", "Half Marathon", "13.1 Miles", "distance", (s) => s.totalDistanceMiles, 13.1), sequence: "distance", sequenceOrder: 1 },
+  { ...threshold("marathon", "Marathon", "26.2 Miles", "distance", (s) => s.totalDistanceMiles, 26.2), sequence: "distance", sequenceOrder: 2 },
+  { ...threshold("ultra-marathon", "Ultra Marathon", "50 Miles", "distance", (s) => s.totalDistanceMiles, 50), sequence: "distance", sequenceOrder: 3 },
+  { ...threshold("hadrians-wall", "Hadrians Wall", "73 Miles", "distance", (s) => s.totalDistanceMiles, 73), sequence: "distance", sequenceOrder: 4 },
+  { ...threshold("100-miler", "100 Miler", "100 Miles", "distance", (s) => s.totalDistanceMiles, 100), sequence: "distance", sequenceOrder: 5 },
+  { ...threshold("m25-lap", "M25 Lap", "117 Miles", "distance", (s) => s.totalDistanceMiles, 117), sequence: "distance", sequenceOrder: 6 },
+  { ...threshold("offas-dyke-path", "Offa's Dyke Path", "177 miles", "distance", (s) => s.totalDistanceMiles, 177), sequence: "distance", sequenceOrder: 7 },
+  { ...threshold("coast-to-coast", "Coast to Coast (Wainwright)", "190 miles", "distance", (s) => s.totalDistanceMiles, 190), sequence: "distance", sequenceOrder: 8 },
+  { ...threshold("london-to-paris", "London to Paris", "214 miles", "distance", (s) => s.totalDistanceMiles, 214), sequence: "distance", sequenceOrder: 9 },
+  { ...threshold("london-to-home-of-golf", "London to the Home of Golf", "351.5 miles", "distance", (s) => s.totalDistanceMiles, 351.5), sequence: "distance", sequenceOrder: 10 },
+  { ...threshold("500-miles-club", "500 miles club", "500 Miles", "distance", (s) => s.totalDistanceMiles, 500), sequence: "distance", sequenceOrder: 11 },
+  { ...threshold("south-west-coastal-path", "South West Coastal Path", "630 Miles", "distance", (s) => s.totalDistanceMiles, 630), sequence: "distance", sequenceOrder: 12 },
+  { ...threshold("lejog", "LEJOG", "874 miles", "distance", (s) => s.totalDistanceMiles, 874), sequence: "distance", sequenceOrder: 13 },
 ];
 
 // ── Export all 74 ───────────────────────────────────────────────────────────
