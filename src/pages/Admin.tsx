@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Shield, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type SortField = 'total_claimed' | 'total_converted' | 'total_paid' | 'last_claimed_at' | 'handle';
+type SortField = 'total_claimed' | 'total_converted' | 'total_paid' | 'last_claimed_at' | 'handle' | 'total_payable_amount';
 type SortDir = 'asc' | 'desc';
 
 interface InfluencerStat {
@@ -18,10 +18,24 @@ interface InfluencerStat {
   handle: string;
   code: string;
   is_active: boolean;
+  commission_monthly_cpa: number;
+  commission_annual_cpa: number;
   total_claimed: number;
   total_converted: number;
   total_paid: number;
+  total_converted_monthly: number;
+  total_converted_annual: number;
+  total_payable_amount: number;
   last_claimed_at: string | null;
+}
+
+interface PendingPayout {
+  id: string;
+  handle: string;
+  code: string;
+  converted_period: string;
+  payable_amount: number;
+  converted_at: string;
 }
 
 const Admin = () => {
@@ -30,6 +44,7 @@ const Admin = () => {
   const navigate = useNavigate();
 
   const [stats, setStats] = useState<InfluencerStat[]>([]);
+  const [pendingPayouts, setPendingPayouts] = useState<PendingPayout[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<SortField>('total_claimed');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -42,20 +57,50 @@ const Admin = () => {
 
   useEffect(() => {
     if (!isAdmin) return;
-    const fetchStats = async () => {
+    const fetchData = async () => {
       setLoading(true);
-      const { data, error } = await supabase
+
+      // Fetch influencer stats
+      const { data: statsData, error: statsError } = await supabase
         .from('influencer_referral_stats')
         .select('*');
 
-      if (error) {
-        console.error('Error fetching influencer stats:', error);
-      } else {
-        setStats((data as InfluencerStat[]) || []);
+      if (statsError) console.error('Error fetching influencer stats:', statsError);
+      else setStats((statsData as unknown as InfluencerStat[]) || []);
+
+      // Fetch pending payouts (converted but not yet paid)
+      const { data: payoutData, error: payoutError } = await supabase
+        .from('referrals')
+        .select('id, code, converted_period, payable_amount, converted_at, influencer_id')
+        .eq('status', 'converted')
+        .gt('payable_amount', 0)
+        .order('converted_at', { ascending: false });
+
+      if (payoutError) {
+        console.error('Error fetching pending payouts:', payoutError);
+      } else if (payoutData && payoutData.length > 0) {
+        // Get influencer handles for display
+        const influencerIds = [...new Set(payoutData.map(p => p.influencer_id))];
+        const { data: influencers } = await supabase
+          .from('influencers')
+          .select('id, handle')
+          .in('id', influencerIds);
+
+        const handleMap = new Map((influencers || []).map(i => [i.id, i.handle]));
+
+        setPendingPayouts(payoutData.map(p => ({
+          id: p.id,
+          handle: handleMap.get(p.influencer_id) || 'Unknown',
+          code: p.code,
+          converted_period: p.converted_period || 'unknown',
+          payable_amount: p.payable_amount || 0,
+          converted_at: p.converted_at || '',
+        })));
       }
+
       setLoading(false);
     };
-    fetchStats();
+    fetchData();
   }, [isAdmin]);
 
   const toggleSort = (field: SortField) => {
@@ -102,12 +147,13 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto p-4 pb-24 space-y-6">
+      <div className="max-w-5xl mx-auto p-4 pb-24 space-y-6">
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
           <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
         </div>
 
+        {/* Influencer Stats Table */}
         <div className="rounded-lg border bg-card">
           <div className="p-4 border-b">
             <h2 className="text-lg font-semibold text-card-foreground">Influencer Referral Stats</h2>
@@ -119,39 +165,92 @@ const Admin = () => {
               {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : stats.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              No influencer data found.
+            <div className="p-8 text-center text-muted-foreground">No influencer data found.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead><SortButton field="handle" label="Handle" /></TableHead>
+                    <TableHead>Code</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right"><SortButton field="total_claimed" label="Claimed" /></TableHead>
+                    <TableHead className="text-right"><SortButton field="total_converted" label="Converted" /></TableHead>
+                    <TableHead className="text-right">Monthly</TableHead>
+                    <TableHead className="text-right">Annual</TableHead>
+                    <TableHead className="text-right"><SortButton field="total_paid" label="Paid" /></TableHead>
+                    <TableHead className="text-right"><SortButton field="total_payable_amount" label="Payable (£)" /></TableHead>
+                    <TableHead><SortButton field="last_claimed_at" label="Last Claim" /></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedStats.map((row) => (
+                    <TableRow key={row.influencer_id}>
+                      <TableCell className="font-medium">{row.handle}</TableCell>
+                      <TableCell className="font-mono text-sm">{row.code}</TableCell>
+                      <TableCell>
+                        <Badge variant={row.is_active ? 'default' : 'secondary'}>
+                          {row.is_active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">{row.total_claimed}</TableCell>
+                      <TableCell className="text-right">{row.total_converted}</TableCell>
+                      <TableCell className="text-right">{row.total_converted_monthly}</TableCell>
+                      <TableCell className="text-right">{row.total_converted_annual}</TableCell>
+                      <TableCell className="text-right">{row.total_paid}</TableCell>
+                      <TableCell className="text-right font-semibold">
+                        £{Number(row.total_payable_amount || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {row.last_claimed_at ? new Date(row.last_claimed_at).toLocaleDateString() : '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
+          )}
+        </div>
+
+        {/* Pending Payouts Table */}
+        <div className="rounded-lg border bg-card">
+          <div className="p-4 border-b">
+            <h2 className="text-lg font-semibold text-card-foreground">Conversions Awaiting Payout</h2>
+            <p className="text-sm text-muted-foreground">Referrals that have converted but not yet been marked as paid</p>
+          </div>
+
+          {loading ? (
+            <div className="p-4 space-y-3">
+              {[1, 2].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+            </div>
+          ) : pendingPayouts.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">No conversions awaiting payout.</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead><SortButton field="handle" label="Handle" /></TableHead>
+                  <TableHead>Influencer</TableHead>
                   <TableHead>Code</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right"><SortButton field="total_claimed" label="Claimed" /></TableHead>
-                  <TableHead className="text-right"><SortButton field="total_converted" label="Converted" /></TableHead>
-                  <TableHead className="text-right"><SortButton field="total_paid" label="Paid" /></TableHead>
-                  <TableHead><SortButton field="last_claimed_at" label="Last Claim" /></TableHead>
+                  <TableHead>Period</TableHead>
+                  <TableHead className="text-right">Amount (£)</TableHead>
+                  <TableHead>Converted At</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedStats.map((row) => (
-                  <TableRow key={row.influencer_id}>
+                {pendingPayouts.map((row) => (
+                  <TableRow key={row.id}>
                     <TableCell className="font-medium">{row.handle}</TableCell>
                     <TableCell className="font-mono text-sm">{row.code}</TableCell>
                     <TableCell>
-                      <Badge variant={row.is_active ? 'default' : 'secondary'}>
-                        {row.is_active ? 'Active' : 'Inactive'}
+                      <Badge variant={row.converted_period === 'annual' ? 'default' : 'secondary'}>
+                        {row.converted_period}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">{row.total_claimed}</TableCell>
-                    <TableCell className="text-right">{row.total_converted}</TableCell>
-                    <TableCell className="text-right">{row.total_paid}</TableCell>
+                    <TableCell className="text-right font-semibold">
+                      £{Number(row.payable_amount).toFixed(2)}
+                    </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {row.last_claimed_at
-                        ? new Date(row.last_claimed_at).toLocaleDateString()
-                        : '—'}
+                      {row.converted_at ? new Date(row.converted_at).toLocaleDateString() : '—'}
                     </TableCell>
                   </TableRow>
                 ))}
