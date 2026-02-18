@@ -238,6 +238,13 @@ export type Database = {
             foreignKeyName: "referrals_influencer_id_fkey"
             columns: ["influencer_id"]
             isOneToOne: false
+            referencedRelation: "influencer_referral_stats"
+            referencedColumns: ["influencer_id"]
+          },
+          {
+            foreignKeyName: "referrals_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
             referencedRelation: "influencers"
             referencedColumns: ["id"]
           },
@@ -350,7 +357,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      influencer_referral_stats: {
+        Row: {
+          code: string | null
+          handle: string | null
+          influencer_id: string | null
+          is_active: boolean | null
+          last_claimed_at: string | null
+          total_claimed: number | null
+          total_converted: number | null
+          total_paid: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
