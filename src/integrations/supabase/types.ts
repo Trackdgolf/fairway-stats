@@ -220,7 +220,9 @@ export type Database = {
           id: string
           influencer_id: string
           latest_rc_event_at: string | null
+          paid_at: string | null
           payable_amount: number | null
+          payout_batch_id: string | null
           status: string
           user_id: string
         }
@@ -235,7 +237,9 @@ export type Database = {
           id?: string
           influencer_id: string
           latest_rc_event_at?: string | null
+          paid_at?: string | null
           payable_amount?: number | null
+          payout_batch_id?: string | null
           status?: string
           user_id: string
         }
@@ -250,7 +254,9 @@ export type Database = {
           id?: string
           influencer_id?: string
           latest_rc_event_at?: string | null
+          paid_at?: string | null
           payable_amount?: number | null
+          payout_batch_id?: string | null
           status?: string
           user_id?: string
         }
