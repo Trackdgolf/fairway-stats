@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SubscriptionStatus } from "@/components/SubscriptionStatus";
+import ReferralCodeSection from "@/components/ReferralCodeSection";
 import { useUserPreferences, StatPreferences, Club } from "@/hooks/useUserPreferences";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
@@ -321,6 +322,9 @@ const Settings = () => {
         <div className="mb-6">
           <SubscriptionStatus />
         </div>
+
+        {/* Referral Code Section */}
+        <ReferralCodeSection />
 
         {/* Notifications Section */}
         <Card className="p-4 mb-6">
