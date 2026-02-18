@@ -397,7 +397,7 @@ const Achievements = () => {
                                         <div className="flex-shrink-0">{status.icon}</div>
                                         <div className="flex-1 min-w-0">
                                           {isHiddenAndLocked ? (
-                                            <p className="text-sm text-muted-foreground italic">Play more golf...</p>
+                                            <p className="text-sm text-muted-foreground italic">Play more golf to unlock</p>
                                           ) : (
                                             <>
                                               <h3 className="font-semibold text-sm">{challenge.title}</h3>
