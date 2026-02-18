@@ -37,7 +37,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Authenticated user:', user.id);
+    console.log('Authenticated user:', user.id.substring(0, 8) + '...');
 
     const { courseId } = await req.json();
     

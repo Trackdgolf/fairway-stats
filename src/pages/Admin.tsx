@@ -60,44 +60,17 @@ const Admin = () => {
     const fetchData = async () => {
       setLoading(true);
 
-      // Fetch influencer stats
-      const { data: statsData, error: statsError } = await supabase
-        .from('influencer_referral_stats')
-        .select('*');
+      // Use server-side admin edge function (validates admin role server-side)
+      const { data, error } = await supabase.functions.invoke('admin-stats');
 
-      if (statsError) console.error('Error fetching influencer stats:', statsError);
-      else setStats((statsData as unknown as InfluencerStat[]) || []);
-
-      // Fetch pending payouts (converted but not yet paid)
-      const { data: payoutData, error: payoutError } = await supabase
-        .from('referrals')
-        .select('id, code, converted_period, payable_amount, converted_at, influencer_id')
-        .eq('status', 'converted')
-        .gt('payable_amount', 0)
-        .order('converted_at', { ascending: false });
-
-      if (payoutError) {
-        console.error('Error fetching pending payouts:', payoutError);
-      } else if (payoutData && payoutData.length > 0) {
-        // Get influencer handles for display
-        const influencerIds = [...new Set(payoutData.map(p => p.influencer_id))];
-        const { data: influencers } = await supabase
-          .from('influencers')
-          .select('id, handle')
-          .in('id', influencerIds);
-
-        const handleMap = new Map((influencers || []).map(i => [i.id, i.handle]));
-
-        setPendingPayouts(payoutData.map(p => ({
-          id: p.id,
-          handle: handleMap.get(p.influencer_id) || 'Unknown',
-          code: p.code,
-          converted_period: p.converted_period || 'unknown',
-          payable_amount: p.payable_amount || 0,
-          converted_at: p.converted_at || '',
-        })));
+      if (error) {
+        console.error('Error fetching admin stats:', error);
+        setLoading(false);
+        return;
       }
 
+      setStats((data?.stats as unknown as InfluencerStat[]) || []);
+      setPendingPayouts((data?.pendingPayouts as PendingPayout[]) || []);
       setLoading(false);
     };
     fetchData();
