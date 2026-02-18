@@ -139,7 +139,7 @@ const Achievements = () => {
     if (challenge.progress > 0) {
       return {
         icon: <Target className="w-6 h-6 text-orange-500" />,
-        bgClass: "border-orange-500/30 bg-orange-500/10",
+        bgClass: "border-orange-500/30",
         statusText: `${challenge.progress} / ${challenge.target}`,
         statusClass: "text-orange-500",
       };
