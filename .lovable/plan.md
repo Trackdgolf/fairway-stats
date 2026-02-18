@@ -1,48 +1,29 @@
 
+# Add Time Range Filter to Club Performance Page
 
-# Show Round-Specific Challenges in Round Report
-
-## Problem
-The challenges section currently shows ALL completed challenges across all rounds. Every round report displays the same list because it queries lifetime achievement data with no per-round filtering.
-
-## Solution
-Compare challenge progress **with** and **without** the current round to detect which challenges were newly completed or progressed by this specific round.
-
-The approach:
-1. Pass the round's hole stats data to `ChallengesSection`
-2. Use `buildUserStats` twice: once with all data (current state), once excluding the current round's holes
-3. Evaluate challenges against both sets of stats
-4. Challenges that are completed in the "with" set but NOT in the "without" set were completed by this round
-5. If none were completed, show the top 3 in-progress challenges with their current progress (e.g. "7/10")
+## What Changes
+A time range filter (LAST / 3M / 6M / 1Y / MAX) will be added to the Club Performance page, matching the Stats page. It will appear as a row of buttons and apply across all three tabs (Tee Shots, Approach, Scramble).
 
 ## Technical Details
 
-### File: `src/hooks/useAchievements.ts`
-- **Export** the `buildUserStats` function so it can be reused outside the hook
+### 1. `src/hooks/useDispersionStats.ts`
+- Add a `timeRange` parameter (reuse the `TimeRange` type from `useRoundStats`)
+- Change the query to join `hole_stats` with `rounds` via `round_id` to access `played_at`
+- Apply date cutoff filtering:
+  - "LAST": only include hole stats from the most recent round
+  - "3M" / "6M" / "1Y": filter rounds by `played_at` date
+  - "MAX": no date filter (current behavior)
+- Add `timeRange` to the `queryKey` so React Query refetches on change
 
-### File: `src/components/RoundSummaryModal.tsx`
+### 2. `src/pages/ClubPerformance.tsx`
+- Add `timeRange` state, defaulting to `"MAX"`
+- Add a row of time range filter buttons (LAST / 3M / 6M / 1Y / MAX) styled consistently with the Stats page
+- Position the time range buttons above the club filter / scramble shot type filter
+- Pass `timeRange` to `useDispersionStats`
+- The time range filter is shared across all tabs -- switching tabs keeps the selected time range
 
-**Update `RoundSummaryModalProps`:**
-- Add `roundId?: string` prop so we can identify this round's data
-
-**Update `ChallengesSection`:**
-- Accept `roundId` and `holeStats` props
-- Fetch all rounds and hole stats from the achievements hook data
-- Run `CHALLENGE_DEFINITIONS.map(def => def.evaluate(...))` twice:
-  - Once with full `UserStats` (all rounds including this one)
-  - Once with `UserStats` built from all rounds **excluding** the current `roundId`
-- A challenge is "newly completed by this round" if `withRound.isCompleted === true` and `withoutRound.isCompleted === false`
-- If no newly completed challenges, fall back to showing up to 3 in-progress challenges sorted by `progress/target` ratio, displayed as "Title - 7/10"
-
-**Where `roundId` comes from:**
-- In `Round.tsx`, after saving the round to the database, the round ID is available and can be passed to the modal
-- In `Home.tsx`, the round ID is already known from the selected round data
-
-### Files: `src/pages/Round.tsx` and `src/pages/Home.tsx`
-- Pass the `roundId` prop when rendering `RoundSummaryModal`
-
-### Display logic
-- Newly completed challenges: green checkmark icon, title only
-- In-progress challenges: orange target icon, title + progress counter (e.g. "7/10") with a small progress bar
-- Show up to 5 completed or 3 in-progress
-
+### Query approach
+Instead of fetching all hole_stats and filtering client-side by date, the hook will:
+1. First query `rounds` filtered by `played_at` to get qualifying round IDs
+2. Then query `hole_stats` filtered by those round IDs using `.in('round_id', roundIds)`
+3. This keeps the existing client-side dispersion/scramble calculation logic intact
