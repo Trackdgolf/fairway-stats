@@ -1,0 +1,167 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAdminRole } from '@/hooks/useAdminRole';
+import { useAuth } from '@/contexts/AuthContext';
+
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Shield, ArrowUpDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+type SortField = 'total_claimed' | 'total_converted' | 'total_paid' | 'last_claimed_at' | 'handle';
+type SortDir = 'asc' | 'desc';
+
+interface InfluencerStat {
+  influencer_id: string;
+  handle: string;
+  code: string;
+  is_active: boolean;
+  total_claimed: number;
+  total_converted: number;
+  total_paid: number;
+  last_claimed_at: string | null;
+}
+
+const Admin = () => {
+  const { loading: authLoading } = useAuth();
+  const { isAdmin, isLoading: roleLoading } = useAdminRole();
+  const navigate = useNavigate();
+
+  const [stats, setStats] = useState<InfluencerStat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sortField, setSortField] = useState<SortField>('total_claimed');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  useEffect(() => {
+    if (!authLoading && !roleLoading && !isAdmin) {
+      navigate('/');
+    }
+  }, [authLoading, roleLoading, isAdmin, navigate]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const fetchStats = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('influencer_referral_stats')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching influencer stats:', error);
+      } else {
+        setStats((data as InfluencerStat[]) || []);
+      }
+      setLoading(false);
+    };
+    fetchStats();
+  }, [isAdmin]);
+
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+  };
+
+  const sortedStats = [...stats].sort((a, b) => {
+    const valA = a[sortField];
+    const valB = b[sortField];
+    if (valA == null && valB == null) return 0;
+    if (valA == null) return 1;
+    if (valB == null) return -1;
+    const cmp = valA < valB ? -1 : valA > valB ? 1 : 0;
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+
+  if (authLoading || roleLoading) {
+    return (
+      <div className="min-h-screen bg-background p-4 space-y-4">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) return null;
+
+  const SortButton = ({ field, label }: { field: SortField; label: string }) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="h-auto p-0 font-medium hover:bg-transparent"
+      onClick={() => toggleSort(field)}
+    >
+      {label}
+      <ArrowUpDown className="ml-1 h-3 w-3" />
+    </Button>
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto p-4 pb-24 space-y-6">
+        <div className="flex items-center gap-2">
+          <Shield className="h-5 w-5 text-primary" />
+          <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+        </div>
+
+        <div className="rounded-lg border bg-card">
+          <div className="p-4 border-b">
+            <h2 className="text-lg font-semibold text-card-foreground">Influencer Referral Stats</h2>
+            <p className="text-sm text-muted-foreground">Overview of referral performance by influencer</p>
+          </div>
+
+          {loading ? (
+            <div className="p-4 space-y-3">
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+            </div>
+          ) : stats.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              No influencer data found.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead><SortButton field="handle" label="Handle" /></TableHead>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right"><SortButton field="total_claimed" label="Claimed" /></TableHead>
+                  <TableHead className="text-right"><SortButton field="total_converted" label="Converted" /></TableHead>
+                  <TableHead className="text-right"><SortButton field="total_paid" label="Paid" /></TableHead>
+                  <TableHead><SortButton field="last_claimed_at" label="Last Claim" /></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedStats.map((row) => (
+                  <TableRow key={row.influencer_id}>
+                    <TableCell className="font-medium">{row.handle}</TableCell>
+                    <TableCell className="font-mono text-sm">{row.code}</TableCell>
+                    <TableCell>
+                      <Badge variant={row.is_active ? 'default' : 'secondary'}>
+                        {row.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">{row.total_claimed}</TableCell>
+                    <TableCell className="text-right">{row.total_converted}</TableCell>
+                    <TableCell className="text-right">{row.total_paid}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {row.last_claimed_at
+                        ? new Date(row.last_claimed_at).toLocaleDateString()
+                        : '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Admin;
