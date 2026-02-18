@@ -1,18 +1,27 @@
 
 
-## Fix Scramble Tab Filter Overflow on Mobile
+## Add Par-Based Performance Breakdown to Course Detail View
 
-The scramble filter row uses a `ScrollArea` with `flex` layout, and the time range dropdown (`w-[120px]`) combined with 4 buttons and `ml-auto` pushes it beyond the screen edge.
+A new summary card will be added below the Front 9 / Back 9 card, showing average performance vs par grouped by hole type: Par 3s, Par 4s, and Par 5s.
 
-### Changes
+### What It Will Look Like
 
-**`src/pages/ClubPerformance.tsx`** (scramble filter section, ~lines 175-206):
+A card with the heading "Performance by Par" containing a 3-column layout:
+- **Par 3** -- average over par total and per-hole average
+- **Par 4** -- average over par total and per-hole average
+- **Par 5** -- average over par total and per-hole average
 
-- Remove the `ScrollArea` wrapper -- the items should fit on one row without scrolling.
-- Use a standard `flex` container with `gap-2` and `mb-6`.
-- Reduce the scramble button gaps slightly by using `gap-1.5`.
-- Shrink the time range dropdown from `w-[120px]` to `w-[100px]`.
-- Keep `ml-auto` on the dropdown so it right-aligns, fitting cleanly within the page margins.
+Each value will be color-coded using the same relative color system already in use on the page. The layout mirrors the existing Front 9 / Back 9 card for visual consistency.
 
-This mirrors how the tee shots/approach filter row already works (a simple `flex` div, no `ScrollArea`), keeping everything within the `px-4` page padding.
+### Technical Details
 
+**`src/pages/Courses.tsx`** (insert after the Front 9 / Back 9 card, around line 120):
+
+- Group `selectedCourse.holes` by their `par` value (3, 4, 5)
+- For each group, calculate the total and per-hole average `avgOverPar`
+- Render a new `Card` with a 3-column grid showing the results
+- Use `getOverParColor` and `formatOverPar` (already defined) for styling
+- Columns separated by `border-l border-border` dividers (matching the Front 9/Back 9 card)
+- Only show groups that have holes (e.g., skip Par 5 column if the course has none)
+
+No changes to hooks or data fetching -- all data is already available in `selectedCourse.holes`.
