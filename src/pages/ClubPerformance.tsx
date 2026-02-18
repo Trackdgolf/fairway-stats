@@ -6,7 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import FairwayDispersion from "@/components/FairwayDispersion";
@@ -172,38 +172,34 @@ const ClubPerformance = () => {
 
         {/* Scramble Shot Type Filter + Time Range */}
         {activeTab === "scramble" && (
-          <ScrollArea className="w-full whitespace-nowrap mb-6">
-            <div className="flex gap-2 pb-2">
-              {SCRAMBLE_SHOT_TYPES.map((type) => (
-                <Button
-                  key={type.value}
-                  variant={selectedScrambleShotType === type.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedScrambleShotType(type.value)}
-                  className="flex-shrink-0"
-                >
-                  {type.label}
-                </Button>
-              ))}
-
-              <Select
-                value={timeRange}
-                onValueChange={(value) => setTimeRange(value as TimeRange)}
+          <div className="flex gap-1.5 mb-6">
+            {SCRAMBLE_SHOT_TYPES.map((type) => (
+              <Button
+                key={type.value}
+                variant={selectedScrambleShotType === type.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedScrambleShotType(type.value)}
               >
-                <SelectTrigger className="w-[120px] h-9 flex-shrink-0 ml-auto">
-                  <SelectValue placeholder="Time Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
-                    <SelectItem key={range} value={range}>
-                      {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+                {type.label}
+              </Button>
+            ))}
+
+            <Select
+              value={timeRange}
+              onValueChange={(value) => setTimeRange(value as TimeRange)}
+            >
+              <SelectTrigger className="w-[100px] h-9 ml-auto">
+                <SelectValue placeholder="Time Range" />
+              </SelectTrigger>
+              <SelectContent>
+                {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+                  <SelectItem key={range} value={range}>
+                    {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
 
         {/* Content */}
