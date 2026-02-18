@@ -159,20 +159,22 @@ const ShotDirectionSelector = <T extends string | null>({
         const Icon = option.icon;
         const isSelected = selectedValue === option.value;
         return (
-          <button
-            key={option.value as string}
-            type="button"
-            onClick={() => onSelect(option.value)}
-            className={cn(
-              "w-12 h-12 rounded-full flex items-center justify-center transition-all",
-              isSelected
-                ? "bg-primary text-primary-foreground border-2 border-primary dark:bg-[hsl(var(--round-accent))] dark:border-[hsl(var(--round-accent))]"
-                : "bg-muted text-muted-foreground border border-border dark:bg-[hsl(var(--round-input))] dark:border-[hsl(var(--round-border))] hover:bg-muted/80 dark:hover:bg-[hsl(var(--round-input))]/80"
-            )}
-            title={option.label}
-          >
-            <Icon className="w-5 h-5" />
-          </button>
+          <div key={option.value as string} className="flex flex-col items-center gap-1">
+            <button
+              type="button"
+              onClick={() => onSelect(option.value)}
+              className={cn(
+                "w-12 h-12 rounded-full flex items-center justify-center transition-all",
+                isSelected
+                  ? "bg-primary text-primary-foreground border-2 border-primary dark:bg-[hsl(var(--round-accent))] dark:border-[hsl(var(--round-accent))]"
+                  : "bg-muted text-muted-foreground border border-border dark:bg-[hsl(var(--round-input))] dark:border-[hsl(var(--round-border))] hover:bg-muted/80 dark:hover:bg-[hsl(var(--round-input))]/80"
+              )}
+              title={option.label}
+            >
+              <Icon className="w-5 h-5" />
+            </button>
+            <span className="text-[10px] text-muted-foreground">{option.label}</span>
+          </div>
         );
       })}
     </div>
