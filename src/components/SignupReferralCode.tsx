@@ -78,7 +78,7 @@ const SignupReferralCode = () => {
   return (
     <div className="space-y-2 py-2">
       <p className="text-xs text-muted-foreground">
-        Supports the creator who shared Trackd with you.
+        Supports the creator who shared TRACKD with you.
       </p>
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
