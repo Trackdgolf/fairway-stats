@@ -125,26 +125,7 @@ const ClubPerformance = () => {
           {isLoading ? "Loading..." : shotCount > 0 ? `Based on ${shotCount} ${shotType}` : `No ${shotType} recorded yet`}
         </p>
 
-        {/* Time Range Filter */}
-        <div className="flex gap-2 mb-6">
-          <Select
-            value={timeRange}
-            onValueChange={(value) => setTimeRange(value as TimeRange)}
-          >
-            <SelectTrigger className="w-[140px] h-9">
-              <SelectValue placeholder="Time Range" />
-            </SelectTrigger>
-            <SelectContent>
-              {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
-                <SelectItem key={range} value={range}>
-                  {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Club Filter - only show for teeShots and approach */}
+        {/* Club Filter + Time Range - for teeShots and approach */}
         {activeTab !== "scramble" && (
           <div className="flex gap-2 mb-6">
             <Button
@@ -170,10 +151,26 @@ const ClubPerformance = () => {
                 ))}
               </SelectContent>
             </Select>
+
+            <Select
+              value={timeRange}
+              onValueChange={(value) => setTimeRange(value as TimeRange)}
+            >
+              <SelectTrigger className="w-[120px] h-9 ml-auto">
+                <SelectValue placeholder="Time Range" />
+              </SelectTrigger>
+              <SelectContent>
+                {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+                  <SelectItem key={range} value={range}>
+                    {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
-        {/* Scramble Shot Type Filter */}
+        {/* Scramble Shot Type Filter + Time Range */}
         {activeTab === "scramble" && (
           <ScrollArea className="w-full whitespace-nowrap mb-6">
             <div className="flex gap-2 pb-2">
@@ -188,6 +185,22 @@ const ClubPerformance = () => {
                   {type.label}
                 </Button>
               ))}
+
+              <Select
+                value={timeRange}
+                onValueChange={(value) => setTimeRange(value as TimeRange)}
+              >
+                <SelectTrigger className="w-[120px] h-9 flex-shrink-0 ml-auto">
+                  <SelectValue placeholder="Time Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+                    <SelectItem key={range} value={range}>
+                      {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
