@@ -7,8 +7,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Shield, ArrowUpDown, RefreshCw } from 'lucide-react';
+import { Shield, ArrowUpDown, RefreshCw, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 type SortField = 'total_claimed' | 'total_converted' | 'total_paid' | 'last_claimed_at' | 'handle' | 'total_payable_amount';
 type SortDir = 'asc' | 'desc';
@@ -38,6 +50,16 @@ interface PendingPayout {
   converted_at: string;
 }
 
+interface PaidPayout {
+  id: string;
+  handle: string;
+  code: string;
+  converted_period: string;
+  payable_amount: number;
+  converted_at: string;
+  paid_at: string;
+}
+
 const Admin = () => {
   const { loading: authLoading } = useAuth();
   const { isAdmin, isLoading: roleLoading } = useAdminRole();
@@ -45,10 +67,13 @@ const Admin = () => {
 
   const [stats, setStats] = useState<InfluencerStat[]>([]);
   const [pendingPayouts, setPendingPayouts] = useState<PendingPayout[]>([]);
+  const [paidPayouts, setPaidPayouts] = useState<PaidPayout[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<SortField>('total_claimed');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
+  const [confirmPayout, setConfirmPayout] = useState<PendingPayout | null>(null);
 
   useEffect(() => {
     if (!authLoading && !roleLoading && !isAdmin) {
@@ -68,6 +93,7 @@ const Admin = () => {
 
     setStats((data?.stats as unknown as InfluencerStat[]) || []);
     setPendingPayouts((data?.pendingPayouts as PendingPayout[]) || []);
+    setPaidPayouts((data?.paidPayouts as PaidPayout[]) || []);
     setLastUpdated(new Date());
     setLoading(false);
   };
@@ -76,6 +102,28 @@ const Admin = () => {
     if (!isAdmin) return;
     fetchData();
   }, [isAdmin]);
+
+  const handleMarkPaid = async () => {
+    if (!confirmPayout) return;
+    setMarkingPaidId(confirmPayout.id);
+    setConfirmPayout(null);
+
+    const { data, error } = await supabase.functions.invoke('mark-referral-paid', {
+      body: { referral_id: confirmPayout.id },
+    });
+
+    if (error) {
+      console.error('Error marking as paid:', error);
+      toast.error('Failed to mark as paid');
+      setMarkingPaidId(null);
+      return;
+    }
+
+    toast.success(`Marked referral ${confirmPayout.code} as paid`);
+    setMarkingPaidId(null);
+    // Refresh data
+    fetchData();
+  };
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -204,53 +252,141 @@ const Admin = () => {
           )}
         </div>
 
-        {/* Pending Payouts Table */}
+        {/* Payouts Section with Tabs */}
         <div className="rounded-lg border bg-card">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold text-card-foreground">Conversions Awaiting Payout</h2>
-            <p className="text-sm text-muted-foreground">Referrals that have converted but not yet been marked as paid</p>
-          </div>
-
-          {loading ? (
-            <div className="p-4 space-y-3">
-              {[1, 2].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+          <Tabs defaultValue="pending">
+            <div className="p-4 border-b">
+              <TabsList>
+                <TabsTrigger value="pending">
+                  Awaiting Payout
+                  {pendingPayouts.length > 0 && (
+                    <Badge variant="destructive" className="ml-2 text-xs">
+                      {pendingPayouts.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="paid">Paid (Last 90 Days)</TabsTrigger>
+              </TabsList>
             </div>
-          ) : pendingPayouts.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">No conversions awaiting payout.</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Influencer</TableHead>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Period</TableHead>
-                  <TableHead className="text-right">Amount (£)</TableHead>
-                  <TableHead>Converted At</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pendingPayouts.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-medium">{row.handle}</TableCell>
-                    <TableCell className="font-mono text-sm">{row.code}</TableCell>
-                    <TableCell>
-                      <Badge variant={row.converted_period === 'annual' ? 'default' : 'secondary'}>
-                        {row.converted_period}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">
-                      £{Number(row.payable_amount).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {row.converted_at ? new Date(row.converted_at).toLocaleDateString() : '—'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+
+            <TabsContent value="pending" className="mt-0">
+              {loading ? (
+                <div className="p-4 space-y-3">
+                  {[1, 2].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+                </div>
+              ) : pendingPayouts.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">No conversions awaiting payout.</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Influencer</TableHead>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Period</TableHead>
+                      <TableHead className="text-right">Amount (£)</TableHead>
+                      <TableHead>Converted At</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingPayouts.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell className="font-medium">{row.handle}</TableCell>
+                        <TableCell className="font-mono text-sm">{row.code}</TableCell>
+                        <TableCell>
+                          <Badge variant={row.converted_period === 'annual' ? 'default' : 'secondary'}>
+                            {row.converted_period}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          £{Number(row.payable_amount).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {row.converted_at ? new Date(row.converted_at).toLocaleDateString() : '—'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={markingPaidId === row.id}
+                            onClick={() => setConfirmPayout(row)}
+                          >
+                            <Check className="h-3 w-3 mr-1" />
+                            {markingPaidId === row.id ? 'Marking…' : 'Mark Paid'}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </TabsContent>
+
+            <TabsContent value="paid" className="mt-0">
+              {loading ? (
+                <div className="p-4 space-y-3">
+                  {[1, 2].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+                </div>
+              ) : paidPayouts.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">No paid referrals in the last 90 days.</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Influencer</TableHead>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Period</TableHead>
+                      <TableHead className="text-right">Amount (£)</TableHead>
+                      <TableHead>Converted At</TableHead>
+                      <TableHead>Paid At</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paidPayouts.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell className="font-medium">{row.handle}</TableCell>
+                        <TableCell className="font-mono text-sm">{row.code}</TableCell>
+                        <TableCell>
+                          <Badge variant={row.converted_period === 'annual' ? 'default' : 'secondary'}>
+                            {row.converted_period}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          £{Number(row.payable_amount).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {row.converted_at ? new Date(row.converted_at).toLocaleDateString() : '—'}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {row.paid_at ? new Date(row.paid_at).toLocaleDateString() : '—'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={!!confirmPayout} onOpenChange={(open) => !open && setConfirmPayout(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark referral as paid?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will mark the referral for <span className="font-semibold">{confirmPayout?.handle}</span> (code: {confirmPayout?.code}) as paid.
+              Amount: <span className="font-semibold">£{Number(confirmPayout?.payable_amount || 0).toFixed(2)}</span> ({confirmPayout?.converted_period}).
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleMarkPaid}>Confirm Payment</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

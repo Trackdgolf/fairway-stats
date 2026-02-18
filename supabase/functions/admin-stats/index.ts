@@ -93,8 +93,39 @@ serve(async (req: Request): Promise<Response> => {
       }));
     }
 
+    // Fetch paid referrals (last 90 days)
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+    const { data: paidRows, error: paidError } = await supabaseAdmin
+      .from("referrals")
+      .select("id, code, converted_period, payable_amount, converted_at, paid_at, influencer_id")
+      .eq("status", "paid")
+      .gte("paid_at", ninetyDaysAgo.toISOString())
+      .order("paid_at", { ascending: false });
+
+    let paidPayouts: any[] = [];
+    if (!paidError && paidRows && paidRows.length > 0) {
+      const paidInfluencerIds = [...new Set(paidRows.map((p: any) => p.influencer_id))];
+      const { data: paidInfluencers } = await supabaseAdmin
+        .from("influencers")
+        .select("id, handle")
+        .in("id", paidInfluencerIds);
+
+      const paidHandleMap = new Map((paidInfluencers || []).map((i: any) => [i.id, i.handle]));
+      paidPayouts = paidRows.map((p: any) => ({
+        id: p.id,
+        handle: paidHandleMap.get(p.influencer_id) || "Unknown",
+        code: p.code,
+        converted_period: p.converted_period || "unknown",
+        payable_amount: p.payable_amount || 0,
+        converted_at: p.converted_at || "",
+        paid_at: p.paid_at || "",
+      }));
+    }
+
     return new Response(
-      JSON.stringify({ stats: stats || [], pendingPayouts }),
+      JSON.stringify({ stats: stats || [], pendingPayouts, paidPayouts }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
