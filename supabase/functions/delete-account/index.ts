@@ -44,7 +44,8 @@ Deno.serve(async (req) => {
     }
 
     const userId = user.id;
-    console.log(`Starting account deletion for user: ${userId}`);
+    const maskedId = userId.substring(0, 8) + '...';
+    console.log(`Starting account deletion for user: ${maskedId}`);
 
     // Create admin client with service role for data deletion and auth user deletion
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
@@ -141,7 +142,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Successfully deleted account for user: ${userId}`);
+    console.log(`Successfully deleted account for user: ${maskedId}`);
 
     return new Response(
       JSON.stringify({ success: true, message: 'Account deleted successfully' }),

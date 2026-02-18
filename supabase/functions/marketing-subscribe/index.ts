@@ -36,6 +36,14 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
+    // Validate email length
+    if (email.length > 255) {
+      return new Response(
+        JSON.stringify({ error: "Email too long" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -45,9 +53,30 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
+    // Validate source field
+    const validSources = ["app", "web", "landing-page", "app-settings"];
+    if (source && !validSources.includes(source)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid source value" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Validate user_id format if provided
+    if (user_id) {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(user_id)) {
+        return new Response(
+          JSON.stringify({ error: "Invalid user_id format" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+    }
+
     const normalizedEmail = email.toLowerCase().trim();
 
-    console.log(`Marketing subscribe request for: ${normalizedEmail}, source: ${source}`);
+    const maskedEmail = normalizedEmail.substring(0, 2) + '***@' + normalizedEmail.split('@')[1];
+    console.log(`Marketing subscribe request for: ${maskedEmail}, source: ${source}`);
 
     // Check if record exists
     const { data: existingRecord, error: selectError } = await supabase

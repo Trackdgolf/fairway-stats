@@ -100,7 +100,8 @@ serve(async (req: Request): Promise<Response> => {
         );
       }
 
-      console.log(`Marketing preference update for ${normalizedEmail}: enabled=${enabled}`);
+      const maskedEmail = normalizedEmail.substring(0, 2) + '***@' + normalizedEmail.split('@')[1];
+      console.log(`Marketing preference update for ${maskedEmail}: enabled=${enabled}`);
 
       // Check if record exists
       const { data: existingRecord, error: selectError } = await supabaseAdmin
