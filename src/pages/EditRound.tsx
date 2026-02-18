@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Circle, Minus, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Circle, Minus, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
@@ -7,13 +7,6 @@ import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import ClubSelectorDrawer from "@/components/ClubSelectorDrawer";
 
 type FirDirection = 'hit' | 'left' | 'right' | 'short' | null;
 type GirDirection = 'hit' | 'left' | 'right' | 'long' | 'short' | null;
@@ -45,6 +39,7 @@ interface HoleStats {
   approach_club: string | null;
   scramble_club: string | null;
   scramble_shot_type: ScrambleShotType;
+  yardage: number | null;
 }
 
 const FIR_DIRECTIONS: { icon: typeof Circle; value: FirDirection; label: string }[] = [
@@ -195,6 +190,9 @@ const EditRound = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [holeStats, setHoleStats] = useState<HoleStats[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [teeClubDrawerOpen, setTeeClubDrawerOpen] = useState(false);
+  const [approachClubDrawerOpen, setApproachClubDrawerOpen] = useState(false);
+  const [scrambleClubDrawerOpen, setScrambleClubDrawerOpen] = useState(false);
 
   // Fetch round data
   const { data: roundData, isLoading: roundLoading } = useQuery({
@@ -394,6 +392,13 @@ const EditRound = () => {
                   {currentHole?.par}
                 </div>
               </div>
+              <div className="w-px h-16 bg-border dark:bg-[hsl(var(--round-border))]" />
+              <div className="text-center">
+                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Yards</div>
+                <div className="text-3xl font-semibold text-foreground">
+                  {currentHole?.yardage ?? '-'}
+                </div>
+              </div>
             </div>
             <div className="flex gap-1">
               {Array.from({ length: totalHoles }).map((_, idx) => (
@@ -445,13 +450,6 @@ const EditRound = () => {
                       No
                     </ToggleButton>
                   </div>
-                  {currentHole?.fir === false && (
-                    <ShotDirectionSelector
-                      options={FIR_DIRECTIONS.filter(d => d.value !== 'hit')}
-                      selectedValue={currentHole?.fir_direction}
-                      onSelect={(val) => updateHoleStats({ fir_direction: val })}
-                    />
-                  )}
                 </div>
               )}
 
@@ -474,71 +472,16 @@ const EditRound = () => {
                       No
                     </ToggleButton>
                   </div>
-                  {currentHole?.gir === false && (
-                    <ShotDirectionSelector
-                      options={GIR_DIRECTIONS.filter(d => d.value !== 'hit')}
-                      selectedValue={currentHole?.gir_direction}
-                      onSelect={(val) => updateHoleStats({ gir_direction: val })}
-                    />
-                  )}
                 </div>
               )}
             </div>
           )}
 
-          {/* Tee Club - only show if not par 3 */}
-          {preferences.teeClub && currentHole?.par !== 3 && (
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                Tee Club
-              </label>
-              <Select
-                value={currentHole?.tee_club || ""}
-                onValueChange={(val) => updateHoleStats({ tee_club: val })}
-              >
-                <SelectTrigger className="h-12 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))]">
-                  <SelectValue placeholder="Select club" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clubs.map((club) => (
-                    <SelectItem key={club.id} value={club.name}>
-                      {club.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Approach Club */}
-          {preferences.approachClub && (
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                {currentHole?.par === 3 ? "Tee Club" : "Approach Club"}
-              </label>
-              <Select
-                value={currentHole?.par === 3 ? (currentHole?.approach_club || "") : (currentHole?.approach_club || "")}
-                onValueChange={(val) => updateHoleStats({ approach_club: val })}
-              >
-                <SelectTrigger className="h-12 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))]">
-                  <SelectValue placeholder="Select club" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clubs.map((club) => (
-                    <SelectItem key={club.id} value={club.name}>
-                      {club.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Scramble - only show if GIR is not Yes */}
+          {/* Scramble - only show when GIR is not Yes */}
           {preferences.scramble && currentHole?.gir !== true && (
             <div className="space-y-3">
               <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                Scramble
+                Scramble %
               </label>
               <div className="flex gap-2">
                 <ToggleButton
@@ -560,49 +503,60 @@ const EditRound = () => {
                   N/A
                 </ToggleButton>
               </div>
+            </div>
+          )}
 
-              {/* Scramble Club - only show if scramble is yes or no */}
-              {(currentHole?.scramble === 'yes' || currentHole?.scramble === 'no') && (
-                <>
-                  <Select
-                    value={currentHole?.scramble_club || ""}
-                    onValueChange={(val) => updateHoleStats({ scramble_club: val })}
+          {/* Scramble Club - only show when Scramble is Yes or No */}
+          {preferences.scramble && (currentHole?.scramble === 'yes' || currentHole?.scramble === 'no') && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Scramble Club
+              </label>
+              <button
+                type="button"
+                onClick={() => setScrambleClubDrawerOpen(true)}
+                className="w-full h-14 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
+              >
+                <span className={currentHole?.scramble_club ? "text-foreground" : "text-muted-foreground"}>
+                  {currentHole?.scramble_club || "Select Club"}
+                </span>
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <ClubSelectorDrawer
+                open={scrambleClubDrawerOpen}
+                onOpenChange={setScrambleClubDrawerOpen}
+                title="Select Scramble Club"
+                clubs={clubs}
+                selectedClub={currentHole?.scramble_club || ""}
+                onSelect={(value) => updateHoleStats({ scramble_club: value })}
+              />
+
+              {/* Scramble Shot Type */}
+              <div className="space-y-3 mt-4">
+                <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                  Shot Type
+                </label>
+                <div className="flex gap-2">
+                  <ToggleButton
+                    selected={currentHole?.scramble_shot_type === 'pitch'}
+                    onClick={() => updateHoleStats({ scramble_shot_type: 'pitch' })}
                   >
-                    <SelectTrigger className="h-12 bg-muted dark:bg-[hsl(var(--round-input))] border-border dark:border-[hsl(var(--round-border))]">
-                      <SelectValue placeholder="Select scramble club" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clubs.map((club) => (
-                        <SelectItem key={club.id} value={club.name}>
-                          {club.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Scramble Shot Type */}
-                  <div className="flex gap-2">
-                    <ToggleButton
-                      selected={currentHole?.scramble_shot_type === 'pitch'}
-                      onClick={() => updateHoleStats({ scramble_shot_type: 'pitch' })}
-                    >
-                      Pitch
-                    </ToggleButton>
-                    <ToggleButton
-                      selected={currentHole?.scramble_shot_type === 'chip'}
-                      onClick={() => updateHoleStats({ scramble_shot_type: 'chip' })}
-                    >
-                      Chip
-                    </ToggleButton>
-                    <ToggleButton
-                      selected={currentHole?.scramble_shot_type === 'bunker'}
-                      onClick={() => updateHoleStats({ scramble_shot_type: 'bunker' })}
-                    >
-                      Bunker
-                    </ToggleButton>
-                  </div>
-                </>
-              )}
+                    Pitch
+                  </ToggleButton>
+                  <ToggleButton
+                    selected={currentHole?.scramble_shot_type === 'chip'}
+                    onClick={() => updateHoleStats({ scramble_shot_type: 'chip' })}
+                  >
+                    Chip
+                  </ToggleButton>
+                  <ToggleButton
+                    selected={currentHole?.scramble_shot_type === 'bunker'}
+                    onClick={() => updateHoleStats({ scramble_shot_type: 'bunker' })}
+                  >
+                    Bunker
+                  </ToggleButton>
+                </div>
+              </div>
             </div>
           )}
 
@@ -615,6 +569,83 @@ const EditRound = () => {
               min={0}
               max={10}
             />
+          )}
+
+          {/* Tee Club */}
+          {preferences.teeClub && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Tee Club
+              </label>
+              <button
+                type="button"
+                onClick={() => setTeeClubDrawerOpen(true)}
+                className="w-full h-14 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
+              >
+                <span className={currentHole?.tee_club ? "text-foreground" : "text-muted-foreground"}>
+                  {currentHole?.tee_club || "Select Club"}
+                </span>
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <ClubSelectorDrawer
+                open={teeClubDrawerOpen}
+                onOpenChange={setTeeClubDrawerOpen}
+                title="Select Tee Club"
+                clubs={clubs}
+                selectedClub={currentHole?.tee_club || ""}
+                onSelect={(value) => updateHoleStats({ tee_club: value })}
+              />
+              {/* FIR direction - only shown on non-Par 3s */}
+              {preferences.fir && currentHole?.par !== 3 && (
+                <ShotDirectionSelector
+                  options={FIR_DIRECTIONS}
+                  selectedValue={currentHole?.fir_direction}
+                  onSelect={(value) => updateHoleStats({ fir_direction: value })}
+                />
+              )}
+              {/* GIR direction - shown on Par 3s under Tee Club since tee shot = approach */}
+              {preferences.gir && currentHole?.par === 3 && (
+                <ShotDirectionSelector
+                  options={GIR_DIRECTIONS}
+                  selectedValue={currentHole?.gir_direction}
+                  onSelect={(value) => updateHoleStats({ gir_direction: value })}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Approach Club - hidden on Par 3s */}
+          {preferences.approachClub && currentHole?.par !== 3 && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Approach Club
+              </label>
+              <button
+                type="button"
+                onClick={() => setApproachClubDrawerOpen(true)}
+                className="w-full h-14 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
+              >
+                <span className={currentHole?.approach_club ? "text-foreground" : "text-muted-foreground"}>
+                  {currentHole?.approach_club || "Select Club"}
+                </span>
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <ClubSelectorDrawer
+                open={approachClubDrawerOpen}
+                onOpenChange={setApproachClubDrawerOpen}
+                title="Select Approach Club"
+                clubs={clubs}
+                selectedClub={currentHole?.approach_club || ""}
+                onSelect={(value) => updateHoleStats({ approach_club: value })}
+              />
+              {preferences.gir && (
+                <ShotDirectionSelector
+                  options={GIR_DIRECTIONS}
+                  selectedValue={currentHole?.gir_direction}
+                  onSelect={(value) => updateHoleStats({ gir_direction: value })}
+                />
+              )}
+            </div>
           )}
         </div>
 
