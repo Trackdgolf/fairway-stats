@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import type { TimeRange } from "@/hooks/useRoundStats";
 import { useNavigate } from "react-router-dom";
 import { Settings, Crown, Loader2 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
@@ -33,10 +34,11 @@ const ClubPerformance = () => {
   const [selectedTeeClub, setSelectedTeeClub] = useState<string>("all");
   const [selectedApproachClub, setSelectedApproachClub] = useState<string>("all");
   const [selectedScrambleShotType, setSelectedScrambleShotType] = useState<ScrambleShotTypeFilter>("all");
+  const [timeRange, setTimeRange] = useState<TimeRange>("MAX");
   const [showPaywall, setShowPaywall] = useState(false);
 
   const { clubs: bagClubs } = useUserPreferences();
-  const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType);
+  const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType, timeRange);
 
   // Sort clubs by bag order, only include clubs with data - MUST be before early returns
   const sortedTeeClubs = useMemo(() => {
@@ -122,6 +124,20 @@ const ClubPerformance = () => {
         <p className="text-sm text-muted-foreground text-center mb-4">
           {isLoading ? "Loading..." : shotCount > 0 ? `Based on ${shotCount} ${shotType}` : `No ${shotType} recorded yet`}
         </p>
+
+        {/* Time Range Filter */}
+        <div className="flex gap-2 mb-6">
+          {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+            <Button
+              key={range}
+              onClick={() => setTimeRange(range)}
+              variant={timeRange === range ? "default" : "outline"}
+              className={timeRange === range ? "" : "bg-muted text-muted-foreground hover:bg-muted/80"}
+            >
+              {range}
+            </Button>
+          ))}
+        </div>
 
         {/* Club Filter - only show for teeShots and approach */}
         {activeTab !== "scramble" && (

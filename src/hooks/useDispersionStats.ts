@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getSupabaseClient } from "@/lib/supabaseClient";
+import type { TimeRange } from "@/hooks/useRoundStats";
 
 export interface ScrambleClubStats {
   club: string;
@@ -32,16 +33,71 @@ export interface DispersionStats {
   approachClubs: string[];
 }
 
-export const useDispersionStats = (selectedTeeClub: string, selectedApproachClub: string, selectedScrambleShotType: string = "all") => {
+const getDateCutoff = (timeRange: TimeRange): Date | null => {
+  if (timeRange === "MAX" || timeRange === "LAST") return null;
+  const now = new Date();
+  switch (timeRange) {
+    case "3M":
+      return new Date(now.setMonth(now.getMonth() - 3));
+    case "6M":
+      return new Date(now.setMonth(now.getMonth() - 6));
+    case "1Y":
+      return new Date(now.setFullYear(now.getFullYear() - 1));
+    default:
+      return null;
+  }
+};
+
+export const useDispersionStats = (
+  selectedTeeClub: string,
+  selectedApproachClub: string,
+  selectedScrambleShotType: string = "all",
+  timeRange: TimeRange = "MAX"
+) => {
   const supabase = getSupabaseClient();
-  
+
   return useQuery({
-    queryKey: ["dispersion-stats", selectedTeeClub, selectedApproachClub, selectedScrambleShotType],
+    queryKey: ["dispersion-stats", selectedTeeClub, selectedApproachClub, selectedScrambleShotType, timeRange],
     queryFn: async (): Promise<DispersionStats> => {
-      // Fetch all hole stats for the current user
+      // Step 1: Get qualifying round IDs based on time range
+      let roundsQuery = supabase
+        .from("rounds")
+        .select("id, played_at")
+        .order("played_at", { ascending: false });
+
+      const dateCutoff = getDateCutoff(timeRange);
+      if (dateCutoff) {
+        roundsQuery = roundsQuery.gte("played_at", dateCutoff.toISOString());
+      }
+
+      const { data: rounds, error: roundsError } = await roundsQuery;
+      if (roundsError) throw roundsError;
+
+      let qualifyingRoundIds: string[];
+
+      if (timeRange === "LAST") {
+        // Only use the most recent round
+        qualifyingRoundIds = rounds && rounds.length > 0 ? [rounds[0].id] : [];
+      } else {
+        qualifyingRoundIds = (rounds || []).map((r) => r.id);
+      }
+
+      // If no qualifying rounds, return empty stats
+      if (qualifyingRoundIds.length === 0) {
+        return {
+          teeShots: { total: 0, fwHit: 0, left: 0, right: 0, short: 0 },
+          approach: { total: 0, onGreen: 0, long: 0, left: 0, right: 0, short: 0 },
+          scramble: { total: 0, clubs: [] },
+          teeClubs: [],
+          approachClubs: [],
+        };
+      }
+
+      // Step 2: Fetch hole stats filtered by qualifying round IDs
       const { data: holeStats, error } = await supabase
         .from("hole_stats")
-        .select("*");
+        .select("*")
+        .in("round_id", qualifyingRoundIds);
 
       if (error) throw error;
 
@@ -52,7 +108,7 @@ export const useDispersionStats = (selectedTeeClub: string, selectedApproachClub
       const approachClubs = [...new Set(stats.map(s => s.approach_club).filter(Boolean))] as string[];
 
       // Filter tee shots by selected club
-      const teeShots = selectedTeeClub === "all" 
+      const teeShots = selectedTeeClub === "all"
         ? stats.filter(s => s.fir_direction)
         : stats.filter(s => s.tee_club === selectedTeeClub && s.fir_direction);
 
@@ -89,11 +145,11 @@ export const useDispersionStats = (selectedTeeClub: string, selectedApproachClub
       });
 
       const clubStatsMap: Record<string, { attempts: number; successes: number }> = {};
-      
+
       scrambleAttempts.forEach(stat => {
         const club = stat.scramble_club;
         if (!club) return;
-        
+
         if (!clubStatsMap[club]) {
           clubStatsMap[club] = { attempts: 0, successes: 0 };
         }
