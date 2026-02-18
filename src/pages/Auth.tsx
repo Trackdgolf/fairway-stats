@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import logoLight from '@/assets/logo-light.png';
 import logoDark from '@/assets/logo-dark.png';
+import SignupReferralCode from '@/components/SignupReferralCode';
 
 const authSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -269,6 +270,9 @@ const Auth = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Referral code - only shown on signup */}
+                {mode === 'signup' && <SignupReferralCode />}
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {getButtonText()}
