@@ -194,6 +194,7 @@ const Round = () => {
   const [scrambleClubDrawerOpen, setScrambleClubDrawerOpen] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [savedTotalScore, setSavedTotalScore] = useState(0);
+  const [savedRoundId, setSavedRoundId] = useState<string | null>(null);
   const [holeStats, setHoleStats] = useState<HoleStats[]>(
     restoredStats || course?.holes?.map((hole: { par?: number }) => ({
       score: hole?.par || null,
@@ -348,6 +349,7 @@ const Round = () => {
       await deleteInProgressRound();
 
       setSavedTotalScore(totalScore);
+      setSavedRoundId(roundData.id);
       setShowSummaryModal(true);
     } catch (error) {
       console.error('Error saving round:', error);
@@ -757,6 +759,7 @@ const Round = () => {
         onClose={() => setShowSummaryModal(false)}
         courseName={course.course_name || course.club_name}
         totalScore={savedTotalScore}
+        roundId={savedRoundId || undefined}
         holeStats={holeStats.map((stat, idx) => ({
           score: stat.score,
           fir: course.holes?.[idx]?.par === 3 ? null : stat.fir,

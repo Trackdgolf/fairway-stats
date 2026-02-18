@@ -89,6 +89,7 @@ const Home = () => {
     courseName: string;
     totalScore: number | null;
     holeStats: Array<{ score: number | null; fir: boolean | null; gir: boolean | null; scramble: 'yes' | 'no' | 'n/a' | null; putts: number | null; par: number | null }>;
+    roundId: string;
   } | null>(null);
   const [loadingShareId, setLoadingShareId] = useState<string | null>(null);
 
@@ -106,6 +107,7 @@ const Home = () => {
       setSummaryData({
         courseName: round.course_name,
         totalScore: round.total_score,
+        roundId: round.id,
         holeStats: (data || []).map(h => ({
           score: h.score,
           fir: h.fir,
@@ -370,6 +372,7 @@ const Home = () => {
           courseName={summaryData.courseName}
           totalScore={summaryData.totalScore}
           holeStats={summaryData.holeStats}
+          roundId={summaryData.roundId}
         />
       )}
     </div>
