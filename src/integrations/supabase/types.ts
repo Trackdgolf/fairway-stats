@@ -115,6 +115,36 @@ export type Database = {
         }
         Relationships: []
       }
+      influencers: {
+        Row: {
+          code: string
+          commission_type: string
+          commission_value: number
+          created_at: string
+          handle: string
+          id: string
+          is_active: boolean
+        }
+        Insert: {
+          code: string
+          commission_type?: string
+          commission_value?: number
+          created_at?: string
+          handle: string
+          id?: string
+          is_active?: boolean
+        }
+        Update: {
+          code?: string
+          commission_type?: string
+          commission_value?: number
+          created_at?: string
+          handle?: string
+          id?: string
+          is_active?: boolean
+        }
+        Relationships: []
+      }
       marketing_subscribers: {
         Row: {
           created_at: string
@@ -171,6 +201,47 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      referrals: {
+        Row: {
+          claimed_at: string
+          code: string
+          created_at: string
+          id: string
+          influencer_id: string
+          latest_rc_event_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          code: string
+          created_at?: string
+          id?: string
+          influencer_id: string
+          latest_rc_event_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          code?: string
+          created_at?: string
+          id?: string
+          influencer_id?: string
+          latest_rc_event_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rounds: {
         Row: {
