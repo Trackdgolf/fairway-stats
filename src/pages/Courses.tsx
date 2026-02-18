@@ -119,6 +119,42 @@ const Courses = () => {
               ) : null;
             })()}
 
+            {/* Performance by Par */}
+            {(() => {
+              const holeMin = Math.min(...selectedCourse.holes.map(h => h.avgOverPar));
+              const holeMax = Math.max(...selectedCourse.holes.map(h => h.avgOverPar));
+              const parGroups = [3, 4, 5]
+                .map(par => {
+                  const holes = selectedCourse.holes.filter(h => h.par === par);
+                  if (holes.length === 0) return null;
+                  const total = holes.reduce((sum, h) => sum + h.avgOverPar, 0);
+                  const avg = total / holes.length;
+                  return { par, holes, total, avg };
+                })
+                .filter(Boolean) as { par: number; holes: any[]; total: number; avg: number }[];
+
+              return parGroups.length > 0 ? (
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm font-medium text-muted-foreground mb-3">Performance by Par</p>
+                    <div className={`grid grid-cols-${parGroups.length} gap-4`}>
+                      {parGroups.map((group, i) => (
+                        <div key={group.par} className={`text-center ${i > 0 ? 'border-l border-border' : ''}`}>
+                          <p className="text-xs text-muted-foreground mb-1">Par {group.par}s</p>
+                          <p className={`text-2xl font-bold ${getOverParColor(group.avg, holeMin, holeMax)}`}>
+                            {formatOverPar(Number(group.total.toFixed(1)))}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatOverPar(Number(group.avg.toFixed(1)))} per hole
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : null;
+            })()}
+
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
                 Based on {selectedCourse.roundCount} rounds
