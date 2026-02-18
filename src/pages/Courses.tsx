@@ -90,39 +90,6 @@ const Courses = () => {
               const front9Total = front9.reduce((sum, h) => sum + h.avgOverPar, 0);
               const back9Total = back9.reduce((sum, h) => sum + h.avgOverPar, 0);
 
-              return front9.length > 0 && back9.length > 0 ? (
-                <Card>
-                  <CardContent className="p-4">
-                    <p className="text-sm font-medium text-muted-foreground mb-3">Avg Performance vs Par</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground mb-1">Front 9</p>
-                        <p className={`text-2xl font-bold ${getOverParColor(front9Avg, holeMin, holeMax)}`}>
-                          {formatOverPar(Number(front9Total.toFixed(1)))}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {formatOverPar(Number(front9Avg.toFixed(1)))} per hole
-                        </p>
-                      </div>
-                      <div className="text-center border-l border-border">
-                        <p className="text-xs text-muted-foreground mb-1">Back 9</p>
-                        <p className={`text-2xl font-bold ${getOverParColor(back9Avg, holeMin, holeMax)}`}>
-                          {formatOverPar(Number(back9Total.toFixed(1)))}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {formatOverPar(Number(back9Avg.toFixed(1)))} per hole
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : null;
-            })()}
-
-            {/* Performance by Par */}
-            {(() => {
-              const holeMin = Math.min(...selectedCourse.holes.map(h => h.avgOverPar));
-              const holeMax = Math.max(...selectedCourse.holes.map(h => h.avgOverPar));
               const parGroups = [3, 4, 5]
                 .map(par => {
                   const holes = selectedCourse.holes.filter(h => h.par === par);
@@ -133,23 +100,52 @@ const Courses = () => {
                 })
                 .filter(Boolean) as { par: number; holes: any[]; total: number; avg: number }[];
 
-              return parGroups.length > 0 ? (
+              const hasFrontBack = front9.length > 0 && back9.length > 0;
+
+              return (hasFrontBack || parGroups.length > 0) ? (
                 <Card>
                   <CardContent className="p-4">
-                    <p className="text-sm font-medium text-muted-foreground mb-3">Performance by Par</p>
-                    <div className={`grid grid-cols-${parGroups.length} gap-4`}>
-                      {parGroups.map((group, i) => (
-                        <div key={group.par} className={`text-center ${i > 0 ? 'border-l border-border' : ''}`}>
-                          <p className="text-xs text-muted-foreground mb-1">Par {group.par}s</p>
-                          <p className={`text-2xl font-bold ${getOverParColor(group.avg, holeMin, holeMax)}`}>
-                            {formatOverPar(Number(group.total.toFixed(1)))}
+                    <p className="text-sm font-medium text-muted-foreground mb-3">Avg Performance vs Par</p>
+                    {hasFrontBack && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center">
+                          <p className="text-xs text-muted-foreground mb-1">Front 9</p>
+                          <p className={`text-2xl font-bold ${getOverParColor(front9Avg, holeMin, holeMax)}`}>
+                            {formatOverPar(Number(front9Total.toFixed(1)))}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {formatOverPar(Number(group.avg.toFixed(1)))} per hole
+                            {formatOverPar(Number(front9Avg.toFixed(1)))} per hole
                           </p>
                         </div>
-                      ))}
-                    </div>
+                        <div className="text-center border-l border-border">
+                          <p className="text-xs text-muted-foreground mb-1">Back 9</p>
+                          <p className={`text-2xl font-bold ${getOverParColor(back9Avg, holeMin, holeMax)}`}>
+                            {formatOverPar(Number(back9Total.toFixed(1)))}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatOverPar(Number(back9Avg.toFixed(1)))} per hole
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {parGroups.length > 0 && (
+                      <>
+                        {hasFrontBack && <div className="border-t border-border my-4" />}
+                        <div className={`grid gap-4 ${parGroups.length === 3 ? 'grid-cols-3' : parGroups.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                          {parGroups.map((group, i) => (
+                            <div key={group.par} className={`text-center ${i > 0 ? 'border-l border-border' : ''}`}>
+                              <p className="text-xs text-muted-foreground mb-1">Par {group.par}s</p>
+                              <p className={`text-2xl font-bold ${getOverParColor(group.avg, holeMin, holeMax)}`}>
+                                {formatOverPar(Number(group.total.toFixed(1)))}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {formatOverPar(Number(group.avg.toFixed(1)))} per hole
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               ) : null;
