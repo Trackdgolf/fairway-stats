@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Shield, ArrowUpDown } from 'lucide-react';
+import { Shield, ArrowUpDown, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type SortField = 'total_claimed' | 'total_converted' | 'total_paid' | 'last_claimed_at' | 'handle' | 'total_payable_amount';
@@ -48,6 +48,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<SortField>('total_claimed');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!authLoading && !roleLoading && !isAdmin) {
@@ -55,24 +56,24 @@ const Admin = () => {
     }
   }, [authLoading, roleLoading, isAdmin, navigate]);
 
+  const fetchData = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.functions.invoke('admin-stats');
+
+    if (error) {
+      console.error('Error fetching admin stats:', error);
+      setLoading(false);
+      return;
+    }
+
+    setStats((data?.stats as unknown as InfluencerStat[]) || []);
+    setPendingPayouts((data?.pendingPayouts as PendingPayout[]) || []);
+    setLastUpdated(new Date());
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (!isAdmin) return;
-    const fetchData = async () => {
-      setLoading(true);
-
-      // Use server-side admin edge function (validates admin role server-side)
-      const { data, error } = await supabase.functions.invoke('admin-stats');
-
-      if (error) {
-        console.error('Error fetching admin stats:', error);
-        setLoading(false);
-        return;
-      }
-
-      setStats((data?.stats as unknown as InfluencerStat[]) || []);
-      setPendingPayouts((data?.pendingPayouts as PendingPayout[]) || []);
-      setLoading(false);
-    };
     fetchData();
   }, [isAdmin]);
 
@@ -121,9 +122,27 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto p-4 pb-24 space-y-6">
-        <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            {lastUpdated && (
+              <span className="text-xs text-muted-foreground">
+                Updated {lastUpdated.toLocaleTimeString()}
+              </span>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchData}
+              disabled={loading}
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Influencer Stats Table */}
