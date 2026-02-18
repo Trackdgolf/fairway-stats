@@ -127,16 +127,21 @@ const ClubPerformance = () => {
 
         {/* Time Range Filter */}
         <div className="flex gap-2 mb-6">
-          {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
-            <Button
-              key={range}
-              onClick={() => setTimeRange(range)}
-              variant={timeRange === range ? "default" : "outline"}
-              className={timeRange === range ? "" : "bg-muted text-muted-foreground hover:bg-muted/80"}
-            >
-              {range}
-            </Button>
-          ))}
+          <Select
+            value={timeRange}
+            onValueChange={(value) => setTimeRange(value as TimeRange)}
+          >
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue placeholder="Time Range" />
+            </SelectTrigger>
+            <SelectContent>
+              {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+                <SelectItem key={range} value={range}>
+                  {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Club Filter - only show for teeShots and approach */}
