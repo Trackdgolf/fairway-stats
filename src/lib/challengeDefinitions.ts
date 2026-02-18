@@ -218,7 +218,7 @@ const scoreChallenges: ChallengeDefinition[] = [
     (s) => s.hasBackToBackBirdies),
   boolChallenge("bounce-back", "Bounce Back", "Record a birdie on the next hole after recording a bogey or worse", "score",
     (s) => s.hasBounceBack),
-  boolChallenge("easy-peasy-par-5s", "Easy peasy Par 5's", "Under par on the par 5's (18 holes)", "score",
+  boolChallenge("easy-peasy-par-5s", "Easy Peasy Par 5's", "Under par on the par 5's (18 holes)", "score",
     (s) => s.hasUnderParPar5sInRound),
   boolChallenge("par-breakers", "Par Breakers", "Shoot under par - 9 holes", "score",
     (s) => s.hasUnderParFront9 || s.hasUnderParBack9),
@@ -232,16 +232,16 @@ const scoreChallenges: ChallengeDefinition[] = [
 
 // ── Rounds Challenges (10) ──────────────────────────────────────────────────
 const roundsChallenges: ChallengeDefinition[] = [
-  { ...threshold("welcome-friend", "Welcome friend", "Play 1 round", "rounds", (s) => s.totalRounds, 1), sequence: "rounds-played", sequenceOrder: 1 },
+  { ...threshold("welcome-friend", "Welcome Friend", "Play 1 round", "rounds", (s) => s.totalRounds, 1), sequence: "rounds-played", sequenceOrder: 1 },
   { ...threshold("fun-right", "Fun Right?", "Play 10 rounds", "rounds", (s) => s.totalRounds, 10), sequence: "rounds-played", sequenceOrder: 2 },
-  { ...threshold("someones-getting-addicted", "Someones getting addicted…", "Play 25 rounds", "rounds", (s) => s.totalRounds, 25), sequence: "rounds-played", sequenceOrder: 3 },
+  { ...threshold("someones-getting-addicted", "Someones Getting Addicted…", "Play 25 rounds", "rounds", (s) => s.totalRounds, 25), sequence: "rounds-played", sequenceOrder: 3 },
   { ...threshold("theres-no-stopping-you", "There's no stopping you!", "Play 50 rounds", "rounds", (s) => s.totalRounds, 50), sequence: "rounds-played", sequenceOrder: 4 },
   { ...threshold("serious-dedication", "Serious Dedication", "Play 75 rounds", "rounds", (s) => s.totalRounds, 75), sequence: "rounds-played", sequenceOrder: 5 },
   { ...threshold("triple-digits", "Triple Digits!", "Play 100 rounds", "rounds", (s) => s.totalRounds, 100), sequence: "rounds-played", sequenceOrder: 6 },
   { ...threshold("course-collector", "Course Collector", "Play 5 different courses", "rounds", (s) => s.distinctCourseCount, 5), sequence: "courses-played", sequenceOrder: 1 },
   { ...threshold("course-connoisseur", "Course Connoisseur", "Play 10 different courses", "rounds", (s) => s.distinctCourseCount, 10), sequence: "courses-played", sequenceOrder: 2 },
   { ...threshold("well-travelled", "Well Travelled", "Play 25 different courses", "rounds", (s) => s.distinctCourseCount, 25), sequence: "courses-played", sequenceOrder: 3 },
-  threshold("tee-time-tourist", "Tee-time tourist", "Play in 3 different countries", "rounds", (s) => s.distinctCountries.length, 3),
+  threshold("tee-time-tourist", "Tee-Time Tourist", "Play in 3 different countries", "rounds", (s) => s.distinctCountries.length, 3),
 ];
 
 // ── Accuracy Challenges (6) ─────────────────────────────────────────────────
@@ -262,7 +262,7 @@ const accuracyChallenges: ChallengeDefinition[] = [
 
 // ── Short Game Challenges (11) ──────────────────────────────────────────────
 const shortGameChallenges: ChallengeDefinition[] = [
-  boolChallenge("drive-for-show", "Drive for show Putt for Dough", "No 3 putts in a round", "short-game",
+  boolChallenge("drive-for-show", "Drive For Show Putt For Dough", "No 3 putts in a round", "short-game",
     (s) => s.hasNo3PuttRound),
   boolChallenge("chip-and-dip", "Chip & Dip", "Hole out when chipping", "short-game",
     (s) => s.hasChipHoleOut),
@@ -284,11 +284,11 @@ const shortGameChallenges: ChallengeDefinition[] = [
 
 // ── GOAT Challenges (11) ────────────────────────────────────────────────────
 const goatChallenges: ChallengeDefinition[] = [
-  boolChallenge("6-and-9-anyway-up", "6 & 9 anyway up", "Shoot under 70 for 18 holes", "goat",
+  boolChallenge("6-and-9-anyway-up", "6 & 9 Anyway Up", "Shoot under 70 for 18 holes", "goat",
     (s) => s.bestScore !== null && s.bestScore < 70),
   boolChallenge("scratch", "Scratch", "Shoot level par", "goat",
     (s) => s.hasScratchRound),
-  boolChallenge("ready-to-turn-pro", "Ready to turn Pro?", "Break level par", "goat",
+  boolChallenge("ready-to-turn-pro", "Ready To Turn Pro?", "Break level par", "goat",
     (s) => s.hasUnderParRound),
   {
     id: "mr-worldwide",
@@ -301,21 +301,21 @@ const goatChallenges: ChallengeDefinition[] = [
       target: 6,
     }),
   },
-  { ...threshold("i-didnt-think-this-was-possible", "I didn't think this was possible!", "Play 200 rounds", "goat",
+  { ...threshold("i-didnt-think-this-was-possible", "I Didn't Think This Was Possible!", "Play 200 rounds", "goat",
     (s) => s.totalRounds, 200), sequence: "rounds-played", sequenceOrder: 7 },
-  boolChallenge("thats-gonna-be-expensive", "That's gonna be expensive $$", "Record a hole in one", "goat",
+  boolChallenge("thats-gonna-be-expensive", "That's Gonna Be Expensive $$", "Record a hole in one", "goat",
     (s) => s.totalHolesInOne > 0),
   boolChallenge("dialled", "Dialled", "Hit all fairways and greens in a single round", "goat",
     (s) => s.hasDialledRound),
   boolChallenge("2s", "2's", "Birdie all par 3s in a single round", "goat",
     (s) => s.hasBirdieAllPar3sInRound),
-  boolChallenge("boogeyman-dont-scare-me", "Boogeyman don't scare me", "Bogey free round", "goat",
+  boolChallenge("boogeyman-dont-scare-me", "Boogeyman Don't Scare Me", "Bogey free round", "goat",
     (s) => s.hasBogeyFreeRound),
   boolChallenge("big-bird-on-a-4", "Big Bird on a 4!", "Eagle a par 4", "goat",
     (s) => s.hasEaglePar4),
   {
     id: "1000-miles-club",
-    title: "1000 miles club",
+    title: "1000 Miles Club",
     description: "1000 miles",
     group: "goat",
     sequence: "distance",
@@ -334,13 +334,13 @@ const hiddenChallenges: ChallengeDefinition[] = [
   boolChallenge("double-digits", "Double Digits", "Record a 10 or more on a single hole", "hidden", (s) => s.hasDoubleDigits),
   boolChallenge("penalty-princess", "Penalty Princess", "5 or more penalties in a single round", "hidden", (s) => s.hasPenaltyPrincess),
   boolChallenge("making-sandcastles", "Making Sandcastles", "5 or more bunkers in a single round", "hidden", (s) => s.hasMakingSandcastles),
-  boolChallenge("this-aint-mini-golf", "This ain't mini-golf", "4+ putt", "hidden", (s) => s.has4PlusPutt),
+  boolChallenge("this-aint-mini-golf", "This Ain't Mini-Golf", "4+ putt", "hidden", (s) => s.has4PlusPutt),
   boolChallenge("wilderness-explorer", "Wilderness Explorer", "0% fairways", "hidden", (s) => s.has0FirRound),
-  boolChallenge("i-prefer-to-chip", "I prefer to chip", "0% greens", "hidden", (s) => s.has0GirRound),
+  boolChallenge("i-prefer-to-chip", "I Prefer To Chip", "0% greens", "hidden", (s) => s.has0GirRound),
   boolChallenge("back-breaking-work", "Back Breaking Work", "Back to back doubles+", "hidden", (s) => s.hasBackToBackDoubles),
   boolChallenge("false-start", "False Start", "Birdie to double", "hidden", (s) => s.hasFalseStart),
   boolChallenge("slow-start", "Slow Start", "Double bogey or worse on first hole", "hidden", (s) => s.hasSlowStart),
-  boolChallenge("finishing-with-a-whimper", "Finishing with a whimper", "Double bogey or worse on last hole", "hidden", (s) => s.hasFinishingWhimper),
+  boolChallenge("finishing-with-a-whimper", "Finishing With A Whimper", "Double bogey or worse on last hole", "hidden", (s) => s.hasFinishingWhimper),
 ];
 
 // ── Distance Challenges (13) ────────────────────────────────────────────────
@@ -354,8 +354,8 @@ const distanceChallenges: ChallengeDefinition[] = [
   { ...threshold("offas-dyke-path", "Offa's Dyke Path", "177 miles", "distance", (s) => s.totalDistanceMiles, 177), sequence: "distance", sequenceOrder: 7 },
   { ...threshold("coast-to-coast", "Coast to Coast (Wainwright)", "190 miles", "distance", (s) => s.totalDistanceMiles, 190), sequence: "distance", sequenceOrder: 8 },
   { ...threshold("london-to-paris", "London to Paris", "214 miles", "distance", (s) => s.totalDistanceMiles, 214), sequence: "distance", sequenceOrder: 9 },
-  { ...threshold("london-to-home-of-golf", "London to the Home of Golf", "351.5 miles", "distance", (s) => s.totalDistanceMiles, 351.5), sequence: "distance", sequenceOrder: 10 },
-  { ...threshold("500-miles-club", "500 miles club", "500 miles", "distance", (s) => s.totalDistanceMiles, 500), sequence: "distance", sequenceOrder: 11 },
+  { ...threshold("london-to-home-of-golf", "London To The Home Of Golf", "351.5 miles", "distance", (s) => s.totalDistanceMiles, 351.5), sequence: "distance", sequenceOrder: 10 },
+  { ...threshold("500-miles-club", "500 Miles Club", "500 miles", "distance", (s) => s.totalDistanceMiles, 500), sequence: "distance", sequenceOrder: 11 },
   { ...threshold("south-west-coastal-path", "South West Coastal Path", "630 miles", "distance", (s) => s.totalDistanceMiles, 630), sequence: "distance", sequenceOrder: 12 },
   { ...threshold("lejog", "LEJOG", "874 miles", "distance", (s) => s.totalDistanceMiles, 874), sequence: "distance", sequenceOrder: 13 },
 ];
