@@ -1,29 +1,18 @@
 
-# Add Time Range Filter to Club Performance Page
 
-## What Changes
-A time range filter (LAST / 3M / 6M / 1Y / MAX) will be added to the Club Performance page, matching the Stats page. It will appear as a row of buttons and apply across all three tabs (Tee Shots, Approach, Scramble).
+## Fix Scramble Tab Filter Overflow on Mobile
 
-## Technical Details
+The scramble filter row uses a `ScrollArea` with `flex` layout, and the time range dropdown (`w-[120px]`) combined with 4 buttons and `ml-auto` pushes it beyond the screen edge.
 
-### 1. `src/hooks/useDispersionStats.ts`
-- Add a `timeRange` parameter (reuse the `TimeRange` type from `useRoundStats`)
-- Change the query to join `hole_stats` with `rounds` via `round_id` to access `played_at`
-- Apply date cutoff filtering:
-  - "LAST": only include hole stats from the most recent round
-  - "3M" / "6M" / "1Y": filter rounds by `played_at` date
-  - "MAX": no date filter (current behavior)
-- Add `timeRange` to the `queryKey` so React Query refetches on change
+### Changes
 
-### 2. `src/pages/ClubPerformance.tsx`
-- Add `timeRange` state, defaulting to `"MAX"`
-- Add a row of time range filter buttons (LAST / 3M / 6M / 1Y / MAX) styled consistently with the Stats page
-- Position the time range buttons above the club filter / scramble shot type filter
-- Pass `timeRange` to `useDispersionStats`
-- The time range filter is shared across all tabs -- switching tabs keeps the selected time range
+**`src/pages/ClubPerformance.tsx`** (scramble filter section, ~lines 175-206):
 
-### Query approach
-Instead of fetching all hole_stats and filtering client-side by date, the hook will:
-1. First query `rounds` filtered by `played_at` to get qualifying round IDs
-2. Then query `hole_stats` filtered by those round IDs using `.in('round_id', roundIds)`
-3. This keeps the existing client-side dispersion/scramble calculation logic intact
+- Remove the `ScrollArea` wrapper -- the items should fit on one row without scrolling.
+- Use a standard `flex` container with `gap-2` and `mb-6`.
+- Reduce the scramble button gaps slightly by using `gap-1.5`.
+- Shrink the time range dropdown from `w-[120px]` to `w-[100px]`.
+- Keep `ml-auto` on the dropdown so it right-aligns, fitting cleanly within the page margins.
+
+This mirrors how the tee shots/approach filter row already works (a simple `flex` div, no `ScrollArea`), keeping everything within the `px-4` page padding.
+
