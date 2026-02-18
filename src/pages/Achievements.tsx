@@ -159,8 +159,8 @@ const Achievements = () => {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-header-foreground">Achievements</h1>
-            <p className="text-header-foreground/70 text-sm">Track your milestones</p>
+            <h1 className="text-3xl font-bold text-header-foreground mb-2">Achievements</h1>
+            <p className="text-header-foreground/80">Track your milestones</p>
           </div>
           <button
             onClick={() => navigate('/settings')}
