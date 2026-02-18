@@ -118,6 +118,8 @@ export type Database = {
       influencers: {
         Row: {
           code: string
+          commission_annual_cpa: number
+          commission_monthly_cpa: number
           commission_type: string
           commission_value: number
           created_at: string
@@ -127,6 +129,8 @@ export type Database = {
         }
         Insert: {
           code: string
+          commission_annual_cpa?: number
+          commission_monthly_cpa?: number
           commission_type?: string
           commission_value?: number
           created_at?: string
@@ -136,6 +140,8 @@ export type Database = {
         }
         Update: {
           code?: string
+          commission_annual_cpa?: number
+          commission_monthly_cpa?: number
           commission_type?: string
           commission_value?: number
           created_at?: string
@@ -206,30 +212,45 @@ export type Database = {
         Row: {
           claimed_at: string
           code: string
+          converted_at: string | null
+          converted_entitlement_id: string | null
+          converted_period: string | null
+          converted_product_id: string | null
           created_at: string
           id: string
           influencer_id: string
           latest_rc_event_at: string | null
+          payable_amount: number | null
           status: string
           user_id: string
         }
         Insert: {
           claimed_at?: string
           code: string
+          converted_at?: string | null
+          converted_entitlement_id?: string | null
+          converted_period?: string | null
+          converted_product_id?: string | null
           created_at?: string
           id?: string
           influencer_id: string
           latest_rc_event_at?: string | null
+          payable_amount?: number | null
           status?: string
           user_id: string
         }
         Update: {
           claimed_at?: string
           code?: string
+          converted_at?: string | null
+          converted_entitlement_id?: string | null
+          converted_period?: string | null
+          converted_product_id?: string | null
           created_at?: string
           id?: string
           influencer_id?: string
           latest_rc_event_at?: string | null
+          payable_amount?: number | null
           status?: string
           user_id?: string
         }
@@ -378,13 +399,18 @@ export type Database = {
       influencer_referral_stats: {
         Row: {
           code: string | null
+          commission_annual_cpa: number | null
+          commission_monthly_cpa: number | null
           handle: string | null
           influencer_id: string | null
           is_active: boolean | null
           last_claimed_at: string | null
           total_claimed: number | null
           total_converted: number | null
+          total_converted_annual: number | null
+          total_converted_monthly: number | null
           total_paid: number | null
+          total_payable_amount: number | null
         }
         Relationships: []
       }
