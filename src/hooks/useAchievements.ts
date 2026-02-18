@@ -72,7 +72,7 @@ const getDateCutoff = (timeRange: TimeRange): Date | null => {
 // ── Build all stats needed by the 74 challenges ─────────────────────────────
 type HoleStatRow = RoundHoleData & { round_id: string; yardage?: number | null };
 
-const buildUserStats = (
+export const buildUserStats = (
   allRounds: { id: string; total_score: number | null; course_id: string | null; country: string | null }[],
   allHoleStats: HoleStatRow[]
 ): UserStats => {

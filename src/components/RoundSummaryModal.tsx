@@ -4,7 +4,11 @@ import html2canvas from "html2canvas";
 import { Share2, X, MapPin, Flag, Circle, Grip, Download, Instagram, CheckCircle2, Target } from "lucide-react";
 import { canShareToInstagram, shareToInstagramStory } from "@/lib/instagramShare";
 import { useTrackdHandicap } from "@/hooks/useTrackdHandicap";
-import { useAchievements } from "@/hooks/useAchievements";
+import { buildUserStats } from "@/hooks/useAchievements";
+import { CHALLENGE_DEFINITIONS } from "@/lib/challengeDefinitions";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -36,27 +40,108 @@ interface RoundSummaryModalProps {
   totalScore: number;
   holeStats: HoleData[];
   playedAt?: string;
+  roundId?: string;
 }
 
-// --- Challenges Section ---
-const ChallengesSection = () => {
-  const { data } = useAchievements("MAX");
-  const challenges = data?.challenges || [];
+type HoleStatRow = {
+  round_id: string;
+  hole_number: number;
+  score: number | null;
+  par: number | null;
+  fir: boolean | null;
+  gir: boolean | null;
+  putts: number | null;
+  scramble: string | null;
+  scramble_shot_type: string | null;
+  penalties: number | null;
+  yardage?: number | null;
+};
 
-  const completed = challenges.filter(c => c.isCompleted);
-  const inProgress = challenges
-    .filter(c => !c.isCompleted && c.target > 0)
-    .sort((a, b) => (b.progress / b.target) - (a.progress / a.target))
-    .slice(0, 3);
+const ChallengesSection = ({ roundId }: { roundId?: string }) => {
+  const { user } = useAuth();
 
-  const displayChallenges = completed.length > 0 ? completed.slice(0, 5) : inProgress;
-  const isCompletedSection = completed.length > 0;
+  const { data: challengeData } = useQuery({
+    queryKey: ["round-challenges", roundId, user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      // Fetch all rounds
+      const { data: allRounds, error: roundsErr } = await supabase
+        .from("rounds")
+        .select("id, total_score, course_id, country")
+        .eq("user_id", user.id);
+      if (roundsErr) throw roundsErr;
+
+      const allRoundIds = (allRounds || []).map(r => r.id);
+      let allHoleStats: HoleStatRow[] = [];
+
+      if (allRoundIds.length > 0) {
+        for (let i = 0; i < allRoundIds.length; i += 100) {
+          const chunk = allRoundIds.slice(i, i + 100);
+          const { data, error } = await supabase
+            .from("hole_stats")
+            .select("round_id, hole_number, score, par, fir, gir, putts, scramble, scramble_shot_type, penalties, yardage")
+            .in("round_id", chunk);
+          if (error) throw error;
+          if (data) allHoleStats = allHoleStats.concat(data as HoleStatRow[]);
+        }
+      }
+
+      // Build stats WITH the current round (all data)
+      const statsWithRound = buildUserStats(allRounds || [], allHoleStats);
+      const challengesWithRound = CHALLENGE_DEFINITIONS.map(def => ({
+        ...def,
+        result: def.evaluate(statsWithRound),
+      }));
+
+      // Build stats WITHOUT the current round
+      const roundsWithout = (allRounds || []).filter(r => r.id !== roundId);
+      const holesWithout = allHoleStats.filter(h => h.round_id !== roundId);
+      const statsWithoutRound = buildUserStats(roundsWithout, holesWithout);
+      const challengesWithoutRound = CHALLENGE_DEFINITIONS.map(def => ({
+        ...def,
+        result: def.evaluate(statsWithoutRound),
+      }));
+
+      // Find newly completed challenges (completed WITH but not WITHOUT this round)
+      const newlyCompleted = challengesWithRound
+        .filter((c, i) => c.result.isCompleted && !challengesWithoutRound[i].result.isCompleted)
+        .map(c => ({
+          id: c.id,
+          title: c.title,
+          progress: c.result.progress,
+          target: c.result.target,
+          isCompleted: true,
+        }));
+
+      // In-progress fallback: sort by proximity to target
+      const inProgress = challengesWithRound
+        .filter(c => !c.result.isCompleted && c.result.target > 0)
+        .sort((a, b) => (b.result.progress / b.result.target) - (a.result.progress / a.result.target))
+        .slice(0, 3)
+        .map(c => ({
+          id: c.id,
+          title: c.title,
+          progress: c.result.progress,
+          target: c.result.target,
+          isCompleted: false,
+        }));
+
+      return { newlyCompleted, inProgress };
+    },
+    enabled: !!user?.id && !!roundId,
+  });
+
+  const newlyCompleted = challengeData?.newlyCompleted || [];
+  const inProgress = challengeData?.inProgress || [];
+  const displayChallenges = newlyCompleted.length > 0 ? newlyCompleted.slice(0, 5) : inProgress;
+  const isCompletedSection = newlyCompleted.length > 0;
 
   if (displayChallenges.length === 0) return null;
 
   return (
     <div className="px-4 pb-3">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
         {isCompletedSection ? "Challenges Completed" : "Challenges In Progress"}
       </p>
       <div className="space-y-2">
@@ -65,14 +150,14 @@ const ChallengesSection = () => {
             key={challenge.id}
             className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 shadow-sm"
           >
-            {isCompletedSection ? (
+            {challenge.isCompleted ? (
               <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
             ) : (
               <Target className="w-5 h-5 text-orange-500 shrink-0" />
             )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">{challenge.title}</p>
-              {!isCompletedSection && (
+              {!challenge.isCompleted && (
                 <div className="flex items-center gap-2 mt-1">
                   <Progress value={(challenge.progress / challenge.target) * 100} className="h-1.5 flex-1" />
                   <span className="text-[10px] text-gray-400 shrink-0">
@@ -158,6 +243,7 @@ const RoundSummaryModal = ({
   totalScore,
   holeStats,
   playedAt,
+  roundId,
 }: RoundSummaryModalProps) => {
   const lightCardRef = useRef<HTMLDivElement>(null);
   const darkCardRef = useRef<HTMLDivElement>(null);
@@ -330,7 +416,7 @@ const RoundSummaryModal = ({
         </div>
 
         {/* Challenges Section */}
-        <ChallengesSection />
+        <ChallengesSection roundId={roundId} />
 
         {/* Shareable Graphic Carousel - scaled down */}
         <div className="px-6">
