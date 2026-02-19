@@ -1,18 +1,21 @@
-import { Crown, RotateCcw, Loader2 } from 'lucide-react';
+import { Crown, RotateCcw, RefreshCw, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useRevenueCat } from '@/hooks/useRevenueCat';
+import { useAuth } from '@/contexts/AuthContext';
 import { PaywallModal } from './PaywallModal';
 import { toast } from '@/hooks/use-toast';
 
 export const SubscriptionStatus = () => {
   const { isPremium: isDbPremium, loading: dbLoading, refreshSubscription } = useSubscription();
   const { isPremium: isRcPremium, restore, loading: rcLoading, isNative, refreshCustomerInfo } = useRevenueCat();
+  const { user } = useAuth();
   const [showPaywall, setShowPaywall] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Use RevenueCat status on native, database status on web
   const isPremium = isNative ? isRcPremium : isDbPremium;
@@ -53,6 +56,27 @@ export const SubscriptionStatus = () => {
       });
     }
     setRestoring(false);
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      if (isNative) {
+        await refreshCustomerInfo();
+      }
+      await refreshSubscription();
+      toast({
+        title: 'Premium status updated',
+        description: 'Your subscription status has been refreshed.',
+      });
+    } catch (error) {
+      toast({
+        title: "Couldn't refresh premium status",
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+    setRefreshing(false);
   };
 
   if (loading) {
@@ -119,6 +143,21 @@ export const SubscriptionStatus = () => {
               <>
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Restore
+              </>
+            )}
+          </Button>
+
+          <Button 
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={refreshing || !user}
+          >
+            {refreshing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
               </>
             )}
           </Button>
