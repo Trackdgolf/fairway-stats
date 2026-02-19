@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.revenuecat-influencer-access]
 verify_jwt = false
+
+[functions.admin-user-lookup]
+verify_jwt = false
