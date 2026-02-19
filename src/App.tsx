@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { usePendingReferral } from "@/hooks/usePendingReferral";
+import { useRevenueCatIdentity } from "@/hooks/useRevenueCatIdentity";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Home from "./pages/Home";
 import Stats from "./pages/Stats";
@@ -29,12 +30,18 @@ const PendingReferralHandler = () => {
   return null;
 };
 
+const RevenueCatIdentityHandler = () => {
+  useRevenueCatIdentity();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <AuthProvider>
         <SubscriptionProvider>
           <PendingReferralHandler />
+          <RevenueCatIdentityHandler />
           <TooltipProvider>
             <Toaster />
             <Sonner />
