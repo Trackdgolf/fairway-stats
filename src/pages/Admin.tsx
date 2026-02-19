@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import { Shield, ArrowUpDown, RefreshCw, Check, Crown, XCircle } from 'lucide-react';
+import { Shield, ArrowUpDown, RefreshCw, Check, Crown, XCircle, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -77,8 +77,10 @@ const Admin = () => {
   const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
   const [confirmPayout, setConfirmPayout] = useState<PendingPayout | null>(null);
 
-  // Influencer Premium Access state
-  const [premiumUserId, setPremiumUserId] = useState('');
+  // Influencer Premium Lookup state
+  const [lookupEmail, setLookupEmail] = useState('');
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupUser, setLookupUser] = useState<{ user_id: string; email: string; created_at: string } | null>(null);
   const [premiumDuration, setPremiumDuration] = useState('90');
   const [premiumLoading, setPremiumLoading] = useState(false);
   const [premiumResult, setPremiumResult] = useState<{ type: 'granted' | 'revoked' | 'status' | 'error'; message: string; expiresAt?: string } | null>(null);
@@ -134,17 +136,54 @@ const Admin = () => {
     fetchData();
   };
 
-  // Influencer Premium Access handlers
-  const handleGrantPremium = async () => {
-    if (!premiumUserId.trim()) {
-      toast.error('Please enter a user ID');
+  // Influencer Premium Lookup handler
+  const handleLookupUser = async () => {
+    if (!lookupEmail.trim()) {
+      toast.error('Please enter an email address');
       return;
     }
+    setLookupLoading(true);
+    setLookupUser(null);
+    setPremiumResult(null);
+    setPremiumStatus(null);
+
+    const { data, error } = await supabase.functions.invoke('admin-user-lookup', {
+      body: { email: lookupEmail.trim() },
+    });
+
+    if (error || !data?.ok) {
+      const msg = data?.error || error?.message || 'User not found';
+      toast.error(msg);
+      setLookupLoading(false);
+      return;
+    }
+
+    setLookupUser({ user_id: data.user_id, email: data.email, created_at: data.created_at });
+    setLookupLoading(false);
+
+    // Auto-check premium status
+    setPremiumLoading(true);
+    const { data: statusData, error: statusError } = await supabase.functions.invoke('revenuecat-influencer-access', {
+      body: { action: 'status', user_id: data.user_id },
+    });
+    if (!statusError && statusData?.ok) {
+      setPremiumStatus({
+        has_premium: statusData.has_premium,
+        expires_date: statusData.expires_date,
+        product_identifier: statusData.product_identifier,
+      });
+    }
+    setPremiumLoading(false);
+  };
+
+  // Influencer Premium Access handlers
+  const handleGrantPremium = async () => {
+    if (!lookupUser) return;
     setPremiumLoading(true);
     setPremiumResult(null);
 
     const { data, error } = await supabase.functions.invoke('revenuecat-influencer-access', {
-      body: { action: 'grant', user_id: premiumUserId.trim(), duration_days: parseInt(premiumDuration) },
+      body: { action: 'grant', user_id: lookupUser.user_id, duration_days: parseInt(premiumDuration) },
     });
 
     if (error || !data?.ok) {
@@ -154,21 +193,25 @@ const Admin = () => {
     } else {
       setPremiumResult({ type: 'granted', message: `Premium granted for ${premiumDuration} days`, expiresAt: data.expires_at });
       toast.success(`Premium granted until ${new Date(data.expires_at).toLocaleDateString()}`);
+      // Refresh status
+      const { data: statusData } = await supabase.functions.invoke('revenuecat-influencer-access', {
+        body: { action: 'status', user_id: lookupUser.user_id },
+      });
+      if (statusData?.ok) {
+        setPremiumStatus({ has_premium: statusData.has_premium, expires_date: statusData.expires_date, product_identifier: statusData.product_identifier });
+      }
     }
     setPremiumLoading(false);
   };
 
   const handleRevokePremium = async () => {
     setConfirmRevoke(false);
-    if (!premiumUserId.trim()) {
-      toast.error('Please enter a user ID');
-      return;
-    }
+    if (!lookupUser) return;
     setPremiumLoading(true);
     setPremiumResult(null);
 
     const { data, error } = await supabase.functions.invoke('revenuecat-influencer-access', {
-      body: { action: 'revoke', user_id: premiumUserId.trim() },
+      body: { action: 'revoke', user_id: lookupUser.user_id },
     });
 
     if (error || !data?.ok) {
@@ -179,38 +222,6 @@ const Admin = () => {
       setPremiumResult({ type: 'revoked', message: 'Premium revoked successfully' });
       setPremiumStatus(null);
       toast.success('Premium revoked');
-    }
-    setPremiumLoading(false);
-  };
-
-  const handleCheckStatus = async () => {
-    if (!premiumUserId.trim()) {
-      toast.error('Please enter a user ID');
-      return;
-    }
-    setPremiumLoading(true);
-    setPremiumResult(null);
-    setPremiumStatus(null);
-
-    const { data, error } = await supabase.functions.invoke('revenuecat-influencer-access', {
-      body: { action: 'status', user_id: premiumUserId.trim() },
-    });
-
-    if (error || !data?.ok) {
-      const msg = data?.error || error?.message || 'Failed to fetch status';
-      setPremiumResult({ type: 'error', message: msg });
-    } else {
-      setPremiumStatus({
-        has_premium: data.has_premium,
-        expires_date: data.expires_date,
-        product_identifier: data.product_identifier,
-      });
-      setPremiumResult({
-        type: 'status',
-        message: data.has_premium
-          ? `Premium active until ${data.expires_date ? new Date(data.expires_date).toLocaleDateString() : 'N/A'}`
-          : 'No active premium entitlement',
-      });
     }
     setPremiumLoading(false);
   };
@@ -283,105 +294,107 @@ const Admin = () => {
           </div>
         </div>
 
-        {/* Influencer Premium Access Section */}
+        {/* Influencer Premium Lookup Section */}
         <div className="rounded-lg border bg-card">
           <div className="p-4 border-b">
             <div className="flex items-center gap-2">
               <Crown className="h-5 w-5 text-primary" />
               <h2 className="text-lg font-semibold text-card-foreground">Influencer Premium Access</h2>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">Grant or revoke free Premium for content creators via RevenueCat promotional entitlements</p>
+            <p className="text-sm text-muted-foreground mt-1">Search by email, then grant or revoke Premium</p>
           </div>
           <div className="p-4 space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1">
-                <label className="text-sm font-medium text-foreground mb-1 block">Supabase User ID (UUID)</label>
-                <Input
-                  placeholder="e.g. a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-                  value={premiumUserId}
-                  onChange={(e) => setPremiumUserId(e.target.value)}
-                  className="font-mono text-sm"
-                />
-              </div>
-              <div className="w-full sm:w-32">
-                <label className="text-sm font-medium text-foreground mb-1 block">Duration</label>
-                <Select value={premiumDuration} onValueChange={setPremiumDuration}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="30">30 days</SelectItem>
-                    <SelectItem value="90">90 days</SelectItem>
-                    <SelectItem value="180">180 days</SelectItem>
-                    <SelectItem value="365">1 year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={handleGrantPremium}
-                disabled={premiumLoading || !premiumUserId.trim()}
-                className="gap-1"
-              >
-                <Crown className="h-4 w-4" />
-                Grant Premium ({premiumDuration}d)
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => setConfirmRevoke(true)}
-                disabled={premiumLoading || !premiumUserId.trim()}
-                className="gap-1"
-              >
-                <XCircle className="h-4 w-4" />
-                Revoke Premium
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleCheckStatus}
-                disabled={premiumLoading || !premiumUserId.trim()}
-              >
-                Check Status
+            {/* Email search */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="user@example.com"
+                value={lookupEmail}
+                onChange={(e) => setLookupEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLookupUser()}
+                className="flex-1"
+              />
+              <Button onClick={handleLookupUser} disabled={lookupLoading || !lookupEmail.trim()}>
+                <Search className="h-4 w-4 mr-1" />
+                {lookupLoading ? 'Searching…' : 'Search'}
               </Button>
             </div>
 
-            {/* Result display */}
-            {premiumResult && (
-              <div className={`p-3 rounded-md text-sm ${
-                premiumResult.type === 'error' 
-                  ? 'bg-destructive/10 text-destructive border border-destructive/20' 
-                  : premiumResult.type === 'revoked'
-                  ? 'bg-muted text-muted-foreground border'
-                  : 'bg-primary/10 text-primary border border-primary/20'
-              }`}>
-                <p className="font-medium">{premiumResult.message}</p>
-                {premiumResult.expiresAt && (
-                  <p className="text-xs mt-1 opacity-80">Expires: {new Date(premiumResult.expiresAt).toLocaleString()}</p>
+            {/* User result card */}
+            {lookupUser && (
+              <div className="rounded-md border bg-muted/50 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-foreground">{lookupUser.email}</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">User ID: </span>
+                    <code className="font-mono text-xs bg-muted px-1 rounded">{lookupUser.user_id}</code>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Created: </span>
+                    <span>{new Date(lookupUser.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                {/* Premium status */}
+                {premiumStatus && (
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <span className="text-muted-foreground">Premium:</span>
+                    <Badge variant={premiumStatus.has_premium ? 'default' : 'secondary'}>
+                      {premiumStatus.has_premium ? 'Active' : 'Inactive'}
+                    </Badge>
+                    {premiumStatus.expires_date && (
+                      <span className="text-muted-foreground">until {new Date(premiumStatus.expires_date).toLocaleDateString()}</span>
+                    )}
+                    {premiumStatus.product_identifier && (
+                      <span className="text-xs text-muted-foreground">({premiumStatus.product_identifier})</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Grant / Revoke controls */}
+                <div className="flex flex-wrap items-end gap-2 pt-1">
+                  <div className="w-28">
+                    <Select value={premiumDuration} onValueChange={setPremiumDuration}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30">30 days</SelectItem>
+                        <SelectItem value="90">90 days</SelectItem>
+                        <SelectItem value="180">180 days</SelectItem>
+                        <SelectItem value="365">1 year</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button size="sm" onClick={handleGrantPremium} disabled={premiumLoading} className="gap-1">
+                    <Crown className="h-4 w-4" />
+                    Grant Premium
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => setConfirmRevoke(true)} disabled={premiumLoading} className="gap-1">
+                    <XCircle className="h-4 w-4" />
+                    Revoke
+                  </Button>
+                </div>
+
+                {/* Result message */}
+                {premiumResult && (
+                  <div className={`p-3 rounded-md text-sm ${
+                    premiumResult.type === 'error'
+                      ? 'bg-destructive/10 text-destructive border border-destructive/20'
+                      : premiumResult.type === 'revoked'
+                      ? 'bg-muted text-muted-foreground border'
+                      : 'bg-primary/10 text-primary border border-primary/20'
+                  }`}>
+                    <p className="font-medium">{premiumResult.message}</p>
+                    {premiumResult.expiresAt && (
+                      <p className="text-xs mt-1 opacity-80">Expires: {new Date(premiumResult.expiresAt).toLocaleString()}</p>
+                    )}
+                  </div>
                 )}
               </div>
             )}
-
-            {premiumStatus && (
-              <div className="p-3 rounded-md border bg-muted/50 text-sm space-y-1">
-                <p>
-                  <span className="font-medium">Status:</span>{' '}
-                  <Badge variant={premiumStatus.has_premium ? 'default' : 'secondary'}>
-                    {premiumStatus.has_premium ? 'Active' : 'Inactive'}
-                  </Badge>
-                </p>
-                {premiumStatus.expires_date && (
-                  <p><span className="font-medium">Expires:</span> {new Date(premiumStatus.expires_date).toLocaleString()}</p>
-                )}
-                {premiumStatus.product_identifier && (
-                  <p><span className="font-medium">Product:</span> {premiumStatus.product_identifier}</p>
-                )}
-              </div>
-            )}
-
-            <p className="text-xs text-muted-foreground">
-              💡 The <code className="font-mono bg-muted px-1 rounded">REVENUECAT_ENTITLEMENT_ID</code> secret must match the entitlement identifier in your RevenueCat dashboard (Settings → Entitlements).
-            </p>
           </div>
         </div>
 
@@ -586,7 +599,7 @@ const Admin = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Revoke Premium Access?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will immediately revoke the promotional Premium entitlement for user <code className="font-mono bg-muted px-1 rounded text-xs">{premiumUserId.substring(0, 8)}...</code>.
+              This will immediately revoke the promotional Premium entitlement for user <code className="font-mono bg-muted px-1 rounded text-xs">{lookupUser?.email || 'unknown'}</code>.
               Their access will be removed after the next entitlement refresh or app restart.
             </AlertDialogDescription>
           </AlertDialogHeader>
