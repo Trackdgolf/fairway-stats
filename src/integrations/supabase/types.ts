@@ -115,6 +115,48 @@ export type Database = {
         }
         Relationships: []
       }
+      influencer_users: {
+        Row: {
+          created_at: string
+          handle: string | null
+          id: string
+          influencer_id: string | null
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          handle?: string | null
+          id?: string
+          influencer_id?: string | null
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          handle?: string | null
+          id?: string
+          influencer_id?: string | null
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_users_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencer_referral_stats"
+            referencedColumns: ["influencer_id"]
+          },
+          {
+            foreignKeyName: "influencer_users_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       influencers: {
         Row: {
           code: string

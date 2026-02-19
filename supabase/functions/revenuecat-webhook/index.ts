@@ -136,8 +136,14 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // ── Referral / Commission Logic ──
-    if (!isAnonymousUser && userId) {
+    // ── Skip promotional/non-billing events from triggering referral payouts ──
+    const isPromotional = event.product_id?.startsWith("rc_promo_") || event.period_type === "PROMOTIONAL";
+    if (isPromotional) {
+      console.log({ ...logContext, action: "promotional-event-skipped", eventType: event.type, maskedUserId });
+    }
+
+    // ── Referral / Commission Logic (skip promotional) ──
+    if (!isAnonymousUser && userId && !isPromotional) {
       // Fetch the referral row for this user
       const { data: referral, error: refError } = await supabase
         .from("referrals")
