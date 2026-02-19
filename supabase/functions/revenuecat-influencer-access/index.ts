@@ -120,8 +120,6 @@ serve(async (req: Request): Promise<Response> => {
         method: "POST",
         headers: rcHeaders,
         body: JSON.stringify({
-          duration: "custom",
-          start_time_ms: startTimeMs,
           end_time_ms: endTimeMs,
         }),
       });
