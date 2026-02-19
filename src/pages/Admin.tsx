@@ -147,7 +147,7 @@ const Admin = () => {
       body: { action: 'grant', user_id: premiumUserId.trim(), duration_days: parseInt(premiumDuration) },
     });
 
-    if (error || !data?.success) {
+    if (error || !data?.ok) {
       const msg = data?.error || error?.message || 'Failed to grant premium';
       setPremiumResult({ type: 'error', message: msg });
       toast.error(msg);
@@ -171,7 +171,7 @@ const Admin = () => {
       body: { action: 'revoke', user_id: premiumUserId.trim() },
     });
 
-    if (error || !data?.success) {
+    if (error || !data?.ok) {
       const msg = data?.error || error?.message || 'Failed to revoke premium';
       setPremiumResult({ type: 'error', message: msg });
       toast.error(msg);
@@ -196,7 +196,7 @@ const Admin = () => {
       body: { action: 'status', user_id: premiumUserId.trim() },
     });
 
-    if (error || !data?.success) {
+    if (error || !data?.ok) {
       const msg = data?.error || error?.message || 'Failed to fetch status';
       setPremiumResult({ type: 'error', message: msg });
     } else {
