@@ -191,7 +191,7 @@ const Achievements = () => {
                     onClick={() => setTimeRange(range)}
                     className="min-w-[50px]"
                   >
-                    {range}
+                    {range === "MAX" ? "All Time" : range}
                   </Button>
                 ))}
               </div>
@@ -253,7 +253,7 @@ const Achievements = () => {
                     onClick={() => setDistanceTimeRange(range)}
                     className="min-w-[50px]"
                   >
-                    {range}
+                    {range === "MAX" ? "All Time" : range}
                   </Button>
                 ))}
               </div>
