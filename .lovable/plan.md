@@ -1,48 +1,29 @@
 
 
-## Add "Average Penalties" Stat + Move "Total Rounds" to Text
+## Add "Penalty %" Indicator to Tee Shots Dispersion Graphic
 
 ### Summary
-Replace the "Total Rounds" stat tile with a new "Average Penalties" tile (using the `AlertTriangle`/exclamation icon), make it chartable like other stats, and display total rounds as a text line below the time range buttons.
+Add a new percentage label showing the penalty rate on the fairway dispersion image, positioned center-bottom of the graphic (below the existing SHORT label area).
 
 ### Changes
 
-**1. `src/hooks/useRoundStats.ts` -- Add penalties data**
-- Add `avgPenalties: number | null` to `RoundStats` interface
-- Add `avgPenalties: ChartDataPoint[]` to `TimeSeriesData` interface
-- In the aggregate calculation, compute average penalties per round by summing `hole.penalties` across all holes per round and averaging across rounds
-- In the per-round time series loop, sum penalties for each round and push to `timeSeries.avgPenalties`
-- Include `avgPenalties` in the empty/default return objects
-
-**2. `src/pages/Stats.tsx` -- Replace tile + add text line**
-- Add `AlertTriangle` to the lucide-react import (exclamation mark triangle icon)
-- Add `"avgPenalties"` to the `StatType` union
-- Add `"avgPenalties"` to the `PREMIUM_STATS` array (keep it premium-gated)
-- In `getChartData()`, map `avgPenalties` to `data.timeSeries.avgPenalties`
-- In `getChartTitle()`, add `avgPenalties: "Avg Penalties Over Time"`
-- Replace the `totalRounds` entry in `allStats` with a new `avgPenalties` entry:
-  - icon: `AlertTriangle`
-  - value: formatted from `data?.stats?.avgPenalties`
-  - label: "Avg Penalties"
-  - isSelectable: true (charts when clicked)
-  - iconColor: `bg-amber-100 dark:bg-amber-900/30`, iconTextColor: `text-amber-500`
-- After the time range buttons `div` and before the stat tiles grid, add a text line:
+**1. `src/hooks/useDispersionStats.ts` -- Calculate penalty percentage**
+- Add `penalty: number` to the `teeShots` object in the `DispersionStats` interface
+- In the tee dispersion calculation block, compute penalty % the same way as the other directions:
   ```
-  <p className="text-sm text-muted-foreground mb-4">
-    Total Rounds: {data?.stats?.totalRounds || 0}
-  </p>
+  penalty: teeShotTotal > 0 ? Math.round((teeShots.filter(s => s.fir_direction === 'penalty').length / teeShotTotal) * 100) : 0
   ```
+- Add `penalty: 0` to the empty-stats fallback return
 
-### Technical Details
+**2. `src/components/FairwayDispersion.tsx` -- Display penalty label**
+- Add `penalty: number` to `FairwayDispersionProps`
+- Add a new absolutely-positioned `DispersionLabel` at the bottom-center of the graphic (below where SHORT sits), using `bottom-2` and centered horizontally
+- Only show when `penalty > 0` (same pattern as SHORT)
+- Label text: "PENALTY"
 
-**Penalties calculation in `useRoundStats`:**
-```
-// Per round: sum of all hole penalties
-// Aggregate: average of per-round totals
+**3. `src/pages/ClubPerformance.tsx` -- Pass penalty prop**
+- Pass the new `penalty` value from `teeDispersion.penalty` to the `FairwayDispersion` component
 
-roundHoleStats penalties sum -> per round value
-Average across all rounds -> aggregate avgPenalties
-```
+### Layout
 
-The stat tile grid stays 2x4 (8 tiles): Best Score, Avg Score, Avg Over Par, Avg Putts, Avg Penalties, FIR%, GIR%, Scramble%.
-
+The existing SHORT label sits at `bottom-8`. The new PENALTY label will sit at `bottom-2`, directly below SHORT, centered horizontally -- keeping the same visual style as all other dispersion labels.
