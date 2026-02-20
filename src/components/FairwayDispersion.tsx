@@ -47,7 +47,7 @@ const FairwayDispersion = ({ fwHit, left, right, short, penalty }: FairwayDisper
       
       {/* SHORT */}
       {short > 0 && (
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+        <div className="absolute bottom-[22%] left-1/2 transform -translate-x-1/2">
           <DispersionLabel percentage={short} label="SHORT" />
         </div>
       )}
