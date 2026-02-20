@@ -16,6 +16,7 @@ export interface DispersionStats {
     left: number;
     right: number;
     short: number;
+    penalty: number;
   };
   approach: {
     total: number;
@@ -85,7 +86,7 @@ export const useDispersionStats = (
       // If no qualifying rounds, return empty stats
       if (qualifyingRoundIds.length === 0) {
         return {
-          teeShots: { total: 0, fwHit: 0, left: 0, right: 0, short: 0 },
+          teeShots: { total: 0, fwHit: 0, left: 0, right: 0, short: 0, penalty: 0 },
           approach: { total: 0, onGreen: 0, long: 0, left: 0, right: 0, short: 0 },
           scramble: { total: 0, clubs: [] },
           teeClubs: [],
@@ -119,6 +120,7 @@ export const useDispersionStats = (
         left: teeShotTotal > 0 ? Math.round((teeShots.filter(s => s.fir_direction === 'left').length / teeShotTotal) * 100) : 0,
         right: teeShotTotal > 0 ? Math.round((teeShots.filter(s => s.fir_direction === 'right').length / teeShotTotal) * 100) : 0,
         short: teeShotTotal > 0 ? Math.round((teeShots.filter(s => s.fir_direction === 'short').length / teeShotTotal) * 100) : 0,
+        penalty: teeShotTotal > 0 ? Math.round((teeShots.filter(s => s.fir_direction === 'penalty').length / teeShotTotal) * 100) : 0,
       };
 
       // Filter approach shots by selected club

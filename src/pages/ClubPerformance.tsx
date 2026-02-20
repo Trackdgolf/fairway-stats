@@ -84,7 +84,7 @@ const ClubPerformance = () => {
   const selectedClub = activeTab === "teeShots" ? selectedTeeClub : selectedApproachClub;
   const setSelectedClub = activeTab === "teeShots" ? setSelectedTeeClub : setSelectedApproachClub;
 
-  const teeDispersion = stats?.teeShots || { total: 0, fwHit: 0, left: 0, right: 0, short: 0 };
+  const teeDispersion = stats?.teeShots || { total: 0, fwHit: 0, left: 0, right: 0, short: 0, penalty: 0 };
   const approachDispersion = stats?.approach || { total: 0, onGreen: 0, long: 0, left: 0, right: 0, short: 0 };
   const scrambleStats = stats?.scramble || { total: 0, clubs: [] };
 
@@ -210,6 +210,7 @@ const ClubPerformance = () => {
               left={teeDispersion.left}
               right={teeDispersion.right}
               short={teeDispersion.short}
+              penalty={teeDispersion.penalty}
             />
           </div>
         )}
