@@ -33,6 +33,7 @@ interface HoleStats {
   girDirection: GirDirection;
   scramble: 'yes' | 'no' | 'n/a' | null;
   putts: number | null;
+  penalties: number | null;
   teeClub: string;
   approachClub: string;
   scrambleClub: string;
@@ -204,6 +205,7 @@ const Round = () => {
       girDirection: null,
       scramble: null,
       putts: null,
+      penalties: null,
       teeClub: "",
       approachClub: "",
       scrambleClub: "",
@@ -336,6 +338,7 @@ const Round = () => {
           scramble_club: stat.scrambleClub || null,
           scramble_shot_type: stat.scrambleShotType || null,
           yardage: course.holes?.[idx]?.length_meters || null,
+          penalties: stat.penalties || null,
         };
       });
 
@@ -618,6 +621,15 @@ const Round = () => {
               max={10}
             />
           )}
+
+          {/* Penalty Shots */}
+          <NumberStepper
+            label="Penalty Shots"
+            value={currentStats?.penalties}
+            onChange={(val) => updateHoleStats({ penalties: val })}
+            min={0}
+            max={10}
+          />
 
           {/* Tee Club */}
           {preferences.teeClub && (

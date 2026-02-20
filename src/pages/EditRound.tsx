@@ -40,6 +40,7 @@ interface HoleStats {
   scramble_club: string | null;
   scramble_shot_type: ScrambleShotType;
   yardage: number | null;
+  penalties: number | null;
 }
 
 const FIR_DIRECTIONS: { icon: typeof Circle; value: FirDirection; label: string }[] = [
@@ -268,6 +269,7 @@ const EditRound = () => {
             approach_club: hole.approach_club,
             scramble_club: hole.scramble_club,
             scramble_shot_type: hole.scramble_shot_type,
+            penalties: hole.penalties,
           })
           .eq("id", hole.id);
 
@@ -570,6 +572,15 @@ const EditRound = () => {
               max={10}
             />
           )}
+
+          {/* Penalty Shots */}
+          <NumberStepper
+            label="Penalty Shots"
+            value={currentHole?.penalties}
+            onChange={(val) => updateHoleStats({ penalties: val })}
+            min={0}
+            max={10}
+          />
 
           {/* Tee Club */}
           {preferences.teeClub && (
