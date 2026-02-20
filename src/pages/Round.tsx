@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Circle, Minus, Plus, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Circle, Minus, Plus, ChevronDown, X } from "lucide-react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import type { Json } from "@/integrations/supabase/types";
@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import ClubSelectorDrawer from "@/components/ClubSelectorDrawer";
 import RoundSummaryModal from "@/components/RoundSummaryModal";
 
-type FirDirection = 'hit' | 'left' | 'right' | 'short' | null;
+type FirDirection = 'hit' | 'left' | 'right' | 'short' | 'penalty' | null;
 type GirDirection = 'hit' | 'left' | 'right' | 'long' | 'short' | null;
 type ScrambleShotType = 'pitch' | 'chip' | 'bunker' | null;
 
@@ -45,6 +45,7 @@ const FIR_DIRECTIONS: { icon: typeof Circle; value: FirDirection; label: string 
   { icon: ArrowDown, value: 'short', label: 'Short' },
   { icon: ArrowLeft, value: 'left', label: 'Left' },
   { icon: ArrowRight, value: 'right', label: 'Right' },
+  { icon: X, value: 'penalty', label: 'Penalty' },
 ];
 
 const GIR_DIRECTIONS: { icon: typeof Circle; value: GirDirection; label: string }[] = [
