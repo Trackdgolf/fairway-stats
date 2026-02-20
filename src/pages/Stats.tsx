@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Trophy, Award, Target, TrendingUp, Grip, MapPin, Flag, Circle, Settings } from "lucide-react";
+import { AlertTriangle, Award, Target, TrendingUp, Grip, MapPin, Flag, Circle, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
@@ -20,9 +20,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const PREMIUM_STATS: StatType[] = ["avgPutts", "firPercent", "girPercent", "scramblePercent"];
+const PREMIUM_STATS: StatType[] = ["avgPutts", "avgPenalties", "firPercent", "girPercent", "scramblePercent"];
 
-type StatType = "totalRounds" | "bestScore" | "avgScore" | "avgOverPar" | "avgPutts" | "firPercent" | "girPercent" | "scramblePercent";
+type StatType = "bestScore" | "avgScore" | "avgOverPar" | "avgPutts" | "avgPenalties" | "firPercent" | "girPercent" | "scramblePercent";
 
 
 const Stats = () => {
@@ -39,11 +39,11 @@ const Stats = () => {
     if (!data?.timeSeries) return [];
     
     const timeSeriesMap: Record<StatType, { date: string; value: number }[]> = {
-      totalRounds: [],
       bestScore: [],
       avgScore: data.timeSeries.avgScore,
       avgOverPar: data.timeSeries.avgOverPar,
       avgPutts: data.timeSeries.avgPutts,
+      avgPenalties: data.timeSeries.avgPenalties,
       firPercent: data.timeSeries.firPercent,
       girPercent: data.timeSeries.girPercent,
       scramblePercent: data.timeSeries.scramblePercent,
@@ -54,11 +54,11 @@ const Stats = () => {
 
   const getChartTitle = () => {
     const titles: { [key in StatType]: string } = {
-      totalRounds: "Total Rounds Over Time",
       bestScore: "Best Score Over Time",
       avgScore: "Average Score Over Time",
       avgOverPar: "Score to Par Over Time",
       avgPutts: "Average Putts Over Time",
+      avgPenalties: "Avg Penalties Over Time",
       firPercent: "FIR % Over Time",
       girPercent: "GIR % Over Time",
       scramblePercent: "Scramble % Over Time",
@@ -72,16 +72,6 @@ const Stats = () => {
   };
 
   const allStats = useMemo(() => [
-    {
-      id: "totalRounds" as StatType,
-      icon: Trophy,
-      value: data?.stats?.totalRounds?.toString() || "0",
-      label: "Total Rounds",
-      iconColor: "bg-amber-100 dark:bg-amber-900/30",
-      iconTextColor: "text-amber-500",
-      isSelectable: false,
-      alwaysShow: true,
-    },
     {
       id: "bestScore" as StatType,
       icon: Award,
@@ -121,6 +111,16 @@ const Stats = () => {
       iconTextColor: "text-purple-500",
       isSelectable: true,
       preferenceKey: "putts" as const,
+    },
+    {
+      id: "avgPenalties" as StatType,
+      icon: AlertTriangle,
+      value: formatStatValue(data?.stats?.avgPenalties ?? null),
+      label: "Avg Penalties",
+      iconColor: "bg-amber-100 dark:bg-amber-900/30",
+      iconTextColor: "text-amber-500",
+      isSelectable: true,
+      alwaysShow: true,
     },
     {
       id: "firPercent" as StatType,
@@ -220,6 +220,11 @@ const Stats = () => {
             </Button>
           ))}
         </div>
+
+        {/* Total Rounds text */}
+        <p className="text-sm text-muted-foreground mb-4">
+          Total Rounds: {data?.stats?.totalRounds || 0}
+        </p>
 
         {/* Stat Tiles Grid */}
         {isLoading ? (
