@@ -5,6 +5,7 @@ interface FairwayDispersionProps {
   left: number;
   right: number;
   short: number;
+  penalty: number;
 }
 
 const DispersionLabel = ({ 
@@ -20,7 +21,7 @@ const DispersionLabel = ({
   </div>
 );
 
-const FairwayDispersion = ({ fwHit, left, right, short }: FairwayDispersionProps) => {
+const FairwayDispersion = ({ fwHit, left, right, short, penalty }: FairwayDispersionProps) => {
   return (
     <div className="relative w-full">
       <img 
@@ -48,6 +49,13 @@ const FairwayDispersion = ({ fwHit, left, right, short }: FairwayDispersionProps
       {short > 0 && (
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
           <DispersionLabel percentage={short} label="SHORT" />
+        </div>
+      )}
+
+      {/* PENALTY */}
+      {penalty > 0 && (
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+          <DispersionLabel percentage={penalty} label="PENALTY" />
         </div>
       )}
     </div>
