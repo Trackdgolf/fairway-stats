@@ -15,6 +15,7 @@ interface RoundStats {
   avgScore: number | null;
   avgOverPar: number | null;
   avgPutts: number | null;
+  avgPenalties: number | null;
   firPercent: number | null;
   girPercent: number | null;
   scramblePercent: number | null;
@@ -25,6 +26,7 @@ interface TimeSeriesData {
   avgScore: ChartDataPoint[];
   avgOverPar: ChartDataPoint[];
   avgPutts: ChartDataPoint[];
+  avgPenalties: ChartDataPoint[];
   firPercent: ChartDataPoint[];
   girPercent: ChartDataPoint[];
   scramblePercent: ChartDataPoint[];
@@ -45,6 +47,7 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
             avgScore: null,
             avgOverPar: null,
             avgPutts: null,
+            avgPenalties: null,
             firPercent: null,
             girPercent: null,
             scramblePercent: null,
@@ -54,6 +57,7 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
             avgScore: [],
             avgOverPar: [],
             avgPutts: [],
+            avgPenalties: [],
             firPercent: [],
             girPercent: [],
             scramblePercent: [],
@@ -108,6 +112,7 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
             avgScore: null,
             avgOverPar: null,
             avgPutts: null,
+            avgPenalties: null,
             firPercent: null,
             girPercent: null,
             scramblePercent: null,
@@ -117,6 +122,7 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
             avgScore: [],
             avgOverPar: [],
             avgPutts: [],
+            avgPenalties: [],
             firPercent: [],
             girPercent: [],
             scramblePercent: [],
@@ -155,6 +161,15 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
       const putts = holeStats?.filter((h) => h.putts !== null).map((h) => h.putts as number) || [];
       const avgPutts = putts.length > 0 ? putts.reduce((a, b) => a + b, 0) / putts.length : null;
 
+      // Calculate avg penalties per round
+      const penaltiesByRound = new Map<string, number>();
+      holeStats?.forEach((hole) => {
+        const current = penaltiesByRound.get(hole.round_id) || 0;
+        penaltiesByRound.set(hole.round_id, current + (hole.penalties || 0));
+      });
+      const penaltyTotals = Array.from(penaltiesByRound.values());
+      const avgPenalties = penaltyTotals.length > 0 ? penaltyTotals.reduce((a, b) => a + b, 0) / penaltyTotals.length : null;
+
       // Calculate FIR % (exclude par 3s - where fir is null)
       const firHoles = holeStats?.filter((h) => h.fir !== null) || [];
       const firHits = firHoles.filter((h) => h.fir === true).length;
@@ -187,6 +202,7 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
         avgScore: [],
         avgOverPar: [],
         avgPutts: [],
+        avgPenalties: [],
         firPercent: [],
         girPercent: [],
         scramblePercent: [],
@@ -232,6 +248,13 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
           });
         }
 
+        // Penalties for this round
+        const roundPenaltyTotal = roundHoleStats.reduce((sum, h) => sum + (h.penalties || 0), 0);
+        timeSeries.avgPenalties.push({
+          date: dateKey,
+          value: roundPenaltyTotal,
+        });
+
         // FIR % for this round
         const roundFirHoles = roundHoleStats.filter((h) => h.fir !== null);
         const roundFirHits = roundFirHoles.filter((h) => h.fir === true).length;
@@ -270,6 +293,7 @@ export const useRoundStats = (timeRange: TimeRange, courseFilter: string) => {
           avgScore: avgScore ? parseFloat(avgScore.toFixed(1)) : null,
           avgOverPar: avgOverPar ? parseFloat(avgOverPar.toFixed(1)) : null,
           avgPutts: avgPutts ? parseFloat(avgPutts.toFixed(1)) : null,
+          avgPenalties: avgPenalties !== null ? parseFloat(avgPenalties.toFixed(1)) : null,
           firPercent: firPercent !== null ? Math.round(firPercent) : null,
           girPercent: girPercent !== null ? Math.round(girPercent) : null,
           scramblePercent: scramblePercent !== null ? Math.round(scramblePercent) : null,
