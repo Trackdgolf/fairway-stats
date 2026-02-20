@@ -189,12 +189,11 @@ const Stats = () => {
           />
         )}
 
-        {/* Course Filter */}
-        <div className="mb-4 flex items-center gap-3">
-          <span className="text-sm font-medium text-foreground">Course:</span>
+        {/* Filters Row */}
+        <div className="mb-6 flex items-center gap-3">
           <Select value={courseFilter} onValueChange={setCourseFilter}>
             <SelectTrigger className="flex-1 bg-card border-border">
-              <SelectValue placeholder="Select course" />
+              <SelectValue placeholder="All Courses" />
             </SelectTrigger>
             <SelectContent className="bg-card border-border z-50">
               <SelectItem value="all">All Courses</SelectItem>
@@ -205,20 +204,18 @@ const Stats = () => {
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Time Range Buttons */}
-        <div className="flex gap-2 mb-6">
-          {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
-            <Button
-              key={range}
-              onClick={() => setTimeRange(range)}
-              variant={timeRange === range ? "default" : "outline"}
-              className={timeRange === range ? "" : "bg-muted text-muted-foreground hover:bg-muted/80"}
-            >
-              {range}
-            </Button>
-          ))}
+          <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
+            <SelectTrigger className="w-[100px] bg-card border-border">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border z-50">
+              {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+                <SelectItem key={range} value={range}>
+                  {range === "MAX" ? "All Time" : range === "LAST" ? "Last Round" : range}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Total Rounds text */}
