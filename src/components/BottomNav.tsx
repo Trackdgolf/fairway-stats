@@ -1,12 +1,16 @@
-import { Home, BarChart3, Target, MapPin, Trophy } from "lucide-react";
+import { Home, BarChart3, Target, MapPin, Trophy, Lock } from "lucide-react";
 import { NavLink } from "./NavLink";
+import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 const BottomNav = () => {
+  const { isPremium, status } = usePremiumStatus();
+  const showLock = status !== 'loading' && !isPremium;
+
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
     { to: "/stats", icon: BarChart3, label: "Stats" },
     { to: "/clubs", icon: Target, label: "Clubs" },
-    { to: "/courses", icon: MapPin, label: "Courses" },
+    { to: "/courses", icon: MapPin, label: "Courses", locked: showLock },
     { to: "/achievements", icon: Trophy, label: "Achieve" },
   ];
 
@@ -23,7 +27,12 @@ const BottomNav = () => {
             className="flex flex-col items-center justify-center flex-1 py-2 text-muted-foreground transition-colors"
             activeClassName="text-primary"
           >
-            <item.icon className="w-6 h-6 mb-1" />
+            <div className="relative">
+              <item.icon className="w-6 h-6 mb-1" />
+              {item.locked && (
+                <Lock className="w-3 h-3 absolute -top-1 -right-2 text-yellow-500" />
+              )}
+            </div>
             <span className="text-xs font-medium">{item.label}</span>
           </NavLink>
         ))}
