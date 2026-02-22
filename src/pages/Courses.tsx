@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, ChevronLeft, ArrowUpDown, Info, Settings, Crown, Lock } from "lucide-react";
+import { MapPin, ChevronLeft, ArrowUpDown, Info, Settings, Crown } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,23 +64,33 @@ const Courses = () => {
             <h1 className="text-3xl font-bold text-header-foreground mb-2">Courses</h1>
             <p className="text-header-foreground/80">Your personal hole difficulty rankings</p>
           </div>
-          <Card className="mt-8">
-            <CardContent className="p-8 text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto">
-                <Crown className="w-8 h-8 text-yellow-500" />
+        </div>
+
+        {/* Premium Overlay - matches Club Performance design */}
+        <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
+          <Card className="w-full max-w-sm">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Crown className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-xl font-bold text-foreground">Premium Feature</h2>
-              <p className="text-muted-foreground">
-                Unlock course analytics to see your personal hole difficulty rankings, 
-                front 9 vs back 9 performance, and par-specific breakdowns.
+              
+              <h2 className="text-xl font-bold mb-2">Premium Feature</h2>
+              <p className="text-muted-foreground text-sm mb-6">
+                Course analytics require a premium subscription
               </p>
-              <Button onClick={() => setShowPaywall(true)} className="w-full gap-2">
-                <Lock className="w-4 h-4" />
-                Unlock Premium
+
+              <Button 
+                className="w-full" 
+                size="lg"
+                onClick={() => setShowPaywall(true)}
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                View Premium Options
               </Button>
             </CardContent>
           </Card>
         </div>
+
         <BottomNav />
         <PaywallModal open={showPaywall} onOpenChange={setShowPaywall} />
       </div>
