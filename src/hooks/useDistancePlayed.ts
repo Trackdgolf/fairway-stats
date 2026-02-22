@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { TimeRange } from "./useAchievements";
 
@@ -53,7 +53,7 @@ export const getNextMilestone = (totalKm: number): DistanceMilestone | null => {
 
 export const useDistancePlayed = (timeRange: TimeRange) => {
   const { user } = useAuth();
-
+  const supabase = getSupabaseClient();
   return useQuery({
     queryKey: ["distancePlayed", user?.id, timeRange],
     queryFn: async (): Promise<DistanceData> => {
