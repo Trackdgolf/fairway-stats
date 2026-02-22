@@ -248,7 +248,7 @@ const Courses = () => {
             <CardContent className="p-8 text-center">
               <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                Play the same course at least 3 times to see your personal hole difficulty rankings.
+                Play a round to start seeing your personal hole difficulty rankings. The more rounds you play, the more accurate your data becomes.
               </p>
             </CardContent>
           </Card>
