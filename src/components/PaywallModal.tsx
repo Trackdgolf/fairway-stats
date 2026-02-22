@@ -21,6 +21,7 @@ const PREMIUM_FEATURES = [
   'Unlimited round history',
   'Advanced club performance analytics',
   'Detailed shot dispersion charts',
+  'Course performance insights',
   'Priority support',
 ];
 
