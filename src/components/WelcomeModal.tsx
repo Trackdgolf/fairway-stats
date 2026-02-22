@@ -52,11 +52,11 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
             <ul className="ml-7 space-y-1.5 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                <span>Track every round with detailed hole-by-hole stats</span>
+                <span>Complete challenges and track your birdies, bogeys and more on the Achieve page</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                <span>Calculate your Trackd Handicap automatically</span>
+                <span>Calculate your TRACKD Handicap automatically</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
@@ -74,7 +74,7 @@ export const WelcomeModal = ({ open, onClose }: WelcomeModalProps) => {
             <ul className="ml-7 space-y-1.5 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <Crown className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-                <span>Unlimited round history</span>
+                <span>Course-specific performance — see your hardest holes and personal trends</span>
               </li>
               <li className="flex items-start gap-2">
                 <Crown className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
