@@ -608,19 +608,25 @@ const EditRound = () => {
               />
               {/* FIR direction - only shown on non-Par 3s */}
               {preferences.fir && currentHole?.par !== 3 && (
-                <ShotDirectionSelector
-                  options={FIR_DIRECTIONS}
-                  selectedValue={currentHole?.fir_direction}
-                  onSelect={(value) => updateHoleStats({ fir_direction: value })}
-                />
+                <>
+                  <p className="text-xs text-muted-foreground text-center mt-3 uppercase tracking-wide">Fairway</p>
+                  <ShotDirectionSelector
+                    options={FIR_DIRECTIONS}
+                    selectedValue={currentHole?.fir_direction}
+                    onSelect={(value) => updateHoleStats({ fir_direction: value })}
+                  />
+                </>
               )}
               {/* GIR direction - shown on Par 3s under Tee Club since tee shot = approach */}
               {preferences.gir && currentHole?.par === 3 && (
-                <ShotDirectionSelector
-                  options={GIR_DIRECTIONS}
-                  selectedValue={currentHole?.gir_direction}
-                  onSelect={(value) => updateHoleStats({ gir_direction: value })}
-                />
+                <>
+                  <p className="text-xs text-muted-foreground text-center mt-3 uppercase tracking-wide">Green</p>
+                  <ShotDirectionSelector
+                    options={GIR_DIRECTIONS}
+                    selectedValue={currentHole?.gir_direction}
+                    onSelect={(value) => updateHoleStats({ gir_direction: value })}
+                  />
+                </>
               )}
             </div>
           )}
@@ -650,11 +656,14 @@ const EditRound = () => {
                 onSelect={(value) => updateHoleStats({ approach_club: value })}
               />
               {preferences.gir && (
-                <ShotDirectionSelector
-                  options={GIR_DIRECTIONS}
-                  selectedValue={currentHole?.gir_direction}
-                  onSelect={(value) => updateHoleStats({ gir_direction: value })}
-                />
+                <>
+                  <p className="text-xs text-muted-foreground text-center mt-3 uppercase tracking-wide">Green</p>
+                  <ShotDirectionSelector
+                    options={GIR_DIRECTIONS}
+                    selectedValue={currentHole?.gir_direction}
+                    onSelect={(value) => updateHoleStats({ gir_direction: value })}
+                  />
+                </>
               )}
             </div>
           )}
