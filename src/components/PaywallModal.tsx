@@ -325,7 +325,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-xl">
                 <Crown className="w-6 h-6 text-yellow-500" />
-                Trackd Golf Premium
+                TRACKD Golf Premium
               </DialogTitle>
             </DialogHeader>
 

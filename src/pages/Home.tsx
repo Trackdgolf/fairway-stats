@@ -222,7 +222,7 @@ const Home = () => {
           </button>
           <img 
             src={resolvedTheme === "dark" ? logoLight : logoDark} 
-            alt="Trackd" 
+            alt="TRACKD" 
             className="h-32"
           />
         </div>
