@@ -46,9 +46,9 @@ export const useCoursePerformance = () => {
         }
       }
 
-      // Filter to courses with 3+ rounds
+      // Include all courses with at least 1 round
       const qualifyingCourses = Array.from(courseMap.entries()).filter(
-        ([, v]) => v.roundIds.length >= 3
+        ([, v]) => v.roundIds.length >= 1
       );
 
       if (!qualifyingCourses.length) return [];
