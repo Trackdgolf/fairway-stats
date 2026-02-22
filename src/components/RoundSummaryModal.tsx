@@ -7,7 +7,7 @@ import { useTrackdHandicap } from "@/hooks/useTrackdHandicap";
 import { buildUserStats } from "@/hooks/useAchievements";
 import { CHALLENGE_DEFINITIONS } from "@/lib/challengeDefinitions";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -59,6 +59,7 @@ type HoleStatRow = {
 
 const ChallengesSection = ({ roundId }: { roundId?: string }) => {
   const { user } = useAuth();
+  const supabase = getSupabaseClient();
 
   const { data: challengeData } = useQuery({
     queryKey: ["round-challenges", roundId, user?.id],

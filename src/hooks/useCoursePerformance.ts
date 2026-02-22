@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 
 export interface HolePerformance {
@@ -20,6 +20,7 @@ export interface CoursePerformance {
 
 export const useCoursePerformance = () => {
   const { user } = useAuth();
+  const supabase = getSupabaseClient();
 
   return useQuery({
     queryKey: ["course-performance", user?.id],

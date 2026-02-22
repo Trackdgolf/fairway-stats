@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { CHALLENGE_DEFINITIONS, UserStats, RoundHoleData, getContinent } from "@/lib/challengeDefinitions";
 
@@ -392,7 +392,7 @@ export const buildUserStats = (
 
 export const useAchievements = (timeRange: TimeRange) => {
   const { user } = useAuth();
-
+  const supabase = getSupabaseClient();
   return useQuery({
     queryKey: ["achievements", user?.id, timeRange],
     queryFn: async (): Promise<AchievementsData> => {
