@@ -4,13 +4,13 @@ import { useRevenueCat } from '@/hooks/useRevenueCat';
 export type PremiumStatus = 'loading' | 'active' | 'inactive';
 
 export const usePremiumStatus = () => {
-  const forcePremium = import.meta.env.VITE_FORCE_PREMIUM === 'true';
+  // VITE_FORCE_PREMIUM only works in development mode to prevent production bypass
+  const forcePremium = import.meta.env.DEV && import.meta.env.VITE_FORCE_PREMIUM === 'true';
   const { isPremium: isDbPremium, loading: dbLoading } = useSubscription();
   const { isPremium: isRcPremium, loading: rcLoading, isNative, isInitialized } = useRevenueCat();
 
-  // Dev override takes precedence
+  // Dev-only override takes precedence
   if (forcePremium) {
-    console.log('Premium status: FORCED via VITE_FORCE_PREMIUM');
     return { isPremium: true, loading: false, status: 'active' as PremiumStatus };
   }
 
@@ -26,14 +26,6 @@ export const usePremiumStatus = () => {
     : isPremium 
       ? 'active' 
       : 'inactive';
-
-  console.log('Premium status:', { 
-    status,
-    isPremium, 
-    source: isNative ? 'RevenueCat' : 'Database',
-    loading,
-    ...(isNative && { isInitialized, rcLoading })
-  });
 
   return { isPremium, loading, status };
 };
