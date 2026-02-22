@@ -23,7 +23,7 @@ export const TrackdHandicap = () => {
     <Card className="bg-card border-border">
       <CardContent className="p-6 text-center">
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">
-          Trackd Hdcp
+          TRACKD Hdcp
         </h3>
         
         {hasEnoughRounds && handicap !== null ? (

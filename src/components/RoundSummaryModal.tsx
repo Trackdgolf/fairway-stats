@@ -206,7 +206,7 @@ const ShareableCardContent = ({
 }) => (
   <div className={`p-6 ${textColor}`}>
     <div className="flex justify-center mb-4">
-      <img src={logo} alt="Trackd" className="h-[4.5rem] object-contain" />
+      <img src={logo} alt="TRACKD" className="h-[4.5rem] object-contain" />
     </div>
     <div className="text-center mb-5">
       <h2 className="text-xl font-bold tracking-tight">{courseName}</h2>
