@@ -168,50 +168,14 @@ const boolChallenge = (
 
 // ── Score Challenges (12) ───────────────────────────────────────────────────
 const scoreChallenges: ChallengeDefinition[] = [
-  {
-    id: "welcome-to-the-90s",
-    title: "Welcome to the 90's",
-    description: "Break 100",
-    group: "score",
-    evaluate: (s) => ({
-      isCompleted: s.bestScore !== null && s.bestScore < 100,
-      progress: s.bestScore !== null ? Math.min(s.bestScore, 100) : 0,
-      target: 100,
-    }),
-  },
-  {
-    id: "welcome-to-the-80s",
-    title: "Welcome to the 80's",
-    description: "Break 90",
-    group: "score",
-    evaluate: (s) => ({
-      isCompleted: s.bestScore !== null && s.bestScore < 90,
-      progress: s.bestScore !== null ? Math.min(s.bestScore, 90) : 0,
-      target: 90,
-    }),
-  },
-  {
-    id: "scratch-ish",
-    title: "Scratch-ish",
-    description: "Break 80",
-    group: "score",
-    evaluate: (s) => ({
-      isCompleted: s.bestScore !== null && s.bestScore < 80,
-      progress: s.bestScore !== null ? Math.min(s.bestScore, 80) : 0,
-      target: 80,
-    }),
-  },
-  {
-    id: "flirting-with-par",
-    title: "Flirting with Par",
-    description: "Break 75",
-    group: "score",
-    evaluate: (s) => ({
-      isCompleted: s.bestScore !== null && s.bestScore < 75,
-      progress: s.bestScore !== null ? Math.min(s.bestScore, 75) : 0,
-      target: 75,
-    }),
-  },
+  boolChallenge("welcome-to-the-90s", "Welcome to the 90's", "Break 100", "score",
+    (s) => s.bestScore !== null && s.bestScore < 100),
+  boolChallenge("welcome-to-the-80s", "Welcome to the 80's", "Break 90", "score",
+    (s) => s.bestScore !== null && s.bestScore < 90),
+  boolChallenge("scratch-ish", "Scratch-ish", "Break 80", "score",
+    (s) => s.bestScore !== null && s.bestScore < 80),
+  boolChallenge("flirting-with-par", "Flirting with Par", "Break 75", "score",
+    (s) => s.bestScore !== null && s.bestScore < 75),
   boolChallenge("even-9", "Even 9", "Shoot level par over 9 holes (front 9 or back 9)", "score",
     (s) => s.hasEvenFront9 || s.hasEvenBack9),
   boolChallenge("back-to-back-birds", "Back to Back Birds", "Record back to back birdies", "score",
