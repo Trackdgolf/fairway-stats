@@ -85,7 +85,8 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
   // Effect 1: Initialize RevenueCat SDK (no user dependency - runs once)
   useEffect(() => {
     const initSDK = async () => {
-      if (!isNative || !REVENUECAT_API_KEY) {
+      const apiKey = getRevenueCatApiKey();
+      if (!isNative || !apiKey) {
         console.log('RevenueCat: Skipping init (not native or no API key)');
         setLoading(false);
         return;
@@ -98,7 +99,7 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
 
       try {
         console.log('RevenueCat: Initializing SDK...');
-        await initializeRevenueCat(REVENUECAT_API_KEY);
+        await initializeRevenueCat(apiKey);
         setIsInitialized(true);
         console.log('RevenueCat: SDK initialized successfully');
       } catch (error) {
