@@ -1,29 +1,79 @@
 
 
-## Add "Penalty %" Indicator to Tee Shots Dispersion Graphic
+# Android / Google Play Deployment — Code Review
 
-### Summary
-Add a new percentage label showing the penalty rate on the fairway dispersion image, positioned center-bottom of the graphic (below the existing SHORT label area).
+## Summary
 
-### Changes
+Your codebase is already well-structured for cross-platform support. Most of the code is platform-agnostic via Capacitor. Here's what needs attention:
 
-**1. `src/hooks/useDispersionStats.ts` -- Calculate penalty percentage**
-- Add `penalty: number` to the `teeShots` object in the `DispersionStats` interface
-- In the tee dispersion calculation block, compute penalty % the same way as the other directions:
-  ```
-  penalty: teeShotTotal > 0 ? Math.round((teeShots.filter(s => s.fir_direction === 'penalty').length / teeShotTotal) * 100) : 0
-  ```
-- Add `penalty: 0` to the empty-stats fallback return
+---
 
-**2. `src/components/FairwayDispersion.tsx` -- Display penalty label**
-- Add `penalty: number` to `FairwayDispersionProps`
-- Add a new absolutely-positioned `DispersionLabel` at the bottom-center of the graphic (below where SHORT sits), using `bottom-2` and centered horizontally
-- Only show when `penalty > 0` (same pattern as SHORT)
-- Label text: "PENALTY"
+## 1. PaywallModal — Apple-specific subscription disclosure text
 
-**3. `src/pages/ClubPerformance.tsx` -- Pass penalty prop**
-- Pass the new `penalty` value from `teeDispersion.penalty` to the `FairwayDispersion` component
+**File:** `src/components/PaywallModal.tsx` (line 425-431)
 
-### Layout
+The subscription disclosure currently says:
+> "Payment will be charged to your **Apple ID** account... manage or cancel your subscription in your **App Store** account settings."
 
-The existing SHORT label sits at `bottom-8`. The new PENALTY label will sit at `bottom-2`, directly below SHORT, centered horizontally -- keeping the same visual style as all other dispersion labels.
+**Change:** Detect the platform and show the correct store-specific text:
+- iOS → "Apple ID" / "App Store"
+- Android → "Google account" / "Google Play"
+
+Uses `Capacitor.getPlatform()` to determine which text to show.
+
+---
+
+## 2. RevenueCat — Separate API key for Android
+
+**File:** `src/hooks/useRevenueCat.ts`
+
+RevenueCat requires a **separate public API key** for Google Play (different from the Apple key). The `initializeRevenueCat` call currently uses a single `VITE_REVENUECAT_PUBLIC_API_KEY`.
+
+**Change:** Add a second env var `VITE_REVENUECAT_ANDROID_API_KEY` and select the correct key based on platform:
+- iOS → use existing Apple key
+- Android → use new Android key
+
+You'll need to create the Android app in your RevenueCat dashboard and get the Google Play API key.
+
+---
+
+## 3. Instagram Stories plugin — Android implementation
+
+**File:** `src/plugins/instagramStories.ts`
+
+The TypeScript interface is already cross-platform, but you'll need to ensure the **Kotlin native plugin code** exists in your `android/` directory (matching the Swift implementation in `ios/`). This is done outside Lovable in your local project.
+
+---
+
+## 4. No other blockers
+
+Everything else is already cross-platform:
+- Capacitor storage adapter works on both platforms
+- Supabase client logic is platform-aware (native vs web)
+- RevenueCat SDK (`@revenuecat/purchases-capacitor`) supports both iOS and Android
+- All UI components are web-based and render identically
+
+---
+
+## Steps to deploy on Android
+
+After the code changes above:
+
+1. Set up your app in the **RevenueCat dashboard** for Google Play and get the Android API key
+2. Set up your app in **Google Play Console** (package name, signing, listing)
+3. In your local project: `npx cap add android` → `npx cap sync`
+4. Add the Kotlin implementation for the Instagram Stories plugin in `android/`
+5. Open in Android Studio: `npx cap open android`
+6. Build, test, and submit to Google Play
+
+---
+
+## Technical Details
+
+| Item | Change |
+|------|--------|
+| `PaywallModal.tsx` | Import `Capacitor`, use `getPlatform()` to swap "Apple ID"/"App Store" with "Google account"/"Google Play" |
+| `useRevenueCat.ts` | Add platform check to select correct RC API key |
+| `.env` | Add `VITE_REVENUECAT_ANDROID_API_KEY` |
+| `android/` dir | Add Kotlin InstagramStories plugin (local, outside Lovable) |
+
