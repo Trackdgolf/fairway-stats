@@ -3,6 +3,7 @@ import { Purchases, type CustomerInfo, type PurchasesOfferings, type PurchasesPa
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Capacitor } from '@capacitor/core';
 import {
   isNativePlatform,
   initializeRevenueCat,
@@ -18,8 +19,16 @@ import {
   PREMIUM_ENTITLEMENT_ID,
 } from '@/lib/revenueCat';
 
-// RevenueCat API key - this is a public key, safe to include in client code
-const REVENUECAT_API_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_API_KEY || '';
+// RevenueCat API keys - public keys, safe to include in client code
+// iOS and Android require separate keys from the RevenueCat dashboard
+const REVENUECAT_IOS_API_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_API_KEY || '';
+const REVENUECAT_ANDROID_API_KEY = import.meta.env.VITE_REVENUECAT_ANDROID_API_KEY || '';
+
+const getRevenueCatApiKey = (): string => {
+  const platform = Capacitor.getPlatform();
+  if (platform === 'android') return REVENUECAT_ANDROID_API_KEY;
+  return REVENUECAT_IOS_API_KEY;
+};
 
 interface UseRevenueCatReturn {
   isNative: boolean;

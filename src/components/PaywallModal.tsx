@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { Crown, Check, Loader2, ExternalLink, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -422,13 +423,12 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                 Restore Purchases
               </Button>
 
-              {/* Apple-required subscription disclosure */}
+              {/* Store-required subscription disclosure */}
               <div className="space-y-3 pt-2 border-t border-border">
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Payment will be charged to your Apple ID account at confirmation of purchase. 
-                  Subscriptions automatically renew unless cancelled at least 24 hours before 
-                  the end of the current period. You can manage or cancel your subscription 
-                  in your App Store account settings.
+                  {Capacitor.getPlatform() === 'android'
+                    ? 'Payment will be charged to your Google account at confirmation of purchase. Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period. You can manage or cancel your subscription in your Google Play account settings.'
+                    : 'Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period. You can manage or cancel your subscription in your App Store account settings.'}
                 </p>
 
                 {/* Legal links */}

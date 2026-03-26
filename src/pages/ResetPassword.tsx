@@ -92,7 +92,7 @@ const ResetPassword = () => {
   const logo = resolvedTheme === 'dark' ? logoDark : logoLight;
 
   useEffect(() => {
-    let redirectTimeout: NodeJS.Timeout;
+    let redirectTimeout: ReturnType<typeof setTimeout>;
     let sessionEstablished = false;
 
     const tokens = parseRecoveryTokens();
