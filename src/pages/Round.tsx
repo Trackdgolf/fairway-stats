@@ -215,7 +215,7 @@ const Round = () => {
   );
 
   // Debounce timer ref for auto-save
-  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inProgressIdRef = useRef<string | null>(inProgressRoundId || null);
 
   // Auto-save progress to database
