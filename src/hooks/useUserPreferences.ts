@@ -16,6 +16,8 @@ export interface StatPreferences {
   approachClub: boolean;
 }
 
+export type StockYardages = Record<string, number>;
+
 const DEFAULT_CLUBS: Club[] = [
   { id: "1", name: "Driver" },
   { id: "2", name: "3 Wood" },
@@ -44,11 +46,13 @@ const DEFAULT_STAT_PREFERENCES: StatPreferences = {
 
 const LOCAL_BAG_KEY = "golftrack-my-bag";
 const LOCAL_STAT_KEY = "golftrack-stat-preferences";
+const LOCAL_YARDAGE_KEY = "golftrack-stock-yardages";
 
 export const useUserPreferences = () => {
   const { user } = useAuth();
   const [clubs, setClubs] = useState<Club[]>(DEFAULT_CLUBS);
   const [statPreferences, setStatPreferences] = useState<StatPreferences>(DEFAULT_STAT_PREFERENCES);
+  const [stockYardages, setStockYardages] = useState<StockYardages>({});
   const [loading, setLoading] = useState(true);
   const [preferencesId, setPreferencesId] = useState<string | null>(null);
   const supabase = getSupabaseClient();
@@ -76,6 +80,15 @@ export const useUserPreferences = () => {
             setStatPreferences(DEFAULT_STAT_PREFERENCES);
           }
         }
+
+        const storedYardages = localStorage.getItem(LOCAL_YARDAGE_KEY);
+        if (storedYardages) {
+          try {
+            setStockYardages(JSON.parse(storedYardages));
+          } catch {
+            setStockYardages({});
+          }
+        }
         
         setLoading(false);
         return;
@@ -99,19 +112,23 @@ export const useUserPreferences = () => {
         setPreferencesId(data.id);
         setClubs(data.my_bag as unknown as Club[]);
         setStatPreferences(data.stat_preferences as unknown as StatPreferences);
+        setStockYardages((data.stock_yardages as unknown as StockYardages) || {});
         
         // Clear localStorage since we're now using database
         localStorage.removeItem(LOCAL_BAG_KEY);
         localStorage.removeItem(LOCAL_STAT_KEY);
+        localStorage.removeItem(LOCAL_YARDAGE_KEY);
       } else {
         // Not in database - migrate from localStorage or use defaults
         const storedBag = localStorage.getItem(LOCAL_BAG_KEY);
         const storedStats = localStorage.getItem(LOCAL_STAT_KEY);
+        const storedYardages = localStorage.getItem(LOCAL_YARDAGE_KEY);
         
         const bagToUse = storedBag ? JSON.parse(storedBag) : DEFAULT_CLUBS;
         const statsToUse = storedStats 
           ? { ...DEFAULT_STAT_PREFERENCES, ...JSON.parse(storedStats) }
           : DEFAULT_STAT_PREFERENCES;
+        const yardagesToUse = storedYardages ? JSON.parse(storedYardages) : {};
 
         // Create new record in database
         const { data: newPref, error: insertError } = await supabase
@@ -120,6 +137,7 @@ export const useUserPreferences = () => {
             user_id: user.id,
             my_bag: bagToUse,
             stat_preferences: statsToUse,
+            stock_yardages: yardagesToUse,
           })
           .select()
           .single();
@@ -130,10 +148,12 @@ export const useUserPreferences = () => {
           setPreferencesId(newPref.id);
           setClubs(bagToUse);
           setStatPreferences(statsToUse);
+          setStockYardages(yardagesToUse);
           
           // Clear localStorage after successful migration
           localStorage.removeItem(LOCAL_BAG_KEY);
           localStorage.removeItem(LOCAL_STAT_KEY);
+          localStorage.removeItem(LOCAL_YARDAGE_KEY);
         }
       }
 
@@ -210,6 +230,35 @@ export const useUserPreferences = () => {
     saveStatPreferences(newPrefs);
   }, [statPreferences, saveStatPreferences]);
 
+  // Save stock yardages
+  const saveStockYardages = useCallback(async (newYardages: StockYardages) => {
+    setStockYardages(newYardages);
+
+    if (!user) {
+      localStorage.setItem(LOCAL_YARDAGE_KEY, JSON.stringify(newYardages));
+      return;
+    }
+
+    const { error } = await supabase
+      .from("user_preferences")
+      .update({ stock_yardages: JSON.parse(JSON.stringify(newYardages)), updated_at: new Date().toISOString() })
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error("Error saving stock yardages:", error);
+    }
+  }, [user]);
+
+  const updateStockYardage = useCallback((clubId: string, yardage: number | null) => {
+    const newYardages = { ...stockYardages };
+    if (yardage === null || yardage === 0) {
+      delete newYardages[clubId];
+    } else {
+      newYardages[clubId] = yardage;
+    }
+    saveStockYardages(newYardages);
+  }, [stockYardages, saveStockYardages]);
+
   return {
     // Club data and functions
     clubs,
@@ -221,6 +270,10 @@ export const useUserPreferences = () => {
     // Stat preference data and functions
     statPreferences,
     updateStatPreference,
+    
+    // Stock yardage data and functions
+    stockYardages,
+    updateStockYardage,
     
     // Loading state
     loading,

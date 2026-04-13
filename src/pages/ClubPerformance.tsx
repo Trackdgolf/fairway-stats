@@ -6,17 +6,20 @@ import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
 import ScrambleClubList from "@/components/ScrambleClubList";
+import ClubDistances from "@/components/ClubDistances";
 import { PaywallModal } from "@/components/PaywallModal";
 import { useDispersionStats } from "@/hooks/useDispersionStats";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
+type TopView = "dispersion" | "distances";
 type TabType = "teeShots" | "approach" | "scramble";
 type ScrambleShotTypeFilter = "all" | "pitch" | "chip" | "bunker";
 
@@ -31,13 +34,14 @@ const ClubPerformance = () => {
   const navigate = useNavigate();
   const { status } = usePremiumStatus();
   const [activeTab, setActiveTab] = useState<TabType>("teeShots");
+  const [topView, setTopView] = useState<TopView>("dispersion");
   const [selectedTeeClub, setSelectedTeeClub] = useState<string>("all");
   const [selectedApproachClub, setSelectedApproachClub] = useState<string>("all");
   const [selectedScrambleShotType, setSelectedScrambleShotType] = useState<ScrambleShotTypeFilter>("all");
   const [timeRange, setTimeRange] = useState<TimeRange>("MAX");
   const [showPaywall, setShowPaywall] = useState(false);
 
-  const { clubs: bagClubs } = useUserPreferences();
+  const { clubs: bagClubs, stockYardages, updateStockYardage } = useUserPreferences();
   const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType, timeRange);
 
   // Sort clubs by bag order, only include clubs with data - MUST be before early returns
@@ -111,124 +115,151 @@ const ClubPerformance = () => {
           <p className="text-header-foreground/80">Track your dispersion and accuracy</p>
         </div>
 
-        {/* Tab Navigation */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="mb-4">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="teeShots">Tee Shots</TabsTrigger>
-            <TabsTrigger value="approach">Approach</TabsTrigger>
-            <TabsTrigger value="scramble">Scramble</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Top-level View Toggle */}
+        <ToggleGroup
+          type="single"
+          value={topView}
+          onValueChange={(v) => v && setTopView(v as TopView)}
+          className="mb-4 w-full bg-muted rounded-lg p-1"
+        >
+          <ToggleGroupItem value="dispersion" className="flex-1 rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm text-sm font-medium">
+            Dispersion
+          </ToggleGroupItem>
+          <ToggleGroupItem value="distances" className="flex-1 rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm text-sm font-medium">
+            Distances
+          </ToggleGroupItem>
+        </ToggleGroup>
 
-        {/* Shot Count */}
-        <p className="text-sm text-muted-foreground text-center mb-4">
-          {isLoading ? "Loading..." : shotCount > 0 ? `Based on ${shotCount} ${shotType}` : `No ${shotType} recorded yet`}
-        </p>
+        {topView === "dispersion" && (
+          <>
+            {/* Tab Navigation */}
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="mb-4">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="teeShots">Tee Shots</TabsTrigger>
+                <TabsTrigger value="approach">Approach</TabsTrigger>
+                <TabsTrigger value="scramble">Scramble</TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-        {/* Club Filter + Time Range - for teeShots and approach */}
-        {activeTab !== "scramble" && (
-          <div className="flex gap-2 mb-6">
-            <Button
-              variant={selectedClub === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedClub("all")}
-            >
-              All Clubs
-            </Button>
-            
-            <Select
-              value={selectedClub === "all" ? "" : selectedClub}
-              onValueChange={(value) => setSelectedClub(value)}
-            >
-              <SelectTrigger className="w-[140px] h-9">
-                <SelectValue placeholder="Club Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                {clubs.map((club) => (
-                  <SelectItem key={club} value={club}>
-                    {club}
-                  </SelectItem>
+            {/* Shot Count */}
+            <p className="text-sm text-muted-foreground text-center mb-4">
+              {isLoading ? "Loading..." : shotCount > 0 ? `Based on ${shotCount} ${shotType}` : `No ${shotType} recorded yet`}
+            </p>
+
+            {/* Club Filter + Time Range - for teeShots and approach */}
+            {activeTab !== "scramble" && (
+              <div className="flex gap-2 mb-6">
+                <Button
+                  variant={selectedClub === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedClub("all")}
+                >
+                  All Clubs
+                </Button>
+                
+                <Select
+                  value={selectedClub === "all" ? "" : selectedClub}
+                  onValueChange={(value) => setSelectedClub(value)}
+                >
+                  <SelectTrigger className="w-[140px] h-9">
+                    <SelectValue placeholder="Club Filter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clubs.map((club) => (
+                      <SelectItem key={club} value={club}>
+                        {club}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={timeRange}
+                  onValueChange={(value) => setTimeRange(value as TimeRange)}
+                >
+                  <SelectTrigger className="w-[120px] h-9 ml-auto">
+                    <SelectValue placeholder="Time Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+                      <SelectItem key={range} value={range}>
+                        {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Scramble Shot Type Filter + Time Range */}
+            {activeTab === "scramble" && (
+              <div className="flex gap-1.5 mb-6">
+                {SCRAMBLE_SHOT_TYPES.map((type) => (
+                  <Button
+                    key={type.value}
+                    variant={selectedScrambleShotType === type.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedScrambleShotType(type.value)}
+                  >
+                    {type.label}
+                  </Button>
                 ))}
-              </SelectContent>
-            </Select>
 
-            <Select
-              value={timeRange}
-              onValueChange={(value) => setTimeRange(value as TimeRange)}
-            >
-              <SelectTrigger className="w-[120px] h-9 ml-auto">
-                <SelectValue placeholder="Time Range" />
-              </SelectTrigger>
-              <SelectContent>
-                {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
-                  <SelectItem key={range} value={range}>
-                    {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                <Select
+                  value={timeRange}
+                  onValueChange={(value) => setTimeRange(value as TimeRange)}
+                >
+                  <SelectTrigger className="w-[100px] h-9 ml-auto">
+                    <SelectValue placeholder="Time Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+                      <SelectItem key={range} value={range}>
+                        {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Content */}
+            {activeTab === "teeShots" && (
+              <div className="bg-card rounded-xl p-4 shadow-sm">
+                <FairwayDispersion
+                  fwHit={teeDispersion.fwHit}
+                  left={teeDispersion.left}
+                  right={teeDispersion.right}
+                  short={teeDispersion.short}
+                  penalty={teeDispersion.penalty}
+                />
+              </div>
+            )}
+
+            {activeTab === "approach" && (
+              <div className="bg-card rounded-xl p-4 shadow-sm">
+                <GreenDispersion
+                  onGreen={approachDispersion.onGreen}
+                  long={approachDispersion.long}
+                  left={approachDispersion.left}
+                  right={approachDispersion.right}
+                  short={approachDispersion.short}
+                />
+              </div>
+            )}
+
+            {activeTab === "scramble" && (
+              <ScrambleClubList clubs={scrambleStats.clubs} />
+            )}
+          </>
         )}
 
-        {/* Scramble Shot Type Filter + Time Range */}
-        {activeTab === "scramble" && (
-          <div className="flex gap-1.5 mb-6">
-            {SCRAMBLE_SHOT_TYPES.map((type) => (
-              <Button
-                key={type.value}
-                variant={selectedScrambleShotType === type.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedScrambleShotType(type.value)}
-              >
-                {type.label}
-              </Button>
-            ))}
-
-            <Select
-              value={timeRange}
-              onValueChange={(value) => setTimeRange(value as TimeRange)}
-            >
-              <SelectTrigger className="w-[100px] h-9 ml-auto">
-                <SelectValue placeholder="Time Range" />
-              </SelectTrigger>
-              <SelectContent>
-                {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
-                  <SelectItem key={range} value={range}>
-                    {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {/* Content */}
-        {activeTab === "teeShots" && (
-          <div className="bg-card rounded-xl p-4 shadow-sm">
-            <FairwayDispersion
-              fwHit={teeDispersion.fwHit}
-              left={teeDispersion.left}
-              right={teeDispersion.right}
-              short={teeDispersion.short}
-              penalty={teeDispersion.penalty}
-            />
-          </div>
-        )}
-
-        {activeTab === "approach" && (
-          <div className="bg-card rounded-xl p-4 shadow-sm">
-            <GreenDispersion
-              onGreen={approachDispersion.onGreen}
-              long={approachDispersion.long}
-              left={approachDispersion.left}
-              right={approachDispersion.right}
-              short={approachDispersion.short}
-            />
-          </div>
-        )}
-
-        {activeTab === "scramble" && (
-          <ScrambleClubList clubs={scrambleStats.clubs} />
+        {topView === "distances" && (
+          <ClubDistances
+            clubs={bagClubs}
+            stockYardages={stockYardages}
+            onUpdateYardage={updateStockYardage}
+          />
         )}
       </div>
 
