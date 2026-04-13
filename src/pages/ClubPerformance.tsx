@@ -232,6 +232,7 @@ const ClubPerformance = () => {
                   right={teeDispersion.right}
                   short={teeDispersion.short}
                   penalty={teeDispersion.penalty}
+                  compact
                 />
               </div>
             )}
@@ -244,6 +245,7 @@ const ClubPerformance = () => {
                   left={approachDispersion.left}
                   right={approachDispersion.right}
                   short={approachDispersion.short}
+                  compact
                 />
               </div>
             )}
