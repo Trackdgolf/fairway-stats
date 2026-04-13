@@ -158,7 +158,7 @@ export const useUserPreferences = () => {
             user_id: user.id,
             my_bag: bagToUse,
             stat_preferences: statsToUse,
-            stock_yardages: yardagesToUse,
+            stock_yardages: yardagesToUse as unknown as Record<string, unknown>,
           })
           .select()
           .single();
