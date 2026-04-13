@@ -41,7 +41,9 @@ const getTeeResult = (fir: boolean | null, firDirection: string | null) => {
   if (fir) return { label: "Fairway Hit", color: "text-green-500" };
   if (firDirection === "left") return { label: "Missed Left", color: "text-orange-400" };
   if (firDirection === "right") return { label: "Missed Right", color: "text-orange-400" };
-  return { label: "Missed", color: "text-orange-400" };
+  if (firDirection === "short") return { label: "Missed Short", color: "text-orange-400" };
+  if (firDirection === "penalty") return { label: "Penalty", color: "text-red-500" };
+  return { label: "Missed", color: "text-muted-foreground" };
 };
 
 const HoleDetail = ({ courseId, courseName, hole, onBack }: HoleDetailProps) => {
