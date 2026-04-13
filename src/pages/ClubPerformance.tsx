@@ -6,17 +6,20 @@ import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
 import ScrambleClubList from "@/components/ScrambleClubList";
+import ClubDistances from "@/components/ClubDistances";
 import { PaywallModal } from "@/components/PaywallModal";
 import { useDispersionStats } from "@/hooks/useDispersionStats";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
+type TopView = "dispersion" | "distances";
 type TabType = "teeShots" | "approach" | "scramble";
 type ScrambleShotTypeFilter = "all" | "pitch" | "chip" | "bunker";
 
