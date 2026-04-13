@@ -144,6 +144,13 @@ const Courses = () => {
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           </div>
+        ) : selectedHole !== null && selectedCourse ? (
+          <HoleDetail
+            courseId={selectedCourse.courseId}
+            courseName={selectedCourse.courseName}
+            hole={selectedCourse.holes.find(h => h.holeNumber === selectedHole)!}
+            onBack={() => setSelectedHole(null)}
+          />
         ) : selectedCourse ? (
           /* Detail View */
           <div className="space-y-4">
