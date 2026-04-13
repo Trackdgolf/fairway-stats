@@ -175,6 +175,15 @@ const PracticePlan = () => {
             <div className="text-sm text-foreground whitespace-pre-line leading-relaxed">
               {renderMarkdown(response)}
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4 w-full"
+              onClick={handleDownload}
+            >
+              <Download className="w-4 h-4" />
+              Download Practice Plan
+            </Button>
           </CardContent>
         </Card>
       )}
