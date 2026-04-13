@@ -34,8 +34,7 @@ export const useHoleHistory = (courseId: string | null, holeNumber: number | nul
       const courseRounds = rounds.filter(r => (r.course_id || r.course_name) === courseId);
       if (!courseRounds.length) return [];
 
-      // Take up to 5 most recent
-      const recentRounds = courseRounds.slice(0, 5);
+      const recentRounds = courseRounds;
       const roundIds = recentRounds.map(r => r.id);
 
       const { data: holeStats, error: hsError } = await supabase
