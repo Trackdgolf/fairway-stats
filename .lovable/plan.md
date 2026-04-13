@@ -1,43 +1,34 @@
 
 
-# Add Stock Yardages Feature
+# Add Club Reordering via Drag-and-Drop
 
 ## Overview
-Add the ability for players to set stock yardages per club, and view them in a new "Distances" section on the Club Performance page alongside the existing "Dispersion" content.
+Allow users to long-press a club in the "My Bag" section of Settings to enter a reorder mode, then drag clubs to rearrange them. The new order persists and is reflected everywhere clubs are listed (including the Distances view).
 
 ## Changes
 
-### 1. Database — Add `stock_yardages` column to `user_preferences`
-Add a new JSONB column `stock_yardages` to the existing `user_preferences` table. Format: `{ "clubId": yardage }` e.g. `{ "1": 250, "7": 155 }`. Default: `'{}'::jsonb`.
+### 1. Install `@dnd-kit` library
+Add `@dnd-kit/core`, `@dnd-kit/sortable`, and `@dnd-kit/utilities` — a lightweight, accessible drag-and-drop library that works well on both desktop and mobile (supports touch sensors with activation delay for long-press).
 
 ### 2. Update `useUserPreferences` hook
-- Add `stockYardages` state (type `Record<string, number>`)
-- Load/save it from the new column alongside existing preferences
-- Add `saveStockYardages` function
-- Migrate from localStorage if needed (same pattern as other prefs)
+- Add a `reorderClubs` function that accepts a new ordered array and calls `saveClubs`
+- Export it alongside the existing club functions
 
-### 3. Club Performance page — Add top-level toggle
-Add a two-option toggle above the existing tabs: **Dispersion** | **Distances**
-- When "Dispersion" is selected: show the existing tee shots / approach / scramble tabs and content (no change)
-- When "Distances" is selected: show the new distances view
+### 3. Update Settings page — My Bag section
+- Wrap the club grid in a `DndContext` + `SortableContext` from dnd-kit
+- Each club card becomes a `useSortable` item with a drag handle / long-press activation
+- On drag end, compute the new order and call `reorderClubs`
+- Add a subtle grip icon (GripVertical) to each club card to hint at draggability
+- Use `TouchSensor` with a 200ms activation delay so tapping to edit still works, and `PointerSensor` with a small distance constraint for desktop
 
-### 4. New `ClubDistances` component
-Displays the user's clubs with their stock yardages in a clean list/card layout:
-- Each club shows its name and editable yardage field
-- Users can tap a yardage to edit it inline
-- Shows distance unit based on user context (yards)
-- Empty state prompts users to add their yardages
-
-### 5. Settings page — Optional yardage entry
-On the existing "My Bag" section in Settings, add the ability to set stock yardages per club (small input next to each club name). This gives users two places to manage yardages: Settings and the Distances view.
+### 4. No database changes needed
+Club order is already stored as a JSON array in the `my_bag` column — the array index IS the order. Reordering just saves the array in the new sequence.
 
 ## Technical Details
 
 | File | Change |
 |------|--------|
-| Migration SQL | `ALTER TABLE user_preferences ADD COLUMN stock_yardages jsonb DEFAULT '{}'::jsonb` |
-| `src/hooks/useUserPreferences.ts` | Add stockYardages state, load/save logic, `saveStockYardages` function |
-| `src/pages/ClubPerformance.tsx` | Add top-level "Dispersion" / "Distances" toggle; conditionally render existing content or new ClubDistances component |
-| `src/components/ClubDistances.tsx` | New component — list of clubs with editable stock yardage fields |
-| `src/pages/Settings.tsx` | Add yardage input next to each club in My Bag section |
+| `package.json` | Add `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` |
+| `src/hooks/useUserPreferences.ts` | Add `reorderClubs(newClubs: Club[])` function, export it |
+| `src/pages/Settings.tsx` | Import dnd-kit, wrap club grid in DndContext/SortableContext, make each club a sortable item with touch sensor (long-press activation) |
 
