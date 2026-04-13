@@ -1,15 +1,10 @@
-import { Card, CardContent } from "@/components/ui/card";
+import fairwayImage from "@/assets/fairway-dispersion.png";
+import greenImage from "@/assets/green-dispersion.png";
 import type { HolePlay } from "@/hooks/useHoleHistory";
 
 interface TeeOutcomeDispersionProps {
   history: HolePlay[];
   par: number;
-}
-
-interface OutcomeStat {
-  label: string;
-  avgOverPar: number;
-  count: number;
 }
 
 const getDirectionKey = (fir: boolean | null, firDirection: string | null): string | null => {
@@ -29,22 +24,27 @@ const formatAvg = (val: number) => {
 };
 
 const getColor = (val: number) => {
-  if (val < 0) return "text-green-500";
-  if (val === 0) return "text-yellow-500";
+  if (val < 0) return "text-green-400";
+  if (val === 0) return "text-yellow-300";
   if (val <= 0.5) return "text-orange-400";
-  return "text-red-500";
+  return "text-red-400";
 };
 
-const getBgColor = (val: number) => {
-  if (val < 0) return "bg-green-500/15 border-green-500/30";
-  if (val === 0) return "bg-yellow-500/15 border-yellow-500/30";
-  if (val <= 0.5) return "bg-orange-400/15 border-orange-400/30";
-  return "bg-red-500/15 border-red-500/30";
-};
+interface StatGroup {
+  totalOverPar: number;
+  count: number;
+}
+
+const DispersionLabel = ({ avgOverPar, count, label }: { avgOverPar: number; count: number; label: string }) => (
+  <div className="bg-black/75 rounded-lg px-3 py-2 text-center min-w-[64px]">
+    <div className={`font-bold text-base ${getColor(avgOverPar)}`}>{formatAvg(avgOverPar)}</div>
+    <div className="text-white/80 text-[9px] font-medium uppercase">{label}</div>
+    <div className="text-white/50 text-[8px] mt-0.5">{count} {count === 1 ? "round" : "rounds"}</div>
+  </div>
+);
 
 const TeeOutcomeDispersion = ({ history, par }: TeeOutcomeDispersionProps) => {
-  // Group plays by tee shot outcome
-  const groups: Record<string, { totalOverPar: number; count: number }> = {};
+  const groups: Record<string, StatGroup> = {};
 
   history.forEach((play) => {
     const key = getDirectionKey(play.fir, play.firDirection);
@@ -54,52 +54,67 @@ const TeeOutcomeDispersion = ({ history, par }: TeeOutcomeDispersionProps) => {
     groups[key].count += 1;
   });
 
-  const hitLabel = par === 3 ? "Green Hit" : "FW Hit";
+  const getAvg = (key: string) =>
+    groups[key] ? Math.round((groups[key].totalOverPar / groups[key].count) * 10) / 10 : null;
 
-  const directionConfig: { key: string; label: string }[] = [
-    { key: "hit", label: hitLabel },
-    { key: "left", label: "Left" },
-    { key: "right", label: "Right" },
-    { key: "short", label: "Short" },
-    { key: "long", label: "Long" },
-    { key: "penalty", label: "Penalty" },
-  ];
+  const hasAny = Object.keys(groups).length > 0;
+  if (!hasAny) return null;
 
-  const stats: OutcomeStat[] = directionConfig
-    .filter((d) => groups[d.key])
-    .map((d) => ({
-      label: d.label,
-      avgOverPar: Math.round((groups[d.key].totalOverPar / groups[d.key].count) * 10) / 10,
-      count: groups[d.key].count,
-    }));
-
-  if (stats.length === 0) return null;
+  const isPar3 = par === 3;
+  const hitLabel = isPar3 ? "ON GREEN" : "FW HIT";
 
   return (
     <div>
       <h2 className="text-sm font-medium text-muted-foreground mb-3">Avg Score by Tee Shot</h2>
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-3 gap-2">
-            {stats.map((stat) => (
-              <div
-                key={stat.label}
-                className={`rounded-lg border p-3 text-center ${getBgColor(stat.avgOverPar)}`}
-              >
-                <p className={`text-lg font-bold ${getColor(stat.avgOverPar)}`}>
-                  {formatAvg(stat.avgOverPar)}
-                </p>
-                <p className="text-[10px] font-medium text-muted-foreground uppercase mt-0.5">
-                  {stat.label}
-                </p>
-                <p className="text-[9px] text-muted-foreground/70 mt-0.5">
-                  {stat.count} {stat.count === 1 ? "round" : "rounds"}
-                </p>
-              </div>
-            ))}
+      <div className="relative w-full">
+        <img
+          src={isPar3 ? greenImage : fairwayImage}
+          alt="Tee shot dispersion"
+          className="w-full h-auto rounded-lg"
+        />
+
+        {/* HIT - Center */}
+        {groups.hit && (
+          <div className={`absolute ${isPar3 ? "top-[42%]" : "top-[40%]"} left-1/2 transform -translate-x-1/2 -translate-y-1/2`}>
+            <DispersionLabel avgOverPar={getAvg("hit")!} count={groups.hit.count} label={hitLabel} />
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        {/* LONG - Top (par 3 only) */}
+        {isPar3 && groups.long && (
+          <div className="absolute top-6 left-1/2 transform -translate-x-1/2">
+            <DispersionLabel avgOverPar={getAvg("long")!} count={groups.long.count} label="LONG" />
+          </div>
+        )}
+
+        {/* LEFT */}
+        {groups.left && (
+          <div className="absolute top-[55%] left-4 transform -translate-y-1/2">
+            <DispersionLabel avgOverPar={getAvg("left")!} count={groups.left.count} label="LEFT" />
+          </div>
+        )}
+
+        {/* RIGHT */}
+        {groups.right && (
+          <div className="absolute top-[55%] right-4 transform -translate-y-1/2">
+            <DispersionLabel avgOverPar={getAvg("right")!} count={groups.right.count} label="RIGHT" />
+          </div>
+        )}
+
+        {/* SHORT */}
+        {groups.short && (
+          <div className={`absolute ${isPar3 ? "bottom-6" : "bottom-[22%]"} left-1/2 transform -translate-x-1/2`}>
+            <DispersionLabel avgOverPar={getAvg("short")!} count={groups.short.count} label="SHORT" />
+          </div>
+        )}
+
+        {/* PENALTY (fairway only) */}
+        {!isPar3 && groups.penalty && (
+          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+            <DispersionLabel avgOverPar={getAvg("penalty")!} count={groups.penalty.count} label="PENALTY" />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
