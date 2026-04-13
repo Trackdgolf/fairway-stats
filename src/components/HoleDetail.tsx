@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useHoleHistory } from "@/hooks/useHoleHistory";
 import type { HolePerformance } from "@/hooks/useCoursePerformance";
+import TeeOutcomeDispersion from "@/components/TeeOutcomeDispersion";
 
 interface HoleDetailProps {
   courseId: string;
@@ -92,6 +93,11 @@ const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
         </CardContent>
       </Card>
 
+      {/* Tee shot outcome dispersion */}
+      {history && history.length > 0 && (
+        <TeeOutcomeDispersion history={history} par={hole.par} />
+      )}
+
       {/* Recent plays */}
       <div>
         <h2 className="text-sm font-medium text-muted-foreground mb-3">Recent Rounds</h2>
@@ -107,7 +113,7 @@ const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
           </Card>
         ) : (
           <div className="space-y-2">
-            {history.map((play, i) => {
+            {history.slice(0, 5).map((play, i) => {
               const teeResult = getTeeResult(play.fir, play.firDirection, play.par);
               return (
                 <Card key={i}>
