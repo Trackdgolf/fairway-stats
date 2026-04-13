@@ -104,7 +104,7 @@ const HoleDetail = ({ courseId, courseName, hole, onBack }: HoleDetailProps) => 
         ) : (
           <div className="space-y-2">
             {history.map((play, i) => {
-              const teeResult = getTeeResult(play.fir, play.firDirection);
+              const teeResult = getTeeResult(play.fir, play.firDirection, play.par);
               return (
                 <Card key={i}>
                   <CardContent className="p-4">
