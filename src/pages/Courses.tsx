@@ -251,6 +251,7 @@ const Courses = () => {
                       <TableHead className="w-14 text-center">Avg</TableHead>
                       <TableHead className="w-14 text-center">+/-</TableHead>
                       <TableHead className="w-14 text-center">SI</TableHead>
+                      <TableHead className="w-8"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -258,7 +259,7 @@ const Courses = () => {
                       const holeMin = Math.min(...selectedCourse.holes.map(h => h.avgOverPar));
                       const holeMax = Math.max(...selectedCourse.holes.map(h => h.avgOverPar));
                       return sortedHoles.map((hole) => (
-                      <TableRow key={hole.holeNumber}>
+                      <TableRow key={hole.holeNumber} className="cursor-pointer active:bg-muted/50" onClick={() => setSelectedHole(hole.holeNumber)}>
                         <TableCell className="font-medium">{hole.holeNumber}</TableCell>
                         <TableCell className="text-center">{hole.par}</TableCell>
                         <TableCell className="text-center">{hole.avgScore.toFixed(1)}</TableCell>
@@ -269,6 +270,9 @@ const Courses = () => {
                           <Badge className="w-7 h-7 rounded-full flex items-center justify-center p-0 text-xs">
                             {hole.personalStrokeIndex}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="p-0 pr-2">
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
                         </TableCell>
                       </TableRow>
                     ));
