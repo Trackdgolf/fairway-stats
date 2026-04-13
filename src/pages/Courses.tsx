@@ -117,9 +117,16 @@ const Courses = () => {
           >
             <Settings className="w-5 h-5" />
           </button>
-          {selectedCourse ? (
+           {selectedHole !== null && selectedCourse ? (
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" onClick={() => setSelectedHole(null)} className="text-header-foreground">
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <h1 className="text-2xl font-bold text-header-foreground">{selectedCourse.courseName}</h1>
+              </div>
+            ) : selectedCourse ? (
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => setSelectedCourse(null)} className="text-header-foreground">
+              <Button variant="ghost" size="icon" onClick={() => { setSelectedCourse(null); setSelectedHole(null); }} className="text-header-foreground">
                 <ChevronLeft className="w-5 h-5" />
               </Button>
               <h1 className={`${getCourseNameClass(selectedCourse.courseName)} font-bold text-header-foreground`}>{selectedCourse.courseName}</h1>
