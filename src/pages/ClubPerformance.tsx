@@ -34,6 +34,7 @@ const ClubPerformance = () => {
   const navigate = useNavigate();
   const { status } = usePremiumStatus();
   const [activeTab, setActiveTab] = useState<TabType>("teeShots");
+  const [topView, setTopView] = useState<TopView>("dispersion");
   const [selectedTeeClub, setSelectedTeeClub] = useState<string>("all");
   const [selectedApproachClub, setSelectedApproachClub] = useState<string>("all");
   const [selectedScrambleShotType, setSelectedScrambleShotType] = useState<ScrambleShotTypeFilter>("all");
