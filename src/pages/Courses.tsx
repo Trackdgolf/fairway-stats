@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, ChevronLeft, ArrowUpDown, Info, Settings, Crown } from "lucide-react";
+import { MapPin, ChevronLeft, ArrowUpDown, Info, Settings, Crown, ChevronRight } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCoursePerformance, type CoursePerformance } from "@/hooks/useCoursePerformance";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { PaywallModal } from "@/components/PaywallModal";
+import HoleDetail from "@/components/HoleDetail";
 
 const getOverParColor = (val: number, min: number, max: number) => {
   if (min === max) return "text-yellow-500";
@@ -38,6 +39,7 @@ const Courses = () => {
   const navigate = useNavigate();
   const { data: courses, isLoading } = useCoursePerformance();
   const [selectedCourse, setSelectedCourse] = useState<CoursePerformance | null>(null);
+  const [selectedHole, setSelectedHole] = useState<number | null>(null);
   const [sortByDifficulty, setSortByDifficulty] = useState(false);
   const { isPremium, status } = usePremiumStatus();
   const [showPaywall, setShowPaywall] = useState(false);
