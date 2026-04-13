@@ -287,23 +287,21 @@ export const useUserPreferences = () => {
     saveStockYardages(newYardages);
   }, [stockYardages, saveStockYardages]);
 
+  const reorderClubs = useCallback((newClubs: Club[]) => {
+    saveClubs(newClubs);
+  }, [saveClubs]);
+
   return {
-    // Club data and functions
     clubs,
     renameClub,
     addClub,
     removeClub,
     resetClubsToDefault,
-    
-    // Stat preference data and functions
+    reorderClubs,
     statPreferences,
     updateStatPreference,
-    
-    // Stock yardage data and functions
     stockYardages,
     updateStockYardage,
-    
-    // Loading state
     loading,
   };
 };

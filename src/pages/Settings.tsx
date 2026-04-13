@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus, Trash2, RotateCcw, Loader2, AlertTriangle, Mail } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, RotateCcw, Loader2, AlertTriangle, Mail, GripVertical } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import PageHeader from "@/components/PageHeader";
@@ -10,6 +10,9 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { SubscriptionStatus } from "@/components/SubscriptionStatus";
 import ReferralCodeSection from "@/components/ReferralCodeSection";
 import { useUserPreferences, StatPreferences, Club } from "@/hooks/useUserPreferences";
+import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import SortableClubCard from "@/components/SortableClubCard";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,12 +56,26 @@ const Settings = () => {
     addClub, 
     removeClub, 
     resetClubsToDefault,
+    reorderClubs,
     statPreferences,
     updateStatPreference,
     stockYardages,
     updateStockYardage,
     loading 
   } = useUserPreferences();
+
+  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } });
+  const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } });
+  const sensors = useSensors(pointerSensor, touchSensor);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = clubs.findIndex(c => c.id === active.id);
+      const newIndex = clubs.findIndex(c => c.id === over.id);
+      reorderClubs(arrayMove(clubs, oldIndex, newIndex));
+    }
+  };
   const [newClubName, setNewClubName] = useState("");
   const [editingClub, setEditingClub] = useState<Club | null>(null);
   const [editName, setEditName] = useState("");
@@ -371,35 +388,21 @@ const Settings = () => {
                     Reset
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {clubs.map((club) => (
-                    <div
-                      key={club.id}
-                      onClick={() => openEditDialog(club)}
-                      className="p-3 rounded-lg border bg-background hover:bg-accent cursor-pointer transition-colors"
-                    >
-                      <p className="font-semibold text-foreground truncate">{club.name}</p>
-                      <div className="flex items-center gap-1 mt-1">
-                        {(["low", "avg", "high"] as const).map((field) => (
-                          <Input
-                            key={field}
-                            type="number"
-                            inputMode="numeric"
-                            value={stockYardages[club.id]?.[field] || ""}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              const val = parseInt(e.target.value, 10);
-                              updateStockYardage(club.id, field, isNaN(val) || val <= 0 ? null : val);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            placeholder={field}
-                            className="w-12 h-6 text-xs text-center px-0.5"
-                          />
-                        ))}
-                      </div>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={clubs.map(c => c.id)} strategy={rectSortingStrategy}>
+                    <div className="grid grid-cols-2 gap-3">
+                      {clubs.map((club) => (
+                        <SortableClubCard
+                          key={club.id}
+                          club={club}
+                          yardage={stockYardages[club.id]}
+                          onEdit={openEditDialog}
+                          onYardageChange={updateStockYardage}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
                 <div className="flex items-center gap-2 mt-4">
                   <Input
                     value={newClubName}
