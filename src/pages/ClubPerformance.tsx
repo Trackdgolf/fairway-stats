@@ -41,7 +41,7 @@ const ClubPerformance = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>("MAX");
   const [showPaywall, setShowPaywall] = useState(false);
 
-  const { clubs: bagClubs } = useUserPreferences();
+  const { clubs: bagClubs, stockYardages, updateStockYardage } = useUserPreferences();
   const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType, timeRange);
 
   // Sort clubs by bag order, only include clubs with data - MUST be before early returns
