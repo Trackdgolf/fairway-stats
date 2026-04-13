@@ -105,7 +105,7 @@ export const useUserPreferences = () => {
         const storedYardages = localStorage.getItem(LOCAL_YARDAGE_KEY);
         if (storedYardages) {
           try {
-            setStockYardages(JSON.parse(storedYardages));
+            setStockYardages(migrateYardages(JSON.parse(storedYardages)));
           } catch {
             setStockYardages({});
           }
@@ -133,7 +133,7 @@ export const useUserPreferences = () => {
         setPreferencesId(data.id);
         setClubs(data.my_bag as unknown as Club[]);
         setStatPreferences(data.stat_preferences as unknown as StatPreferences);
-        setStockYardages((data.stock_yardages as unknown as StockYardages) || {});
+        setStockYardages(migrateYardages(data.stock_yardages) || {});
         
         // Clear localStorage since we're now using database
         localStorage.removeItem(LOCAL_BAG_KEY);
@@ -149,7 +149,7 @@ export const useUserPreferences = () => {
         const statsToUse = storedStats 
           ? { ...DEFAULT_STAT_PREFERENCES, ...JSON.parse(storedStats) }
           : DEFAULT_STAT_PREFERENCES;
-        const yardagesToUse = storedYardages ? JSON.parse(storedYardages) : {};
+        const yardagesToUse = storedYardages ? migrateYardages(JSON.parse(storedYardages)) : {};
 
         // Create new record in database
         const { data: newPref, error: insertError } = await supabase
@@ -270,12 +270,19 @@ export const useUserPreferences = () => {
     }
   }, [user]);
 
-  const updateStockYardage = useCallback((clubId: string, yardage: number | null) => {
+  const updateStockYardage = useCallback((clubId: string, field: keyof ClubYardage, value: number | null) => {
     const newYardages = { ...stockYardages };
-    if (yardage === null || yardage === 0) {
-      delete newYardages[clubId];
+    const current = newYardages[clubId] || {};
+    if (value === null || value === 0) {
+      const updated = { ...current };
+      delete updated[field];
+      if (Object.keys(updated).length === 0) {
+        delete newYardages[clubId];
+      } else {
+        newYardages[clubId] = updated;
+      }
     } else {
-      newYardages[clubId] = yardage;
+      newYardages[clubId] = { ...current, [field]: value };
     }
     saveStockYardages(newYardages);
   }, [stockYardages, saveStockYardages]);
