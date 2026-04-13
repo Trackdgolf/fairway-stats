@@ -7,7 +7,6 @@ import type { HolePerformance } from "@/hooks/useCoursePerformance";
 
 interface HoleDetailProps {
   courseId: string;
-  courseName: string;
   hole: HolePerformance;
   onBack: () => void;
 }
@@ -48,8 +47,11 @@ const getTeeResult = (fir: boolean | null, firDirection: string | null, par: num
   return { label: "Missed", color: "text-muted-foreground" };
 };
 
-const HoleDetail = ({ courseId, courseName, hole, onBack }: HoleDetailProps) => {
+const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
   const { data: history, isLoading } = useHoleHistory(courseId, hole.holeNumber);
+
+  // Get yardage from most recent play
+  const yardage = history?.find(h => h.yardage != null)?.yardage;
 
   return (
     <div className="space-y-4">
@@ -60,7 +62,9 @@ const HoleDetail = ({ courseId, courseName, hole, onBack }: HoleDetailProps) => 
         </Button>
         <div>
           <h1 className="text-2xl font-bold text-foreground">Hole {hole.holeNumber}</h1>
-          <p className="text-sm text-muted-foreground">Par {hole.par} · {courseName}</p>
+          <p className="text-sm text-muted-foreground">
+            Par {hole.par}{yardage ? ` · ${yardage} yards` : ''}
+          </p>
         </div>
       </div>
 

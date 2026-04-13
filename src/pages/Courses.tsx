@@ -147,7 +147,6 @@ const Courses = () => {
         ) : selectedHole !== null && selectedCourse ? (
           <HoleDetail
             courseId={selectedCourse.courseId}
-            courseName={selectedCourse.courseName}
             hole={selectedCourse.holes.find(h => h.holeNumber === selectedHole)!}
             onBack={() => setSelectedHole(null)}
           />

@@ -9,6 +9,7 @@ export interface HolePlay {
   teeClub: string | null;
   fir: boolean | null;
   firDirection: string | null;
+  yardage: number | null;
 }
 
 export const useHoleHistory = (courseId: string | null, holeNumber: number | null) => {
@@ -39,7 +40,7 @@ export const useHoleHistory = (courseId: string | null, holeNumber: number | nul
 
       const { data: holeStats, error: hsError } = await supabase
         .from("hole_stats")
-        .select("round_id, score, par, tee_club, fir, fir_direction, approach_club, gir, gir_direction")
+        .select("round_id, score, par, tee_club, fir, fir_direction, approach_club, gir, gir_direction, yardage")
         .in("round_id", roundIds)
         .eq("hole_number", holeNumber!);
 
@@ -59,6 +60,7 @@ export const useHoleHistory = (courseId: string | null, holeNumber: number | nul
             teeClub: isPar3 ? hs.approach_club : hs.tee_club,
             fir: isPar3 ? hs.gir : hs.fir,
             firDirection: isPar3 ? hs.gir_direction : hs.fir_direction,
+            yardage: hs.yardage ?? null,
           };
         })
         .sort((a, b) => new Date(b.playedAt).getTime() - new Date(a.playedAt).getTime());
