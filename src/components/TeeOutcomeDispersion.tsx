@@ -35,11 +35,10 @@ interface StatGroup {
   count: number;
 }
 
-const DispersionLabel = ({ avgOverPar, count, label }: { avgOverPar: number; count: number; label: string }) => (
+const DispersionLabel = ({ avgOverPar, label }: { avgOverPar: number; count: number; label: string }) => (
   <div className="bg-black/75 rounded px-2 py-1.5 text-center min-w-[48px]">
     <div className={`font-bold text-xs ${getColor(avgOverPar)}`}>{formatAvg(avgOverPar)}</div>
     <div className="text-white/80 text-[7px] font-medium uppercase">{label}</div>
-    <div className="text-white/50 text-[6px] mt-0.5">{count} {count === 1 ? "round" : "rounds"}</div>
   </div>
 );
 
