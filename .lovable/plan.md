@@ -1,34 +1,44 @@
 
 
-# Add Club Reordering via Drag-and-Drop
+# Add Hole Detail View to Courses Page
 
 ## Overview
-Allow users to long-press a club in the "My Bag" section of Settings to enter a reorder mode, then drag clubs to rearrange them. The new order persists and is reflected everywhere clubs are listed (including the Distances view).
+When viewing a course's hole performance table, make each hole row clickable. Tapping a hole navigates to a detail screen showing the 5 most recent times the user played that hole, with tee club used and the tee shot outcome (FIR hit/miss direction).
+
+## Approach
+This stays within the Courses page using local state (no new routes needed) — adding a third navigation depth: Course List → Course Detail → Hole Detail.
 
 ## Changes
 
-### 1. Install `@dnd-kit` library
-Add `@dnd-kit/core`, `@dnd-kit/sortable`, and `@dnd-kit/utilities` — a lightweight, accessible drag-and-drop library that works well on both desktop and mobile (supports touch sensors with activation delay for long-press).
+### 1. New hook: `src/hooks/useHoleHistory.ts`
+- Accepts `courseId` (or `courseName`) and `holeNumber`
+- Queries `hole_stats` joined with `rounds` (filtered by user and course)
+- Selects: `score`, `par`, `tee_club`, `fir`, `fir_direction`, `rounds.played_at`
+- Orders by `rounds.played_at` descending, limits to 5
+- Returns array of recent hole plays
 
-### 2. Update `useUserPreferences` hook
-- Add a `reorderClubs` function that accepts a new ordered array and calls `saveClubs`
-- Export it alongside the existing club functions
+### 2. New component: `src/components/HoleDetail.tsx`
+- Header with back button, "Hole X" title, and par info
+- List of 5 most recent plays, each showing:
+  - Date played
+  - Score (with +/- par color coding)
+  - Tee club used
+  - Tee shot result: "Fairway Hit", "Missed Left", "Missed Right" (derived from `fir` and `fir_direction`)
+- Empty state if no data
 
-### 3. Update Settings page — My Bag section
-- Wrap the club grid in a `DndContext` + `SortableContext` from dnd-kit
-- Each club card becomes a `useSortable` item with a drag handle / long-press activation
-- On drag end, compute the new order and call `reorderClubs`
-- Add a subtle grip icon (GripVertical) to each club card to hint at draggability
-- Use `TouchSensor` with a 200ms activation delay so tapping to edit still works, and `PointerSensor` with a small distance constraint for desktop
-
-### 4. No database changes needed
-Club order is already stored as a JSON array in the `my_bag` column — the array index IS the order. Reordering just saves the array in the new sequence.
+### 3. Update `src/pages/Courses.tsx`
+- Add `selectedHole` state (stores hole number or null)
+- Make each `TableRow` in the hole performance table clickable with a chevron indicator
+- When `selectedHole` is set, render `HoleDetail` instead of the course detail view
+- Back button returns to course detail
 
 ## Technical Details
 
 | File | Change |
 |------|--------|
-| `package.json` | Add `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` |
-| `src/hooks/useUserPreferences.ts` | Add `reorderClubs(newClubs: Club[])` function, export it |
-| `src/pages/Settings.tsx` | Import dnd-kit, wrap club grid in DndContext/SortableContext, make each club a sortable item with touch sensor (long-press activation) |
+| `src/hooks/useHoleHistory.ts` | New hook — queries 5 most recent plays of a specific hole at a specific course |
+| `src/components/HoleDetail.tsx` | New component — displays recent hole history with tee shot data |
+| `src/pages/Courses.tsx` | Add selectedHole state, make hole rows clickable, conditionally render HoleDetail |
+
+No database changes needed — all data exists in `hole_stats` and `rounds`.
 
