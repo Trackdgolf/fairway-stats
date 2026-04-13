@@ -1,34 +1,45 @@
 
 
-# Add Club Reordering via Drag-and-Drop
+# Add "Scoring" Tab to Club Performance
 
 ## Overview
-Allow users to long-press a club in the "My Bag" section of Settings to enter a reorder mode, then drag clubs to rearrange them. The new order persists and is reflected everywhere clubs are listed (including the Distances view).
+Add a third top-level view option ("Scoring") alongside "Dispersion" and "Distances". This view shows the average score relative to par when a specific club is used in a specific context (tee shot, approach, or scramble).
+
+## Data Logic
+For each hole in `hole_stats` that has both `score` and `par`:
+- **Tee clubs**: Group by `tee_club`, calculate `AVG(score - par)` → e.g. "Driver: +0.42 avg over par"
+- **Approach clubs**: Group by `approach_club`, calculate `AVG(score - par)` → e.g. "8 Iron: +0.15 avg over par"
+- **Scramble clubs**: Group by `scramble_club` (optionally filtered by `scramble_shot_type`), calculate `AVG(score - par)`
+
+All data already exists in the `hole_stats` table — no database changes needed.
 
 ## Changes
 
-### 1. Install `@dnd-kit` library
-Add `@dnd-kit/core`, `@dnd-kit/sortable`, and `@dnd-kit/utilities` — a lightweight, accessible drag-and-drop library that works well on both desktop and mobile (supports touch sensors with activation delay for long-press).
+### 1. New hook: `useClubScoringStats`
+- Queries `hole_stats` joined with `rounds` (for time filtering)
+- Returns scoring averages grouped by club for each context (tee/approach/scramble)
+- Supports same time range filter as dispersion
+- Returns: `{ tee: [{club, avgOverPar, totalHoles}], approach: [...], scramble: [...] }`
 
-### 2. Update `useUserPreferences` hook
-- Add a `reorderClubs` function that accepts a new ordered array and calls `saveClubs`
-- Export it alongside the existing club functions
+### 2. New component: `ClubScoring.tsx`
+- Sub-tabs for Tee / Approach / Scramble (reusing same tab pattern)
+- Each club displayed as a card/row showing:
+  - Club name
+  - Average score vs par (color-coded: green for under, red for over)
+  - Number of holes sampled
+- Sorted by bag order, same as other views
+- Time range filter included
 
-### 3. Update Settings page — My Bag section
-- Wrap the club grid in a `DndContext` + `SortableContext` from dnd-kit
-- Each club card becomes a `useSortable` item with a drag handle / long-press activation
-- On drag end, compute the new order and call `reorderClubs`
-- Add a subtle grip icon (GripVertical) to each club card to hint at draggability
-- Use `TouchSensor` with a 200ms activation delay so tapping to edit still works, and `PointerSensor` with a small distance constraint for desktop
-
-### 4. No database changes needed
-Club order is already stored as a JSON array in the `my_bag` column — the array index IS the order. Reordering just saves the array in the new sequence.
+### 3. Update `ClubPerformance.tsx`
+- Add "scoring" to `TopView` type
+- Add third toggle option in the `ToggleGroup`
+- Render `ClubScoring` when selected
 
 ## Technical Details
 
 | File | Change |
 |------|--------|
-| `package.json` | Add `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` |
-| `src/hooks/useUserPreferences.ts` | Add `reorderClubs(newClubs: Club[])` function, export it |
-| `src/pages/Settings.tsx` | Import dnd-kit, wrap club grid in DndContext/SortableContext, make each club a sortable item with touch sensor (long-press activation) |
+| `src/hooks/useClubScoringStats.ts` | New hook — query hole_stats, group by club, calc avg over par |
+| `src/components/ClubScoring.tsx` | New component — tabbed view showing per-club scoring averages |
+| `src/pages/ClubPerformance.tsx` | Add "Scoring" to top toggle, render new component |
 
