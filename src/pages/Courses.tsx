@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, ChevronLeft, ArrowUpDown, Info, Settings, Crown } from "lucide-react";
+import { MapPin, ChevronLeft, ArrowUpDown, Info, Settings, Crown, ChevronRight } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCoursePerformance, type CoursePerformance } from "@/hooks/useCoursePerformance";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { PaywallModal } from "@/components/PaywallModal";
+import HoleDetail from "@/components/HoleDetail";
 
 const getOverParColor = (val: number, min: number, max: number) => {
   if (min === max) return "text-yellow-500";
@@ -38,6 +39,7 @@ const Courses = () => {
   const navigate = useNavigate();
   const { data: courses, isLoading } = useCoursePerformance();
   const [selectedCourse, setSelectedCourse] = useState<CoursePerformance | null>(null);
+  const [selectedHole, setSelectedHole] = useState<number | null>(null);
   const [sortByDifficulty, setSortByDifficulty] = useState(false);
   const { isPremium, status } = usePremiumStatus();
   const [showPaywall, setShowPaywall] = useState(false);
@@ -115,9 +117,16 @@ const Courses = () => {
           >
             <Settings className="w-5 h-5" />
           </button>
-          {selectedCourse ? (
+           {selectedHole !== null && selectedCourse ? (
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" onClick={() => setSelectedHole(null)} className="text-header-foreground">
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <h1 className="text-2xl font-bold text-header-foreground">{selectedCourse.courseName}</h1>
+              </div>
+            ) : selectedCourse ? (
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => setSelectedCourse(null)} className="text-header-foreground">
+              <Button variant="ghost" size="icon" onClick={() => { setSelectedCourse(null); setSelectedHole(null); }} className="text-header-foreground">
                 <ChevronLeft className="w-5 h-5" />
               </Button>
               <h1 className={`${getCourseNameClass(selectedCourse.courseName)} font-bold text-header-foreground`}>{selectedCourse.courseName}</h1>
@@ -135,6 +144,13 @@ const Courses = () => {
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           </div>
+        ) : selectedHole !== null && selectedCourse ? (
+          <HoleDetail
+            courseId={selectedCourse.courseId}
+            courseName={selectedCourse.courseName}
+            hole={selectedCourse.holes.find(h => h.holeNumber === selectedHole)!}
+            onBack={() => setSelectedHole(null)}
+          />
         ) : selectedCourse ? (
           /* Detail View */
           <div className="space-y-4">
@@ -235,6 +251,7 @@ const Courses = () => {
                       <TableHead className="w-14 text-center">Avg</TableHead>
                       <TableHead className="w-14 text-center">+/-</TableHead>
                       <TableHead className="w-14 text-center">SI</TableHead>
+                      <TableHead className="w-8"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -242,7 +259,7 @@ const Courses = () => {
                       const holeMin = Math.min(...selectedCourse.holes.map(h => h.avgOverPar));
                       const holeMax = Math.max(...selectedCourse.holes.map(h => h.avgOverPar));
                       return sortedHoles.map((hole) => (
-                      <TableRow key={hole.holeNumber}>
+                      <TableRow key={hole.holeNumber} className="cursor-pointer active:bg-muted/50" onClick={() => setSelectedHole(hole.holeNumber)}>
                         <TableCell className="font-medium">{hole.holeNumber}</TableCell>
                         <TableCell className="text-center">{hole.par}</TableCell>
                         <TableCell className="text-center">{hole.avgScore.toFixed(1)}</TableCell>
@@ -253,6 +270,9 @@ const Courses = () => {
                           <Badge className="w-7 h-7 rounded-full flex items-center justify-center p-0 text-xs">
                             {hole.personalStrokeIndex}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="p-0 pr-2">
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
                         </TableCell>
                       </TableRow>
                     ));
