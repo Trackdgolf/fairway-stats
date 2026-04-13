@@ -55,6 +55,8 @@ const Settings = () => {
     resetClubsToDefault,
     statPreferences,
     updateStatPreference,
+    stockYardages,
+    updateStockYardage,
     loading 
   } = useUserPreferences();
   const [newClubName, setNewClubName] = useState("");
