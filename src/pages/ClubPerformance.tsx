@@ -14,13 +14,12 @@ import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
 import ScrambleClubList from "@/components/ScrambleClubList";
 import ClubDistances from "@/components/ClubDistances";
-import ClubScoring from "@/components/ClubScoring";
 import { PaywallModal } from "@/components/PaywallModal";
 import { useDispersionStats } from "@/hooks/useDispersionStats";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
-type TopView = "dispersion" | "distances" | "scoring";
+type TopView = "dispersion" | "distances";
 type TabType = "teeShots" | "approach" | "scramble";
 type ScrambleShotTypeFilter = "all" | "pitch" | "chip" | "bunker";
 
@@ -128,9 +127,6 @@ const ClubPerformance = () => {
           </ToggleGroupItem>
           <ToggleGroupItem value="distances" className="flex-1 rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm text-sm font-medium">
             Distances
-          </ToggleGroupItem>
-          <ToggleGroupItem value="scoring" className="flex-1 rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm text-sm font-medium">
-            Scoring
           </ToggleGroupItem>
         </ToggleGroup>
 
@@ -263,13 +259,6 @@ const ClubPerformance = () => {
             clubs={bagClubs}
             stockYardages={stockYardages}
             onUpdateYardage={updateStockYardage}
-          />
-        )}
-
-        {topView === "scoring" && (
-          <ClubScoring
-            timeRange={timeRange}
-            onTimeRangeChange={setTimeRange}
           />
         )}
       </div>
