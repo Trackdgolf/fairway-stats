@@ -403,6 +403,7 @@ export type Database = {
           id: string
           my_bag: Json | null
           stat_preferences: Json | null
+          stock_yardages: Json | null
           updated_at: string | null
           user_id: string
         }
@@ -411,6 +412,7 @@ export type Database = {
           id?: string
           my_bag?: Json | null
           stat_preferences?: Json | null
+          stock_yardages?: Json | null
           updated_at?: string | null
           user_id: string
         }
@@ -419,6 +421,7 @@ export type Database = {
           id?: string
           my_bag?: Json | null
           stat_preferences?: Json | null
+          stock_yardages?: Json | null
           updated_at?: string | null
           user_id?: string
         }
