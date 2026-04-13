@@ -36,12 +36,14 @@ const getScoreColor = (score: number, par: number) => {
   return "text-red-500";
 };
 
-const getTeeResult = (fir: boolean | null, firDirection: string | null) => {
+const getTeeResult = (fir: boolean | null, firDirection: string | null, par: number) => {
+  const hitLabel = par === 3 ? "Green Hit" : "Fairway Hit";
   if (fir === null) return { label: "No data", color: "text-muted-foreground" };
-  if (fir) return { label: "Fairway Hit", color: "text-green-500" };
+  if (fir) return { label: hitLabel, color: "text-green-500" };
   if (firDirection === "left") return { label: "Missed Left", color: "text-orange-400" };
   if (firDirection === "right") return { label: "Missed Right", color: "text-orange-400" };
   if (firDirection === "short") return { label: "Missed Short", color: "text-orange-400" };
+  if (firDirection === "long") return { label: "Missed Long", color: "text-orange-400" };
   if (firDirection === "penalty") return { label: "Penalty", color: "text-red-500" };
   return { label: "Missed", color: "text-muted-foreground" };
 };
@@ -102,7 +104,7 @@ const HoleDetail = ({ courseId, courseName, hole, onBack }: HoleDetailProps) => 
         ) : (
           <div className="space-y-2">
             {history.map((play, i) => {
-              const teeResult = getTeeResult(play.fir, play.firDirection);
+              const teeResult = getTeeResult(play.fir, play.firDirection, play.par);
               return (
                 <Card key={i}>
                   <CardContent className="p-4">
