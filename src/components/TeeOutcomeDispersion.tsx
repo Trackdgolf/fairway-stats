@@ -66,7 +66,7 @@ const TeeOutcomeDispersion = ({ history, par }: TeeOutcomeDispersionProps) => {
   return (
     <div>
       <h2 className="text-sm font-medium text-muted-foreground mb-3">Avg Score by Tee Shot</h2>
-      <div className="relative w-full">
+      <div className="max-w-[75%] mx-auto relative w-full">
         <img
           src={isPar3 ? greenImage : fairwayImage}
           alt="Tee shot dispersion"
