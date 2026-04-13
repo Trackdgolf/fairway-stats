@@ -16,7 +16,28 @@ export interface StatPreferences {
   approachClub: boolean;
 }
 
-export type StockYardages = Record<string, number>;
+export interface ClubYardage {
+  low?: number;
+  high?: number;
+  avg?: number;
+}
+
+export type StockYardages = Record<string, ClubYardage>;
+
+// Migration helper: convert old format (plain number) to new format
+const migrateYardages = (raw: unknown): StockYardages => {
+  if (!raw || typeof raw !== 'object') return {};
+  const result: StockYardages = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value === 'number') {
+      // Old format: just a single number → treat as avg
+      result[key] = { avg: value };
+    } else if (value && typeof value === 'object') {
+      result[key] = value as ClubYardage;
+    }
+  }
+  return result;
+};
 
 const DEFAULT_CLUBS: Club[] = [
   { id: "1", name: "Driver" },
