@@ -14,6 +14,7 @@ import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
 import ScrambleClubList from "@/components/ScrambleClubList";
 import ClubDistances from "@/components/ClubDistances";
+import ClubScoring from "@/components/ClubScoring";
 import { PaywallModal } from "@/components/PaywallModal";
 import { useDispersionStats } from "@/hooks/useDispersionStats";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
