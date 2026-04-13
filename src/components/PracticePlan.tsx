@@ -131,6 +131,18 @@ const PracticePlan = () => {
     });
   };
 
+  const handleDownload = () => {
+    // Strip markdown bold markers for plain text
+    const plainText = `TRACKD Caddy 🏌️ - Practice Plan\n${"=".repeat(40)}\n\n${response.replace(/\*\*/g, "")}`;
+    const blob = new Blob([plainText], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "trackd-practice-plan.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="mt-6">
       <Button
