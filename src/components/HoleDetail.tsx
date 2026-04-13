@@ -55,12 +55,12 @@ const HoleDetail = ({ courseId, courseName, hole, onBack }: HoleDetailProps) => 
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={onBack} className="text-header-foreground">
+        <Button variant="ghost" size="icon" onClick={onBack} className="text-foreground">
           <ChevronLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-header-foreground">Hole {hole.holeNumber}</h1>
-          <p className="text-sm text-header-foreground/70">Par {hole.par} · {courseName}</p>
+          <h1 className="text-2xl font-bold text-foreground">Hole {hole.holeNumber}</h1>
+          <p className="text-sm text-muted-foreground">Par {hole.par} · {courseName}</p>
         </div>
       </div>
 
