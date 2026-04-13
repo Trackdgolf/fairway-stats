@@ -388,35 +388,21 @@ const Settings = () => {
                     Reset
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {clubs.map((club) => (
-                    <div
-                      key={club.id}
-                      onClick={() => openEditDialog(club)}
-                      className="p-3 rounded-lg border bg-background hover:bg-accent cursor-pointer transition-colors"
-                    >
-                      <p className="font-semibold text-foreground truncate">{club.name}</p>
-                      <div className="flex items-center gap-1 mt-1">
-                        {(["low", "avg", "high"] as const).map((field) => (
-                          <Input
-                            key={field}
-                            type="number"
-                            inputMode="numeric"
-                            value={stockYardages[club.id]?.[field] || ""}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              const val = parseInt(e.target.value, 10);
-                              updateStockYardage(club.id, field, isNaN(val) || val <= 0 ? null : val);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            placeholder={field}
-                            className="w-12 h-6 text-xs text-center px-0.5"
-                          />
-                        ))}
-                      </div>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={clubs.map(c => c.id)} strategy={rectSortingStrategy}>
+                    <div className="grid grid-cols-2 gap-3">
+                      {clubs.map((club) => (
+                        <SortableClubCard
+                          key={club.id}
+                          club={club}
+                          yardage={stockYardages[club.id]}
+                          onEdit={openEditDialog}
+                          onYardageChange={updateStockYardage}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
                 <div className="flex items-center gap-2 mt-4">
                   <Input
                     value={newClubName}
