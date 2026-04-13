@@ -1,26 +1,29 @@
 
 
-# Fix Par 3 Hole Detail: Show Approach Data as Tee Shot
+# Simplify Hole Detail Header
 
 ## Problem
-For par 3 holes, the tee shot club is stored in `approach_club` (not `tee_club`), and FIR data is null — the shot outcome is in `gir`/`gir_direction` instead. This is by design for other parts of the app, but means the Hole Detail view shows "—" for club and "No data" for the tee result on par 3s.
+The HoleDetail component header shows "Hole X" with "Par X · Course Name" below it. The course name is redundant since it's already displayed in the parent Courses page header. The user wants a cleaner header showing just the hole number and yardage.
 
 ## Changes
 
 ### 1. Update `src/hooks/useHoleHistory.ts`
-- Also select `approach_club`, `gir`, and `gir_direction` from `hole_stats`
-- Add these to the `HolePlay` interface (or derive them inline)
-- For par 3 holes (`par === 3`): use `approach_club` as `teeClub`, and `gir`/`gir_direction` as `fir`/`firDirection`
-- For non-par-3 holes: keep existing behavior unchanged
+- Add `yardage` to the Supabase select query
+- Add `yardage` to the `HolePlay` interface
+- Return yardage from the most recent play (to show hole distance)
 
 ### 2. Update `src/components/HoleDetail.tsx`
-- For par 3 holes, relabel the tee result row — instead of FIR terminology ("Fairway Hit"/"Missed Left"), use GIR terminology ("Green Hit"/"Missed Left"/"Missed Right")
-- Change the icon label contextually: show "Green Hit" instead of "Fairway Hit" when par is 3
+- Remove the course name from the subtitle
+- Change subtitle from "Par X · Course Name" to "Par X · XXX yards" (using yardage from the most recent play, if available)
+- Remove `courseName` prop since it's no longer needed
+- If no yardage data exists, just show "Par X"
 
-No other files are affected — this is fully isolated to the Hole Detail view.
+### 3. Update `src/pages/Courses.tsx`
+- Remove `courseName` prop from `HoleDetail` usage (no longer needed)
 
 | File | Change |
 |------|--------|
-| `src/hooks/useHoleHistory.ts` | Select `approach_club`, `gir`, `gir_direction`; swap them in for par 3 holes |
-| `src/components/HoleDetail.tsx` | Show "Green Hit" instead of "Fairway Hit" for par 3 tee results |
+| `src/hooks/useHoleHistory.ts` | Add `yardage` to query and interface |
+| `src/components/HoleDetail.tsx` | Remove course name, show yardage instead |
+| `src/pages/Courses.tsx` | Remove `courseName` prop from HoleDetail |
 
