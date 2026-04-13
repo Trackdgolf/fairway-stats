@@ -6,7 +6,6 @@ interface GreenDispersionProps {
   left: number;
   right: number;
   short: number;
-  compact?: boolean;
 }
 
 const DispersionLabel = ({ 
@@ -22,9 +21,9 @@ const DispersionLabel = ({
   </div>
 );
 
-const GreenDispersion = ({ onGreen, long, left, right, short, compact }: GreenDispersionProps) => {
+const GreenDispersion = ({ onGreen, long, left, right, short }: GreenDispersionProps) => {
   return (
-    <div className={`relative w-full ${compact ? 'max-w-[70%] mx-auto' : ''}`}>
+    <div className="relative w-full">
       <img 
         src={greenImage} 
         alt="Green dispersion" 

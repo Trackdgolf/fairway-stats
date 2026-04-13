@@ -6,7 +6,6 @@ interface FairwayDispersionProps {
   right: number;
   short: number;
   penalty: number;
-  compact?: boolean;
 }
 
 const DispersionLabel = ({ 
@@ -22,9 +21,9 @@ const DispersionLabel = ({
   </div>
 );
 
-const FairwayDispersion = ({ fwHit, left, right, short, penalty, compact }: FairwayDispersionProps) => {
+const FairwayDispersion = ({ fwHit, left, right, short, penalty }: FairwayDispersionProps) => {
   return (
-    <div className={`relative w-full ${compact ? 'max-w-[70%] mx-auto' : ''}`}>
+    <div className="relative w-full">
       <img 
         src={fairwayImage} 
         alt="Fairway dispersion" 
