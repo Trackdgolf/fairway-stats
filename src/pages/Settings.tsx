@@ -56,12 +56,26 @@ const Settings = () => {
     addClub, 
     removeClub, 
     resetClubsToDefault,
+    reorderClubs,
     statPreferences,
     updateStatPreference,
     stockYardages,
     updateStockYardage,
     loading 
   } = useUserPreferences();
+
+  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } });
+  const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } });
+  const sensors = useSensors(pointerSensor, touchSensor);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = clubs.findIndex(c => c.id === active.id);
+      const newIndex = clubs.findIndex(c => c.id === over.id);
+      reorderClubs(arrayMove(clubs, oldIndex, newIndex));
+    }
+  };
   const [newClubName, setNewClubName] = useState("");
   const [editingClub, setEditingClub] = useState<Club | null>(null);
   const [editName, setEditName] = useState("");
