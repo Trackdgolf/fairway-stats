@@ -156,9 +156,9 @@ export const useUserPreferences = () => {
           .from("user_preferences")
           .insert([{
             user_id: user.id,
-            my_bag: bagToUse as unknown as Record<string, unknown>,
-            stat_preferences: statsToUse as unknown as Record<string, unknown>,
-            stock_yardages: yardagesToUse as unknown as Record<string, unknown>,
+            my_bag: JSON.parse(JSON.stringify(bagToUse)),
+            stat_preferences: JSON.parse(JSON.stringify(statsToUse)),
+            stock_yardages: JSON.parse(JSON.stringify(yardagesToUse)),
           }])
           .select()
           .single();
