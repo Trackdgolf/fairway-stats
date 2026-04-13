@@ -154,12 +154,12 @@ export const useUserPreferences = () => {
         // Create new record in database
         const { data: newPref, error: insertError } = await supabase
           .from("user_preferences")
-          .insert({
+          .insert([{
             user_id: user.id,
-            my_bag: bagToUse,
-            stat_preferences: statsToUse,
+            my_bag: bagToUse as unknown as Record<string, unknown>,
+            stat_preferences: statsToUse as unknown as Record<string, unknown>,
             stock_yardages: yardagesToUse as unknown as Record<string, unknown>,
-          })
+          }])
           .select()
           .single();
 
