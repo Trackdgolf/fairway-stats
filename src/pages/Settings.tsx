@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus, Trash2, RotateCcw, Loader2, AlertTriangle, Mail } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, RotateCcw, Loader2, AlertTriangle, Mail, GripVertical } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import PageHeader from "@/components/PageHeader";
@@ -10,6 +10,9 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { SubscriptionStatus } from "@/components/SubscriptionStatus";
 import ReferralCodeSection from "@/components/ReferralCodeSection";
 import { useUserPreferences, StatPreferences, Club } from "@/hooks/useUserPreferences";
+import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import SortableClubCard from "@/components/SortableClubCard";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
