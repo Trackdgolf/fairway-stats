@@ -1,20 +1,17 @@
 
 
-# Redesign Tee Shot Outcome Graphic
+# Reduce Dispersion Graphic Size on Club Performance Page
 
-## Overview
-Replace the current colored tile grid with a visual dispersion diagram matching the existing fairway/green dispersion style used elsewhere in the app. For par 4/5 holes, overlay stats on the fairway image. For par 3 holes, overlay on the green image. Instead of showing percentages, show the average score relative to par (e.g. "+0.9") and sample count.
-
-## Design
-The component will reuse the same `fairway-dispersion.png` and `green-dispersion.png` assets already in the app, with labels overlaid at the same positions as `FairwayDispersion` and `GreenDispersion`. Each label will show the avg-over-par value (color-coded: green for under, yellow for even, orange/red for over) and the round count, using the same dark pill (`bg-black/75`) styling.
-
-This keeps the hole detail page visually consistent with the Club Performance dispersion graphics.
+## Approach
+Add an optional `compact` prop to both `FairwayDispersion` and `GreenDispersion` components. When `compact` is true, constrain the image to 70% width (centered). This only affects the Club Performance page — the Hole Detail page's `TeeOutcomeDispersion` component uses its own rendering and won't be touched.
 
 ## Changes
 
 | File | Change |
 |------|--------|
-| `src/components/TeeOutcomeDispersion.tsx` | Full redesign — use fairway/green image with positioned overlays instead of grid tiles. Show avg over par + count per direction zone. Use fairway image for par 4/5, green image for par 3. |
+| `src/components/FairwayDispersion.tsx` | Add optional `compact?: boolean` prop. When true, wrap the content in a container with `max-w-[70%] mx-auto` |
+| `src/components/GreenDispersion.tsx` | Same — add `compact` prop with same scaling wrapper |
+| `src/pages/ClubPerformance.tsx` | Pass `compact` to both `<FairwayDispersion>` and `<GreenDispersion>` |
 
-No other files change. The data logic stays the same — only the presentation changes.
+No changes to `TeeOutcomeDispersion` or `HoleDetail` — those stay full size.
 
