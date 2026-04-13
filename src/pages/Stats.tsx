@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import PracticePlan from "@/components/PracticePlan";
 
 const PREMIUM_STATS: StatType[] = ["avgPutts", "avgPenalties", "firPercent", "girPercent", "scramblePercent"];
 
@@ -267,6 +268,8 @@ const Stats = () => {
             })}
           </div>
         )}
+
+        <PracticePlan />
       </div>
 
       <BottomNav />

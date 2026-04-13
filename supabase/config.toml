@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.admin-user-lookup]
 verify_jwt = false
+
+[functions.practice-plan]
+verify_jwt = false
