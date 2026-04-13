@@ -395,9 +395,7 @@ const Settings = () => {
                         <SortableClubCard
                           key={club.id}
                           club={club}
-                          yardage={stockYardages[club.id]}
                           onEdit={openEditDialog}
-                          onYardageChange={updateStockYardage}
                         />
                       ))}
                     </div>

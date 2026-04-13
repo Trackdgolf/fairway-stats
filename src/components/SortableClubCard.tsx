@@ -1,17 +1,14 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Club, ClubYardage } from "@/hooks/useUserPreferences";
+import { Club } from "@/hooks/useUserPreferences";
 
 interface SortableClubCardProps {
   club: Club;
-  yardage: ClubYardage | undefined;
   onEdit: (club: Club) => void;
-  onYardageChange: (clubId: string, field: keyof ClubYardage, value: number | null) => void;
 }
 
-const SortableClubCard = ({ club, yardage, onEdit, onYardageChange }: SortableClubCardProps) => {
+const SortableClubCard = ({ club, onEdit }: SortableClubCardProps) => {
   const {
     attributes,
     listeners,
@@ -34,7 +31,6 @@ const SortableClubCard = ({ club, yardage, onEdit, onYardageChange }: SortableCl
       style={style}
       className="p-3 rounded-lg border bg-background hover:bg-accent transition-colors relative"
     >
-      {/* Drag handle */}
       <div
         {...attributes}
         {...listeners}
@@ -43,27 +39,8 @@ const SortableClubCard = ({ club, yardage, onEdit, onYardageChange }: SortableCl
         <GripVertical className="w-3.5 h-3.5" />
       </div>
 
-      {/* Club name - tappable to edit */}
       <div onClick={() => onEdit(club)} className="cursor-pointer">
         <p className="font-semibold text-foreground truncate pr-5">{club.name}</p>
-      </div>
-
-      {/* Yardage inputs */}
-      <div className="flex items-center gap-1 mt-1">
-        {(["low", "avg", "high"] as const).map((field) => (
-          <Input
-            key={field}
-            type="number"
-            inputMode="numeric"
-            value={yardage?.[field] || ""}
-            onChange={(e) => {
-              const val = parseInt(e.target.value, 10);
-              onYardageChange(club.id, field, isNaN(val) || val <= 0 ? null : val);
-            }}
-            placeholder={field}
-            className="w-12 h-6 text-xs text-center px-0.5"
-          />
-        ))}
       </div>
     </div>
   );
