@@ -379,21 +379,23 @@ const Settings = () => {
                       className="p-3 rounded-lg border bg-background hover:bg-accent cursor-pointer transition-colors"
                     >
                       <p className="font-semibold text-foreground truncate">{club.name}</p>
-                      <div className="flex items-center justify-between mt-1">
-                        <p className="text-xs text-muted-foreground">Tap to edit</p>
-                        <Input
-                          type="number"
-                          inputMode="numeric"
-                          value={stockYardages[club.id] || ""}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            const val = parseInt(e.target.value, 10);
-                            updateStockYardage(club.id, isNaN(val) || val <= 0 ? null : val);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          placeholder="yds"
-                          className="w-16 h-6 text-xs text-right px-1"
-                        />
+                      <div className="flex items-center gap-1 mt-1">
+                        {(["low", "avg", "high"] as const).map((field) => (
+                          <Input
+                            key={field}
+                            type="number"
+                            inputMode="numeric"
+                            value={stockYardages[club.id]?.[field] || ""}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              const val = parseInt(e.target.value, 10);
+                              updateStockYardage(club.id, field, isNaN(val) || val <= 0 ? null : val);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            placeholder={field}
+                            className="w-12 h-6 text-xs text-center px-0.5"
+                          />
+                        ))}
                       </div>
                     </div>
                   ))}

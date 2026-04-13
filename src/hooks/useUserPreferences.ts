@@ -16,7 +16,28 @@ export interface StatPreferences {
   approachClub: boolean;
 }
 
-export type StockYardages = Record<string, number>;
+export interface ClubYardage {
+  low?: number;
+  high?: number;
+  avg?: number;
+}
+
+export type StockYardages = Record<string, ClubYardage>;
+
+// Migration helper: convert old format (plain number) to new format
+const migrateYardages = (raw: unknown): StockYardages => {
+  if (!raw || typeof raw !== 'object') return {};
+  const result: StockYardages = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value === 'number') {
+      // Old format: just a single number → treat as avg
+      result[key] = { avg: value };
+    } else if (value && typeof value === 'object') {
+      result[key] = value as ClubYardage;
+    }
+  }
+  return result;
+};
 
 const DEFAULT_CLUBS: Club[] = [
   { id: "1", name: "Driver" },
@@ -84,7 +105,7 @@ export const useUserPreferences = () => {
         const storedYardages = localStorage.getItem(LOCAL_YARDAGE_KEY);
         if (storedYardages) {
           try {
-            setStockYardages(JSON.parse(storedYardages));
+            setStockYardages(migrateYardages(JSON.parse(storedYardages)));
           } catch {
             setStockYardages({});
           }
@@ -112,7 +133,7 @@ export const useUserPreferences = () => {
         setPreferencesId(data.id);
         setClubs(data.my_bag as unknown as Club[]);
         setStatPreferences(data.stat_preferences as unknown as StatPreferences);
-        setStockYardages((data.stock_yardages as unknown as StockYardages) || {});
+        setStockYardages(migrateYardages(data.stock_yardages) || {});
         
         // Clear localStorage since we're now using database
         localStorage.removeItem(LOCAL_BAG_KEY);
@@ -128,17 +149,17 @@ export const useUserPreferences = () => {
         const statsToUse = storedStats 
           ? { ...DEFAULT_STAT_PREFERENCES, ...JSON.parse(storedStats) }
           : DEFAULT_STAT_PREFERENCES;
-        const yardagesToUse = storedYardages ? JSON.parse(storedYardages) : {};
+        const yardagesToUse = storedYardages ? migrateYardages(JSON.parse(storedYardages)) : {};
 
         // Create new record in database
         const { data: newPref, error: insertError } = await supabase
           .from("user_preferences")
-          .insert({
+          .insert([{
             user_id: user.id,
-            my_bag: bagToUse,
-            stat_preferences: statsToUse,
-            stock_yardages: yardagesToUse,
-          })
+            my_bag: JSON.parse(JSON.stringify(bagToUse)),
+            stat_preferences: JSON.parse(JSON.stringify(statsToUse)),
+            stock_yardages: JSON.parse(JSON.stringify(yardagesToUse)),
+          }])
           .select()
           .single();
 
@@ -249,12 +270,19 @@ export const useUserPreferences = () => {
     }
   }, [user]);
 
-  const updateStockYardage = useCallback((clubId: string, yardage: number | null) => {
+  const updateStockYardage = useCallback((clubId: string, field: keyof ClubYardage, value: number | null) => {
     const newYardages = { ...stockYardages };
-    if (yardage === null || yardage === 0) {
-      delete newYardages[clubId];
+    const current = newYardages[clubId] || {};
+    if (value === null || value === 0) {
+      const updated = { ...current };
+      delete updated[field];
+      if (Object.keys(updated).length === 0) {
+        delete newYardages[clubId];
+      } else {
+        newYardages[clubId] = updated;
+      }
     } else {
-      newYardages[clubId] = yardage;
+      newYardages[clubId] = { ...current, [field]: value };
     }
     saveStockYardages(newYardages);
   }, [stockYardages, saveStockYardages]);
