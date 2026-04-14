@@ -4,6 +4,7 @@ import BottomNav from "@/components/BottomNav";
 import PageHeader from "@/components/PageHeader";
 import DrillLibrary from "@/components/DrillLibrary";
 import BallFlightLaws from "@/components/BallFlightLaws";
+import ImpactLaws from "@/components/ImpactLaws";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const GolfSchool = () => {
@@ -24,15 +25,19 @@ const GolfSchool = () => {
         </div>
 
         <Tabs defaultValue="drills" className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="drills">Drill Library</TabsTrigger>
-            <TabsTrigger value="ball-flight">Shot Shape Laws</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="drills">Drills</TabsTrigger>
+            <TabsTrigger value="ball-flight">Shot Shapes</TabsTrigger>
+            <TabsTrigger value="impact-laws">Impact Laws</TabsTrigger>
           </TabsList>
           <TabsContent value="drills">
             <DrillLibrary />
           </TabsContent>
           <TabsContent value="ball-flight">
             <BallFlightLaws />
+          </TabsContent>
+          <TabsContent value="impact-laws">
+            <ImpactLaws />
           </TabsContent>
         </Tabs>
       </div>
