@@ -1,25 +1,42 @@
 
 
-# Add Arrow to Swing Path Line in Ball Flight Diagrams
+# Add "Impact Laws" Tab to Golf School
 
 ## Overview
-Replace the plain red path line in each ball flight diagram with an SVG arrow that points in the swing direction, making it visually intuitive which way the club is traveling through impact.
+Add a third tab to the Golf School page containing 8 detailed impact law cards, using the content provided. No database needed — all content is hardcoded.
 
-## Change
+## Changes
 
 | File | Change |
 |------|--------|
-| `src/components/BallFlightLaws.tsx` | Replace the `FacePathDiagram` component's path `<div>` with an SVG-based arrow line |
+| `src/pages/GolfSchool.tsx` | Add third tab trigger "Impact Laws", update grid to `grid-cols-3`, add `TabsContent` for the new `ImpactLaws` component |
+| `src/components/ImpactLaws.tsx` | **New file** — renders all 8 impact laws as expandable cards |
 
-## How it works
+## Component Design — `ImpactLaws.tsx`
 
-Replace the current div-based path line with a small inline SVG that draws a line with an arrowhead. The arrow direction conveys the swing path:
+Each of the 8 laws rendered as a `Card` with:
+- **Title** (e.g. "Face Angle at Impact") and **category badge** (Direction, Distance, Trajectory, etc.)
+- **Impact factor** shown as a highlighted callout (e.g. "~75% of start direction")
+- **Explanation** — main body text, shown by default
+- **Collapsible sections** using the existing `Collapsible` component:
+  - "On Course" — practical application
+  - "How to Diagnose" — self-diagnosis tips
 
-- **Out-to-In** (e.g. Fade): Arrow points from bottom-right toward top-left (right-to-left through the ball)
-- **In-to-Out** (e.g. Draw): Arrow points from bottom-left toward top-right (left-to-right through the ball)
-- **Square**: Arrow points straight up (bottom to top, along target line)
+This keeps cards scannable while allowing users to dive deeper. All 8 entries from the provided data are hardcoded as a typed array.
 
-The SVG will be rotated using the same `pathAngle` logic. The green club face line (thick bar) stays as-is. The target line and labels remain unchanged.
+## Content Mapping
 
-The arrowhead will use an SVG `<marker>` definition with `fill` matching the destructive/red color, attached to the end of the path line.
+| ID | Name | Category |
+|----|------|----------|
+| BFL-01 | Face Angle at Impact | Direction |
+| BFL-02 | Swing Path | Direction |
+| BFL-03 | Face-to-Path Relationship | Direction / Curvature |
+| BFL-04 | Sweet Spot Strike | Distance / Direction |
+| BFL-05 | Ground Contact | Distance / Consistency |
+| BFL-06 | Angle of Attack | Trajectory / Distance |
+| BFL-07 | Dynamic Loft & Spin Loft | Trajectory / Spin / Distance |
+| BFL-08 | Ball Speed | Distance |
+
+## Static Content Only
+No database tables, migrations, or edge functions needed. All content is hardcoded in the component file.
 
