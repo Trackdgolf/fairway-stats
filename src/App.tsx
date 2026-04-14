@@ -21,6 +21,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Courses from "./pages/Courses";
 import Achievements from "./pages/Achievements";
 import Admin from "./pages/Admin";
+import GolfSchool from "./pages/GolfSchool";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
                 <Route path="/edit-round/:roundId" element={<ProtectedRoute><EditRound /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
+                <Route path="/golf-school" element={<ProtectedRoute><GolfSchool /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
