@@ -37,11 +37,24 @@ const FacePathDiagram = ({ face, path }: { face: BallFlight["face"]; path: BallF
         className="absolute top-1/2 left-1/2 w-8 h-1 rounded-full bg-primary origin-center -translate-x-1/2 -translate-y-1/2"
         style={{ transform: `translate(-50%, -50%) rotate(${faceAngle}deg)` }}
       />
-      {/* Swing path arrow */}
-      <div
-        className="absolute top-1/2 left-1/2 w-16 h-0.5 bg-destructive/60 origin-center -translate-x-1/2 -translate-y-1/2"
+      {/* Swing path arrow (SVG) */}
+      <svg
+        className="absolute top-1/2 left-1/2 w-16 h-16 -translate-x-1/2 -translate-y-1/2"
+        viewBox="0 0 64 64"
         style={{ transform: `translate(-50%, -50%) rotate(${pathAngle}deg)` }}
-      />
+      >
+        <defs>
+          <marker id={`arrowhead-${face}-${path}`} markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" className="fill-destructive/70" />
+          </marker>
+        </defs>
+        <line
+          x1="32" y1="56" x2="32" y2="8"
+          className="stroke-destructive/60"
+          strokeWidth="2"
+          markerEnd={`url(#arrowhead-${face}-${path})`}
+        />
+      </svg>
       {/* Labels */}
       <span className="absolute top-0 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground">Target</span>
       <span className="absolute bottom-0 left-0 text-[10px] text-primary font-medium">Face</span>
