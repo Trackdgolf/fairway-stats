@@ -26,7 +26,7 @@ const GolfSchool = () => {
         <Tabs defaultValue="drills" className="w-full">
           <TabsList className="w-full grid grid-cols-2">
             <TabsTrigger value="drills">Drill Library</TabsTrigger>
-            <TabsTrigger value="ball-flight">Ball Flight Laws</TabsTrigger>
+            <TabsTrigger value="ball-flight">Shot Shape Laws</TabsTrigger>
           </TabsList>
           <TabsContent value="drills">
             <DrillLibrary />
