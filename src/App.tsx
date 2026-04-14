@@ -21,6 +21,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Courses from "./pages/Courses";
 import Achievements from "./pages/Achievements";
 import Admin from "./pages/Admin";
+import GolfSchool from "./pages/GolfSchool";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
