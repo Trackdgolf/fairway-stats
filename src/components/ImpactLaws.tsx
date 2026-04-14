@@ -103,66 +103,83 @@ const ImpactLaws = () => {
   };
 
   return (
-    <div className="space-y-4 mt-4">
+    <div className="space-y-3 mt-4">
       {impactLaws.map((law) => (
-        <Card key={law.id} className="overflow-hidden">
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between gap-2">
-              <CardTitle className="text-base leading-snug">{law.name}</CardTitle>
-              <Badge variant="secondary" className="shrink-0 text-[10px]">
-                {law.category}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 mt-2 rounded-md bg-primary/10 px-3 py-1.5">
-              <Target className="w-4 h-4 text-primary shrink-0" />
-              <span className="text-xs font-semibold text-primary">{law.impactFactor}</span>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-0">
-            <p className="text-sm text-muted-foreground leading-relaxed">{law.explanation}</p>
-
-            <Collapsible
-              open={openSections[law.id]?.onCourse}
-              onOpenChange={() => toggleSection(law.id, "onCourse")}
-            >
-              <CollapsibleTrigger className="flex items-center gap-2 w-full text-left text-sm font-medium text-foreground hover:text-primary transition-colors py-1">
-                <ChevronDown
-                  className={`w-4 h-4 shrink-0 transition-transform ${
-                    openSections[law.id]?.onCourse ? "rotate-180" : ""
-                  }`}
-                />
-                On Course
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <p className="text-sm text-muted-foreground leading-relaxed pl-6 pt-1 pb-2">
-                  {law.onCourse}
-                </p>
-              </CollapsibleContent>
-            </Collapsible>
-
-            <Collapsible
-              open={openSections[law.id]?.diagnose}
-              onOpenChange={() => toggleSection(law.id, "diagnose")}
-            >
-              <CollapsibleTrigger className="flex items-center gap-2 w-full text-left text-sm font-medium text-foreground hover:text-primary transition-colors py-1">
-                <ChevronDown
-                  className={`w-4 h-4 shrink-0 transition-transform ${
-                    openSections[law.id]?.diagnose ? "rotate-180" : ""
-                  }`}
-                />
-                <div className="flex items-center gap-1.5">
-                  <Crosshair className="w-3.5 h-3.5" />
-                  How to Diagnose
+        <Collapsible
+          key={law.id}
+          open={openSections[law.id]?.main}
+          onOpenChange={() => toggleSection(law.id, "main")}
+        >
+          <Card className="overflow-hidden">
+            <CollapsibleTrigger className="w-full text-left">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <ChevronDown
+                      className={`w-4 h-4 shrink-0 transition-transform ${
+                        openSections[law.id]?.main ? "rotate-180" : ""
+                      }`}
+                    />
+                    <CardTitle className="text-base leading-snug">{law.name}</CardTitle>
+                  </div>
+                  <Badge variant="secondary" className="shrink-0 text-[10px]">
+                    {law.category}
+                  </Badge>
                 </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <p className="text-sm text-muted-foreground leading-relaxed pl-6 pt-1 pb-2">
-                  {law.diagnose}
-                </p>
-              </CollapsibleContent>
-            </Collapsible>
-          </CardContent>
-        </Card>
+                <div className="flex items-center gap-2 mt-2 rounded-md bg-primary/10 px-3 py-1.5">
+                  <Target className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-xs font-semibold text-primary">{law.impactFactor}</span>
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-3 pt-0">
+                <p className="text-sm text-muted-foreground leading-relaxed">{law.explanation}</p>
+
+                <Collapsible
+                  open={openSections[law.id]?.onCourse}
+                  onOpenChange={() => toggleSection(law.id, "onCourse")}
+                >
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full text-left text-sm font-medium text-foreground hover:text-primary transition-colors py-1">
+                    <ChevronDown
+                      className={`w-4 h-4 shrink-0 transition-transform ${
+                        openSections[law.id]?.onCourse ? "rotate-180" : ""
+                      }`}
+                    />
+                    On Course
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <p className="text-sm text-muted-foreground leading-relaxed pl-6 pt-1 pb-2">
+                      {law.onCourse}
+                    </p>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                <Collapsible
+                  open={openSections[law.id]?.diagnose}
+                  onOpenChange={() => toggleSection(law.id, "diagnose")}
+                >
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full text-left text-sm font-medium text-foreground hover:text-primary transition-colors py-1">
+                    <ChevronDown
+                      className={`w-4 h-4 shrink-0 transition-transform ${
+                        openSections[law.id]?.diagnose ? "rotate-180" : ""
+                      }`}
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <Crosshair className="w-3.5 h-3.5" />
+                      How to Diagnose
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <p className="text-sm text-muted-foreground leading-relaxed pl-6 pt-1 pb-2">
+                      {law.diagnose}
+                    </p>
+                  </CollapsibleContent>
+                </Collapsible>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       ))}
     </div>
   );
