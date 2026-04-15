@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { Play, Settings, Clock, Flag, Pencil, LogOut, Share2, Loader2 } from "lucide-react";
+import { Play, Settings, Clock, Flag, Pencil, LogOut, Share2, Loader2, ChevronDown, ShieldCheck, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useStreakTrackers } from "@/hooks/useStreakTrackers";
 import { Card } from "@/components/ui/card";
 import {
   AlertDialog,
