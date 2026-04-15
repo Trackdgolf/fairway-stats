@@ -122,10 +122,10 @@ const ClubPerformance = () => {
           onValueChange={(v) => v && setTopView(v as TopView)}
           className="mb-4 w-full bg-muted rounded-lg p-1"
         >
-          <ToggleGroupItem value="dispersion" className="flex-1 rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm text-sm font-medium">
+          <ToggleGroupItem value="dispersion" className="flex-1 rounded-md data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm text-sm font-medium">
             Dispersion
           </ToggleGroupItem>
-          <ToggleGroupItem value="distances" className="flex-1 rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm text-sm font-medium">
+          <ToggleGroupItem value="distances" className="flex-1 rounded-md data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm text-sm font-medium">
             Distances
           </ToggleGroupItem>
         </ToggleGroup>
