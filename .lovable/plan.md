@@ -1,50 +1,38 @@
 
 
-# Populate Drills Tab with New Content (Section 1 of 6: Putting)
+# Replace AI Practice Plan with Local Drill Recommendations
 
 ## Overview
-Rebuild the DrillLibrary component to support richer drill data (equipment, duration, target handicap, coaching cue) and populate with the first 8 putting drills. The component will use collapsible cards matching the Impact Laws pattern. More sections will be added as you provide them.
+Remove the AI/edge function dependency from "Get My Practice Plan". Instead, compute the user's stats client-side (keep existing `computeStats`), identify their weakest areas, and recommend 2-3 specific drills from the hardcoded `drillData` in DrillLibrary — with contextual explanations referencing their actual numbers.
+
+## How It Works
+
+1. **Keep** the existing `computeStats()` logic that fetches FIR%, GIR%, avg putts, and scramble%.
+2. **Map stats to drill categories** using weakness thresholds:
+   - High putts (>32/round) → Putting drills
+   - Low FIR% (<60%) → Driving drills
+   - Low GIR% (<50%) → Approach Play drills
+   - Low Scramble% (<40%) → Short Game + Up & Down drills
+   - General course management → Course Management drills
+3. **Rank weaknesses** by severity, pick the top 2-3.
+4. **Select 1 drill per weakness** appropriate to the user's level (use stat values as a proxy — worse stats suggest beginner drills).
+5. **Render a structured card** with:
+   - Intro line referencing their stats (e.g. "Your FIR is 45% — let's work on that")
+   - For each recommended drill: the drill title, category, difficulty badge, duration, description, and coaching cue
+   - A link/button to navigate to Golf School > Drills for the full library
 
 ## Changes
 
 | File | Change |
 |------|--------|
-| `src/components/DrillLibrary.tsx` | Expand data model, add collapsible card UI, populate with 8 putting drills |
+| `src/components/DrillLibrary.tsx` | Export `drillData` array so PracticePlan can import it |
+| `src/components/PracticePlan.tsx` | Replace AI streaming logic with local stat-based drill selection and structured rendering |
+| `supabase/functions/practice-plan/index.ts` | No change (can be cleaned up later, but not breaking) |
 
-## Updated Data Model
+## Key Details
 
-```typescript
-interface Drill {
-  id: string;
-  title: string;
-  difficulty: Difficulty;
-  targetHdcp: string;
-  equipment: string;
-  durationMins: number;
-  description: string;
-  coachingCue: string;
-}
-```
-
-## Card Design
-
-Each drill rendered as a collapsible `Card` (matching Impact Laws style):
-- **Header (always visible):** Title, difficulty badge, duration pill (e.g. "10 min")
-- **Expanded content:** Description, coaching cue in a highlighted callout, and metadata chips for Equipment, Target Handicap
-
-## Content — Putting (8 drills)
-
-| ID | Title | Difficulty |
-|----|-------|-----------|
-| PUT-001 | Gate Drill | Beginner |
-| PUT-002 | Clock Drill | Beginner |
-| PUT-003 | Ladder Drill | Intermediate |
-| PUT-004 | Coin Drill | Intermediate |
-| PUT-005 | String Line Drill | Beginner |
-| PUT-006 | One-Handed Putting | Intermediate |
-| PUT-007 | Eyes Closed Drill | Advanced |
-| PUT-008 | 3-6-9 Pressure Drill | Intermediate |
-
-## Waiting for Remaining Sections
-Once approved, I'll implement section 1 and the updated component structure. You can then send sections 2–6 and I'll add them incrementally.
+- No network call to the AI gateway — instant results
+- Drill recommendations feel personalised because they reference the user's actual stat numbers
+- Download button still works, exporting the plan as plain text
+- The "TRACKD Caddy" branding and card layout remain the same
 
