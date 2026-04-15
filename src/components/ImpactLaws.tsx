@@ -104,6 +104,9 @@ const ImpactLaws = () => {
 
   return (
     <div className="space-y-3 mt-4">
+      <p className="text-xs italic text-muted-foreground px-1">
+        Content inspired by Adam Young's <em>The Practice Manual</em>
+      </p>
       {impactLaws.map((law) => (
         <Collapsible
           key={law.id}
