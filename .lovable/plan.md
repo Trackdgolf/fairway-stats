@@ -1,10 +1,13 @@
 
 
-# Fix Toggle Text Contrast on Club Performance Page
+# Center Personal SI Badge in Hole Detail
 
 ## Problem
-The `ToggleGroupItem` base styles set `data-[state=on]:text-accent-foreground` (white in light mode, dark in dark mode). The ClubPerformance page overrides the active background to `data-[state=on]:bg-background` but doesn't override the text color — so active text is the same color as the background, making it unreadable.
+The Personal SI badge in the hole detail summary card is left-aligned within its column, while the "Personal SI" label text is centered. This creates a visual misalignment.
 
 ## Fix
-In `src/pages/ClubPerformance.tsx` (lines 125 and 128), add `data-[state=on]:text-foreground` to both `ToggleGroupItem` classNames so the active tab text uses the standard foreground color, which contrasts properly against the background color in both light and dark modes.
+In `src/components/HoleDetail.tsx` line 86, add `flex flex-col items-center` to the parent `<div>` so both the label and the badge are horizontally centered within the grid column.
+
+**Before:** `<div>`
+**After:** `<div className="flex flex-col items-center">`
 
