@@ -84,7 +84,9 @@ const Home = () => {
   const supabase = getSupabaseClient();
   const queryClient = useQueryClient();
   const { isPremium } = usePremiumStatus();
+  const { threePutt, doubleBogey, isLoading: streaksLoading } = useStreakTrackers();
   const [showPaywall, setShowPaywall] = useState(false);
+  const [recentOpen, setRecentOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [summaryData, setSummaryData] = useState<{
