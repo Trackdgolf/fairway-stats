@@ -1,42 +1,50 @@
 
 
-# Add "Impact Laws" Tab to Golf School
+# Populate Drills Tab with New Content (Section 1 of 6: Putting)
 
 ## Overview
-Add a third tab to the Golf School page containing 8 detailed impact law cards, using the content provided. No database needed — all content is hardcoded.
+Rebuild the DrillLibrary component to support richer drill data (equipment, duration, target handicap, coaching cue) and populate with the first 8 putting drills. The component will use collapsible cards matching the Impact Laws pattern. More sections will be added as you provide them.
 
 ## Changes
 
 | File | Change |
 |------|--------|
-| `src/pages/GolfSchool.tsx` | Add third tab trigger "Impact Laws", update grid to `grid-cols-3`, add `TabsContent` for the new `ImpactLaws` component |
-| `src/components/ImpactLaws.tsx` | **New file** — renders all 8 impact laws as expandable cards |
+| `src/components/DrillLibrary.tsx` | Expand data model, add collapsible card UI, populate with 8 putting drills |
 
-## Component Design — `ImpactLaws.tsx`
+## Updated Data Model
 
-Each of the 8 laws rendered as a `Card` with:
-- **Title** (e.g. "Face Angle at Impact") and **category badge** (Direction, Distance, Trajectory, etc.)
-- **Impact factor** shown as a highlighted callout (e.g. "~75% of start direction")
-- **Explanation** — main body text, shown by default
-- **Collapsible sections** using the existing `Collapsible` component:
-  - "On Course" — practical application
-  - "How to Diagnose" — self-diagnosis tips
+```typescript
+interface Drill {
+  id: string;
+  title: string;
+  difficulty: Difficulty;
+  targetHdcp: string;
+  equipment: string;
+  durationMins: number;
+  description: string;
+  coachingCue: string;
+}
+```
 
-This keeps cards scannable while allowing users to dive deeper. All 8 entries from the provided data are hardcoded as a typed array.
+## Card Design
 
-## Content Mapping
+Each drill rendered as a collapsible `Card` (matching Impact Laws style):
+- **Header (always visible):** Title, difficulty badge, duration pill (e.g. "10 min")
+- **Expanded content:** Description, coaching cue in a highlighted callout, and metadata chips for Equipment, Target Handicap
 
-| ID | Name | Category |
-|----|------|----------|
-| BFL-01 | Face Angle at Impact | Direction |
-| BFL-02 | Swing Path | Direction |
-| BFL-03 | Face-to-Path Relationship | Direction / Curvature |
-| BFL-04 | Sweet Spot Strike | Distance / Direction |
-| BFL-05 | Ground Contact | Distance / Consistency |
-| BFL-06 | Angle of Attack | Trajectory / Distance |
-| BFL-07 | Dynamic Loft & Spin Loft | Trajectory / Spin / Distance |
-| BFL-08 | Ball Speed | Distance |
+## Content — Putting (8 drills)
 
-## Static Content Only
-No database tables, migrations, or edge functions needed. All content is hardcoded in the component file.
+| ID | Title | Difficulty |
+|----|-------|-----------|
+| PUT-001 | Gate Drill | Beginner |
+| PUT-002 | Clock Drill | Beginner |
+| PUT-003 | Ladder Drill | Intermediate |
+| PUT-004 | Coin Drill | Intermediate |
+| PUT-005 | String Line Drill | Beginner |
+| PUT-006 | One-Handed Putting | Intermediate |
+| PUT-007 | Eyes Closed Drill | Advanced |
+| PUT-008 | 3-6-9 Pressure Drill | Intermediate |
+
+## Waiting for Remaining Sections
+Once approved, I'll implement section 1 and the updated component structure. You can then send sections 2–6 and I'll add them incrementally.
 
