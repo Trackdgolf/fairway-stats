@@ -632,8 +632,9 @@ const DrillLibrary = () => {
                 </Card>
               </Collapsible>
             ))}
-          </div>
-        </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       ))}
     </div>
   );
