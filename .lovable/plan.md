@@ -1,13 +1,15 @@
 
 
-# Center Personal SI Badge in Hole Detail
+# Fix Hole Number Overlapping Top Border
 
 ## Problem
-The Personal SI badge in the hole detail summary card is left-aligned within its column, while the "Personal SI" label text is centered. This creates a visual misalignment.
+On the hole detail view within Courses, the "Hole X" title sits too close to the green header banner, appearing to overlap or touch the border.
 
 ## Fix
-In `src/components/HoleDetail.tsx` line 86, add `flex flex-col items-center` to the parent `<div>` so both the label and the badge are horizontally centered within the grid column.
+Add top padding (`pt-2`) to the root `div` of the `HoleDetail` component (line 58 in `src/components/HoleDetail.tsx`), changing `className="space-y-4"` to `className="space-y-4 pt-2"`. This gives the "Hole X" heading a small amount of breathing room below the header area.
 
-**Before:** `<div>`
-**After:** `<div className="flex flex-col items-center">`
+## File Changed
+| File | Change |
+|------|--------|
+| `src/components/HoleDetail.tsx` | Add `pt-2` to root div className |
 
