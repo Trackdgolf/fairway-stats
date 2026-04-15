@@ -83,7 +83,7 @@ const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
                 {hole.avgOverPar > 0 ? `+${hole.avgOverPar.toFixed(1)}` : hole.avgOverPar === 0 ? "E" : hole.avgOverPar.toFixed(1)}
               </p>
             </div>
-            <div>
+            <div className="flex flex-col items-center">
               <p className="text-xs text-muted-foreground mb-1">Personal SI</p>
               <Badge className="w-7 h-7 rounded-full flex items-center justify-center p-0 text-xs">
                 {hole.personalStrokeIndex}
