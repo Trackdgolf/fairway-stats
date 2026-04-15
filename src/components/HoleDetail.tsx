@@ -55,7 +55,7 @@ const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
   const yardage = history?.find(h => h.yardage != null)?.yardage;
 
   return (
-    <div className="space-y-4 pt-2">
+    <div className="space-y-4 pt-4">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onBack} className="text-foreground">
