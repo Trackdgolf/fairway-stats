@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { Play, Settings, Clock, Flag, Pencil, LogOut, Share2, Loader2 } from "lucide-react";
+import { Play, Settings, Clock, Flag, Pencil, LogOut, Share2, Loader2, ChevronDown, ShieldCheck, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useStreakTrackers } from "@/hooks/useStreakTrackers";
 import { Card } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -82,7 +84,9 @@ const Home = () => {
   const supabase = getSupabaseClient();
   const queryClient = useQueryClient();
   const { isPremium } = usePremiumStatus();
+  const { threePutt, doubleBogey, isLoading: streaksLoading } = useStreakTrackers();
   const [showPaywall, setShowPaywall] = useState(false);
+  const [recentOpen, setRecentOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [summaryData, setSummaryData] = useState<{
@@ -284,60 +288,81 @@ const Home = () => {
           <TrackdHandicap />
         </div>
 
-        {/* Recent Rounds */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-foreground mb-3">Recent Rounds</h3>
-          {completedRounds && completedRounds.length > 0 ? (
-            <div className="space-y-3">
-              {completedRounds.map((round) => (
-                <Card key={round.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="font-medium text-foreground">{round.course_name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {round.played_at ? format(new Date(round.played_at), "MMM d, yyyy") : ""}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <p className="text-xl font-bold text-foreground">
-                          {round.total_score ?? "--"}
-                        </p>
-                        {formatScoreVsPar(round.total_score, round.hole_stats) && (
-                          <p className="text-sm font-medium text-primary">
-                            {formatScoreVsPar(round.total_score, round.hole_stats)}
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleShareRound(round); }}
-                        className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-                        disabled={loadingShareId === round.id}
-                      >
-                        {loadingShareId === round.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Share2 className="w-4 h-4" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => navigate(`/edit-round/${round.id}`)}
-                        className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card className="p-6 text-center">
-              <p className="text-muted-foreground">No rounds yet</p>
-              <p className="text-sm text-muted-foreground mt-1">Start your first round to see it here</p>
-            </Card>
-          )}
+        {/* Streak Tracker Tiles */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <Card className="p-4 text-center">
+            <ShieldCheck className="w-8 h-8 mx-auto mb-2 text-accent" />
+            <p className="text-3xl font-bold text-foreground">{streaksLoading ? "–" : threePutt.current}</p>
+            <p className="text-xs font-medium text-muted-foreground mt-1">Holes since last 3-putt</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">Longest: {streaksLoading ? "–" : threePutt.longest} holes</p>
+          </Card>
+          <Card className="p-4 text-center">
+            <ShieldAlert className="w-8 h-8 mx-auto mb-2 text-accent" />
+            <p className="text-3xl font-bold text-foreground">{streaksLoading ? "–" : doubleBogey.current}</p>
+            <p className="text-xs font-medium text-muted-foreground mt-1">Holes since last double bogey+</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">Longest: {streaksLoading ? "–" : doubleBogey.longest} holes</p>
+          </Card>
         </div>
+
+        {/* Recent Rounds - Collapsible */}
+        <Collapsible open={recentOpen} onOpenChange={setRecentOpen} className="mb-6">
+          <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
+            <h3 className="text-lg font-semibold text-foreground">Recent Rounds</h3>
+            <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${recentOpen ? "rotate-180" : ""}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3">
+            {completedRounds && completedRounds.length > 0 ? (
+              <div className="space-y-3">
+                {completedRounds.map((round) => (
+                  <Card key={round.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">{round.course_name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {round.played_at ? format(new Date(round.played_at), "MMM d, yyyy") : ""}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-foreground">
+                            {round.total_score ?? "--"}
+                          </p>
+                          {formatScoreVsPar(round.total_score, round.hole_stats) && (
+                            <p className="text-sm font-medium text-primary">
+                              {formatScoreVsPar(round.total_score, round.hole_stats)}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleShareRound(round); }}
+                          className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                          disabled={loadingShareId === round.id}
+                        >
+                          {loadingShareId === round.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Share2 className="w-4 h-4" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => navigate(`/edit-round/${round.id}`)}
+                          className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="p-6 text-center">
+                <p className="text-muted-foreground">No rounds yet</p>
+                <p className="text-sm text-muted-foreground mt-1">Start your first round to see it here</p>
+              </Card>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Sign Out Button with Confirmation */}
         <AlertDialog>
