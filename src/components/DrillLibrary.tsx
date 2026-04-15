@@ -541,6 +541,12 @@ const drillData: DrillCategory[] = [
   },
 ];
 
+const difficultyOrder: Record<Difficulty, number> = {
+  Beginner: 0,
+  Intermediate: 1,
+  Advanced: 2,
+};
+
 const DrillLibrary = () => {
   const [openDrills, setOpenDrills] = useState<Record<string, boolean>>({});
 
@@ -554,7 +560,7 @@ const DrillLibrary = () => {
         <div key={category.category}>
           <h2 className="text-lg font-bold text-foreground mb-3">{category.category}</h2>
           <div className="space-y-3">
-            {category.drills.map((drill) => (
+            {[...category.drills].sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]).map((drill) => (
               <Collapsible
                 key={drill.id}
                 open={openDrills[drill.id]}
