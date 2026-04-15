@@ -549,17 +549,37 @@ const difficultyOrder: Record<Difficulty, number> = {
 
 const DrillLibrary = () => {
   const [openDrills, setOpenDrills] = useState<Record<string, boolean>>({});
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   const toggleDrill = (id: string) => {
     setOpenDrills((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const toggleSection = (category: string) => {
+    setOpenSections((prev) => ({ ...prev, [category]: !prev[category] }));
+  };
+
   return (
-    <div className="space-y-6 mt-4">
+    <div className="space-y-3 mt-4">
       {drillData.map((category) => (
-        <div key={category.category}>
-          <h2 className="text-lg font-bold text-foreground mb-3">{category.category}</h2>
-          <div className="space-y-3">
+        <Collapsible
+          key={category.category}
+          open={openSections[category.category]}
+          onOpenChange={() => toggleSection(category.category)}
+        >
+          <CollapsibleTrigger className="flex items-center justify-between w-full text-left py-2 px-1">
+            <h2 className="text-lg font-bold text-foreground">{category.category}</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">{category.drills.length} drills</span>
+              <ChevronDown
+                className={`w-5 h-5 text-muted-foreground transition-transform ${
+                  openSections[category.category] ? "rotate-180" : ""
+                }`}
+              />
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="space-y-3 mt-2">
             {[...category.drills].sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]).map((drill) => (
               <Collapsible
                 key={drill.id}
