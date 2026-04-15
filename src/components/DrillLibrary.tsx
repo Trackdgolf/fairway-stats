@@ -4,9 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Clock, Target } from "lucide-react";
 
-type Difficulty = "Beginner" | "Intermediate" | "Advanced";
+export type Difficulty = "Beginner" | "Intermediate" | "Advanced";
 
-interface Drill {
+export interface Drill {
   id: string;
   title: string;
   difficulty: Difficulty;
@@ -17,18 +17,18 @@ interface Drill {
   coachingCue: string;
 }
 
-interface DrillCategory {
+export interface DrillCategory {
   category: string;
   drills: Drill[];
 }
 
-const difficultyColor: Record<Difficulty, string> = {
+export const difficultyColor: Record<Difficulty, string> = {
   Beginner: "bg-success text-success-foreground",
   Intermediate: "bg-warning text-warning-foreground",
   Advanced: "bg-destructive text-destructive-foreground",
 };
 
-const drillData: DrillCategory[] = [
+export const drillData: DrillCategory[] = [
   {
     category: "Putting",
     drills: [
