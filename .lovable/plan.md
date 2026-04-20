@@ -1,71 +1,100 @@
 
-# Restore the left-side SCORE ENTRY tab in the Insights drawer
+
+# Dynamic Streak Tile Colors Based on Progress
 
 ## Overview
-Fix the hole insights drawer so golfers always have a clear way to return to score entry. The issue is that the current drawer styling hides all direct button children inside the sheet, which unintentionally hides the custom left-edge `SCORE ENTRY` close tab as well.
+Replace the per-metric color scheme on the Home page streak tiles with a single, consistent **progress-based** color system. The icon, progress bar, and "longest" text on each of the three tiles will share the same color, driven by how close the current streak is to the user's personal best.
 
-The fix is to make the drawer explicitly support a hidden default close button while keeping the custom left-side close tab visible and tappable.
+This gives golfers an instant visual read on how they're trending, regardless of which metric they're looking at.
 
-## What to build
+## Color Thresholds
 
-### 1) Update the shared Sheet component to support hiding only the default X button
-Add a small optional prop to `src/components/ui/sheet.tsx`, such as `hideCloseButton?: boolean`, on `SheetContent`.
+Based on `pct = (current / longest) * 100`:
 
-Behavior:
-- Default stays exactly the same everywhere else in the app.
-- When `hideCloseButton` is `true`, the built-in top-right X is not rendered.
-- No generic CSS selector like `[&>button]:hidden` should be used.
+| Range | Color | Token | Behavior |
+|---|---|---|---|
+| 0% – 30% | Red | `destructive` | Static |
+| 31% – 60% | Orange | `warning` (amber) → use a true orange | Static |
+| 61% – 99% | Green | `success` | Static |
+| 100% + (new record) | Gold | new `gold` token | Pulsing ring + animated bar |
 
-This avoids accidentally hiding custom button content inside the drawer.
-
-### 2) Fix `HoleInsightsSheet.tsx` to use the new close-button behavior
-Update `src/components/HoleInsightsSheet.tsx` so the right-side insights drawer:
-- passes `hideCloseButton`
-- removes the brittle `[&>button]:hidden` class
-- keeps the custom `SheetClose asChild` left-edge pull-tab visible
-
-The left tab should remain:
-- fixed on the left edge
-- vertically centered
-- labeled `SCORE ENTRY`
-- styled to mirror the right-side `INSIGHTS` tab
-- the primary dismissal control for the drawer
-
-### 3) Keep the score-entry flow feeling like one continuous screen
-Maintain the current UX where:
-- right tab opens insights
-- left tab closes insights
-- closing the drawer does not navigate away or reset input
-- the golfer returns directly to the same hole entry state
-
-This matches the intended “extension of the score entry screen” behavior.
+Notes:
+- "100% and above" = current streak ≥ longest = a new personal record (already detected in code as `isRecord`).
+- If the user has no record yet (`longest === 0`), default to neutral muted styling (no color, no progress bar) — same as today's empty state.
 
 ## Files to change
 
 | File | Change |
 |---|---|
-| `src/components/ui/sheet.tsx` | Add optional `hideCloseButton` prop to `SheetContent` and conditionally render the built-in X close button |
-| `src/components/HoleInsightsSheet.tsx` | Remove `[&>button]:hidden`, use `hideCloseButton`, keep custom left-edge `SCORE ENTRY` close tab visible |
+| `src/index.css` | Add a `--gold` HSL token (light + dark) for the new "record" state. |
+| `tailwind.config.ts` | Register `gold` / `gold-foreground` colors so `text-gold`, `bg-gold`, `ring-gold/40`, `[&>div]:bg-gold` utilities work. |
+| `src/pages/Home.tsx` | Remove per-tile color config. Add a helper `getStreakColor(pct, hasRecord)` returning `{ iconClass, barClass, ringClass, recordTextClass }`. Apply uniformly to all three tiles. |
 
-## Technical details
-- Root cause: `SheetContent` currently renders the default close button as a direct child, and `HoleInsightsSheet` uses `[&>button]:hidden`, which hides both the default close button and the custom `SheetClose asChild` button.
-- Safer pattern: control the default X in the `SheetContent` component itself instead of hiding all child buttons with CSS.
-- No database or backend changes.
-- No changes needed in `Round.tsx` or `EditRound.tsx` unless spacing needs a tiny adjustment after restoring the left tab.
+## Implementation details
+
+### 1) New gold token
+In `src/index.css`, under `:root` and `.dark`, add:
+```css
+--gold: 45 90% 55%;          /* warm gold */
+--gold-foreground: 40 30% 15%;
+```
+
+### 2) Tailwind registration
+In `tailwind.config.ts`, extend `colors`:
+```ts
+gold: {
+  DEFAULT: "hsl(var(--gold))",
+  foreground: "hsl(var(--gold-foreground))",
+},
+```
+
+### 3) Color helper in `Home.tsx`
+Replace the existing per-tile `iconClass / barClass / ringClass / recordTextClass` with a single function:
+
+```ts
+const getStreakColor = (pct: number, hasRecord: boolean, isRecord: boolean) => {
+  if (!hasRecord) {
+    return { iconClass: "text-muted-foreground", barClass: "", ringClass: "", recordTextClass: "text-muted-foreground/70" };
+  }
+  if (isRecord) {
+    return {
+      iconClass: "text-gold",
+      barClass: "[&>div]:bg-gold",
+      ringClass: "ring-gold/50",
+      recordTextClass: "text-gold",
+    };
+  }
+  if (pct <= 30)  return { iconClass: "text-destructive", barClass: "[&>div]:bg-destructive", ringClass: "", recordTextClass: "text-muted-foreground/70" };
+  if (pct <= 60)  return { iconClass: "text-orange-500",  barClass: "[&>div]:bg-orange-500",  ringClass: "", recordTextClass: "text-muted-foreground/70" };
+  return            { iconClass: "text-success",     barClass: "[&>div]:bg-success",     ringClass: "", recordTextClass: "text-muted-foreground/70" };
+};
+```
+
+(For "orange" we'll use the new `gold` token only for the record state; the 31–60% band will use `text-orange-500` / `bg-orange-500` from Tailwind's default palette so we don't need yet another custom token.)
+
+### 4) Tile loop
+Simplify the streak array back to just `{ icon, label, data }` for the three metrics, then in the render compute `pct` / `hasRecord` / `isRecord` and call `getStreakColor` to pull classes. Apply:
+- `iconClass` → `Icon`
+- `barClass` → `Progress`
+- `ringClass` + `animate-pulse` → outer `Card` only when `isRecord`
+- `recordTextClass` → bottom "Longest: X" / "🏆 New record!" line
+
+### 5) Consistent behavior across tiles
+All three tiles use the exact same thresholds and tokens, so a 50%-of-record streak looks the same whether it's the 3-putt, double-bogey, or penalty tile.
 
 ## Expected result
-On the score entry pages:
-- user taps the right `INSIGHTS` tab
-- insights sheet opens
-- user sees a left `SCORE ENTRY` tab immediately
-- tapping that tab closes the sheet and returns them to score entry on the same hole
+- Early in a streak run → red tile
+- Building → orange
+- Approaching personal best → green
+- New record → pulsing gold tile
+- All three tiles always use the same color rules, giving a clear at-a-glance progression cue.
 
 ## QA
-Verify on mobile viewport:
-1. Open a round on `/round`
-2. Tap `INSIGHTS`
-3. Confirm the left `SCORE ENTRY` tab is visible
-4. Tap `SCORE ENTRY`
-5. Confirm the drawer closes and score entry remains intact
-6. Repeat on `EditRound`
-7. Confirm other sheets in the app still show their normal top-right X
+1. Open Home on mobile (390 × 738).
+2. Check a tile with ~25% progress → red icon + bar.
+3. Check ~50% → orange.
+4. Check ~80% → green.
+5. Check a tile equal to longest → gold + pulse.
+6. Check a tile with no record yet → neutral muted styling, no bar.
+7. Toggle dark mode and confirm gold is still readable.
+
