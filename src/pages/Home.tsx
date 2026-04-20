@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Play, Settings, Clock, Flag, Pencil, LogOut, Share2, Loader2, ChevronDown, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Play, Settings, Clock, Flag, Pencil, LogOut, Share2, Loader2, ChevronDown, ShieldCheck, ShieldAlert, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useStreakTrackers } from "@/hooks/useStreakTrackers";
@@ -84,7 +84,7 @@ const Home = () => {
   const supabase = getSupabaseClient();
   const queryClient = useQueryClient();
   const { isPremium } = usePremiumStatus();
-  const { threePutt, doubleBogey, isLoading: streaksLoading } = useStreakTrackers();
+  const { threePutt, doubleBogey, penalty, isLoading: streaksLoading } = useStreakTrackers();
   const [showPaywall, setShowPaywall] = useState(false);
   const [recentOpen, setRecentOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -289,18 +289,24 @@ const Home = () => {
         </div>
 
         {/* Streak Tracker Tiles */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <Card className="p-4 text-center">
-            <ShieldCheck className="w-8 h-8 mx-auto mb-2 text-accent" />
-            <p className="text-3xl font-bold text-foreground">{streaksLoading ? "–" : threePutt.current}</p>
-            <p className="text-xs font-medium text-muted-foreground mt-1">Holes since last 3-putt</p>
-            <p className="text-xs text-muted-foreground/70 mt-1">Longest: {streaksLoading ? "–" : threePutt.longest} holes</p>
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          <Card className="p-3 text-center">
+            <ShieldCheck className="w-7 h-7 mx-auto mb-2 text-accent" />
+            <p className="text-2xl font-bold text-foreground">{streaksLoading ? "–" : threePutt.current}</p>
+            <p className="text-[11px] font-medium text-muted-foreground mt-1 leading-tight">Holes since last 3-putt</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-1">Longest: {streaksLoading ? "–" : threePutt.longest}</p>
           </Card>
-          <Card className="p-4 text-center">
-            <ShieldAlert className="w-8 h-8 mx-auto mb-2 text-accent" />
-            <p className="text-3xl font-bold text-foreground">{streaksLoading ? "–" : doubleBogey.current}</p>
-            <p className="text-xs font-medium text-muted-foreground mt-1">Holes since last double bogey+</p>
-            <p className="text-xs text-muted-foreground/70 mt-1">Longest: {streaksLoading ? "–" : doubleBogey.longest} holes</p>
+          <Card className="p-3 text-center">
+            <ShieldAlert className="w-7 h-7 mx-auto mb-2 text-accent" />
+            <p className="text-2xl font-bold text-foreground">{streaksLoading ? "–" : doubleBogey.current}</p>
+            <p className="text-[11px] font-medium text-muted-foreground mt-1 leading-tight">Holes since last double bogey+</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-1">Longest: {streaksLoading ? "–" : doubleBogey.longest}</p>
+          </Card>
+          <Card className="p-3 text-center">
+            <AlertTriangle className="w-7 h-7 mx-auto mb-2 text-accent" />
+            <p className="text-2xl font-bold text-foreground">{streaksLoading ? "–" : penalty.current}</p>
+            <p className="text-[11px] font-medium text-muted-foreground mt-1 leading-tight">Holes since last penalty</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-1">Longest: {streaksLoading ? "–" : penalty.longest}</p>
           </Card>
         </div>
 

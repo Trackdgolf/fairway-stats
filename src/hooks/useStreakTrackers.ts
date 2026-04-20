@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 interface StreakData {
   threePutt: { current: number; longest: number };
   doubleBogey: { current: number; longest: number };
+  penalty: { current: number; longest: number };
   isLoading: boolean;
 }
 
@@ -19,47 +20,55 @@ export const useStreakTrackers = (): StreakData => {
       // Fetch all rounds with hole stats, ordered most recent first
       const { data: rounds, error } = await supabase
         .from("rounds")
-        .select("played_at, hole_stats(hole_number, score, par, putts)")
+        .select("played_at, hole_stats(hole_number, score, par, putts, penalties)")
         .eq("user_id", user!.id)
         .order("played_at", { ascending: false });
 
       if (error) throw error;
-      if (!rounds?.length) return { threePutt: { current: 0, longest: 0 }, doubleBogey: { current: 0, longest: 0 } };
+      if (!rounds?.length) return {
+        threePutt: { current: 0, longest: 0 },
+        doubleBogey: { current: 0, longest: 0 },
+        penalty: { current: 0, longest: 0 },
+      };
 
       // Flatten holes: sort by round played_at DESC, then hole_number DESC
-      const allHoles: Array<{ score: number | null; par: number | null; putts: number | null }> = [];
+      const allHoles: Array<{ score: number | null; par: number | null; putts: number | null; penalties: number | null }> = [];
       for (const round of rounds) {
-        const holes = (round.hole_stats as Array<{ hole_number: number; score: number | null; par: number | null; putts: number | null }>) || [];
-        // Sort holes within round descending by hole_number
+        const holes = (round.hole_stats as Array<{ hole_number: number; score: number | null; par: number | null; putts: number | null; penalties: number | null }>) || [];
         const sorted = [...holes].sort((a, b) => b.hole_number - a.hole_number);
         allHoles.push(...sorted);
       }
 
-      // Calculate streaks
       const threePutt = calcStreak(allHoles, (h) => {
-        if (h.putts == null) return null; // skip
+        if (h.putts == null) return null;
         return h.putts >= 3;
       });
 
       const doubleBogey = calcStreak(allHoles, (h) => {
-        if (h.score == null || h.par == null) return null; // skip
+        if (h.score == null || h.par == null) return null;
         return h.score >= h.par + 2;
       });
 
-      return { threePutt, doubleBogey };
+      const penalty = calcStreak(allHoles, (h) => {
+        if (h.penalties == null) return null;
+        return h.penalties > 0;
+      });
+
+      return { threePutt, doubleBogey, penalty };
     },
   });
 
   return {
     threePutt: data?.threePutt ?? { current: 0, longest: 0 },
     doubleBogey: data?.doubleBogey ?? { current: 0, longest: 0 },
+    penalty: data?.penalty ?? { current: 0, longest: 0 },
     isLoading,
   };
 };
 
 function calcStreak(
-  holes: Array<{ score: number | null; par: number | null; putts: number | null }>,
-  isBadEvent: (h: { score: number | null; par: number | null; putts: number | null }) => boolean | null
+  holes: Array<{ score: number | null; par: number | null; putts: number | null; penalties: number | null }>,
+  isBadEvent: (h: { score: number | null; par: number | null; putts: number | null; penalties: number | null }) => boolean | null
 ): { current: number; longest: number } {
   let current = 0;
   let currentFound = false;
