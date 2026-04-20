@@ -78,6 +78,27 @@ const formatScoreVsPar = (totalScore: number | null, holeStats: Array<{ par: num
   return `${difference}`;
 };
 
+const getStreakColor = (pct: number, hasRecord: boolean, isRecord: boolean) => {
+  if (!hasRecord) {
+    return { iconClass: "text-muted-foreground", barClass: "", ringClass: "", recordTextClass: "text-muted-foreground/70" };
+  }
+  if (isRecord) {
+    return {
+      iconClass: "text-gold",
+      barClass: "[&>div]:bg-gold",
+      ringClass: "ring-gold/50",
+      recordTextClass: "text-gold",
+    };
+  }
+  if (pct <= 30) {
+    return { iconClass: "text-destructive", barClass: "[&>div]:bg-destructive", ringClass: "", recordTextClass: "text-muted-foreground/70" };
+  }
+  if (pct <= 60) {
+    return { iconClass: "text-orange-500", barClass: "[&>div]:bg-orange-500", ringClass: "", recordTextClass: "text-muted-foreground/70" };
+  }
+  return { iconClass: "text-success", barClass: "[&>div]:bg-success", ringClass: "", recordTextClass: "text-muted-foreground/70" };
+};
+
 const Home = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -292,38 +313,15 @@ const Home = () => {
         {/* Streak Tracker Tiles */}
         <div className="grid grid-cols-3 gap-2 mb-6">
           {([
-            {
-              icon: ShieldCheck,
-              label: "Holes since last 3-putt",
-              data: threePutt,
-              iconClass: "text-success",
-              barClass: "[&>div]:bg-success",
-              ringClass: "ring-success/40",
-              recordTextClass: "text-success",
-            },
-            {
-              icon: ShieldAlert,
-              label: "Holes since last double bogey+",
-              data: doubleBogey,
-              iconClass: "text-warning",
-              barClass: "[&>div]:bg-warning",
-              ringClass: "ring-warning/40",
-              recordTextClass: "text-warning",
-            },
-            {
-              icon: AlertTriangle,
-              label: "Holes since last penalty",
-              data: penalty,
-              iconClass: "text-destructive",
-              barClass: "[&>div]:bg-destructive",
-              ringClass: "ring-destructive/40",
-              recordTextClass: "text-destructive",
-            },
-          ] as const).map(({ icon: Icon, label, data, iconClass, barClass, ringClass, recordTextClass }, idx) => {
+            { icon: ShieldCheck, label: "Holes since last 3-putt", data: threePutt },
+            { icon: ShieldAlert, label: "Holes since last double bogey+", data: doubleBogey },
+            { icon: AlertTriangle, label: "Holes since last penalty", data: penalty },
+          ] as const).map(({ icon: Icon, label, data }, idx) => {
             const { current, longest } = data;
             const hasRecord = longest > 0;
             const isRecord = hasRecord && current >= longest;
             const pct = hasRecord ? Math.min(100, (current / longest) * 100) : 0;
+            const { iconClass, barClass, ringClass, recordTextClass } = getStreakColor(pct, hasRecord, isRecord);
             return (
               <Card key={idx} className={`p-3 text-center flex flex-col ${isRecord ? `animate-pulse ring-2 ${ringClass}` : ""}`}>
                 <Icon className={`w-7 h-7 mx-auto mb-2 ${iconClass}`} />
