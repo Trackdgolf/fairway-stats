@@ -68,6 +68,7 @@ const HoleInsightsContent = ({
   showSummary = true,
 }: HoleInsightsContentProps) => {
   const { data: history, isLoading } = useHoleHistory(courseId, holeNumber);
+  const { data: courses } = useCoursePerformance();
   const [activeTab, setActiveTab] = useState<"tee" | "scramble">("tee");
 
   const scrambleAttempts: HolePlay[] = (history || []).filter(
@@ -84,6 +85,13 @@ const HoleInsightsContent = ({
       avgOverPar: avg - par,
     };
   }, [history, par]);
+
+  // Resolve personal SI from course performance data when not passed in
+  const resolvedSI = useMemo(() => {
+    if (personalStrokeIndex != null) return personalStrokeIndex;
+    const course = courses?.find((c) => c.courseId === courseId);
+    return course?.holes.find((h) => h.holeNumber === holeNumber)?.personalStrokeIndex;
+  }, [personalStrokeIndex, courses, courseId, holeNumber]);
 
   const summaryAvg = avgScore ?? computed?.avgScore;
   const summaryOver = avgOverPar ?? computed?.avgOverPar;
