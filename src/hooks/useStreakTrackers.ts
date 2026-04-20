@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 interface StreakData {
   threePutt: { current: number; longest: number };
   doubleBogey: { current: number; longest: number };
+  penalty: { current: number; longest: number };
   isLoading: boolean;
 }
 
