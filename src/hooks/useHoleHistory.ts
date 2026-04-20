@@ -13,6 +13,8 @@ export interface HolePlay {
   gir: boolean | null;
   girDirection: string | null;
   scramble: string | null;
+  scrambleClub: string | null;
+  scrambleShotType: string | null;
 }
 
 export const useHoleHistory = (courseId: string | null, holeNumber: number | null) => {
