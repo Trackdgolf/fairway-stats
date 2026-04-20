@@ -37,7 +37,8 @@ const HoleInsightsSheet = ({ courseId, holeNumber, par }: HoleInsightsSheetProps
         </SheetTrigger>
         <SheetContent
           side="right"
-          className="w-full sm:max-w-md overflow-y-auto p-0 [&>button]:hidden"
+          hideCloseButton
+          className="w-full sm:max-w-md overflow-y-auto p-0"
         >
           {/* Left-edge pull-tab to return to score entry */}
           <SheetClose asChild>
