@@ -1,55 +1,48 @@
 
 
-# Add Scramble-Specific Recent Rounds View
+# Reduce Score Entry UI Size by ~25%
 
 ## Overview
-On the individual hole detail page (Courses → Hole), make the "Recent Rounds" list context-aware so it matches whichever dispersion tab is active:
-- **Tee Shot tab** → existing card (date, score, tee club, hit/miss direction)
-- **Scramble tab** → new card showing scramble-specific data (club, miss direction, score, shot type, up & down result)
+Shrink the data-entry controls on the score-entry pages (`Round.tsx` and `EditRound.tsx`) so users can see more fields without scrolling. The reduction targets roughly **25%** smaller in height and visual weight, while keeping touch targets comfortable on mobile (Apple's 44px / Android 48dp minimum).
 
-## Behavior
+To stay in strict UI parity (per project rule), the same edits apply to both `Round.tsx` and `EditRound.tsx`. The shared `ClubSelectorDrawer` is also updated since its buttons are part of the entry flow.
 
-The "Recent Rounds" section listens to the active tab in `HoleDetail.tsx`. When the user toggles to **Scramble**, the list filters to plays that were actual scramble attempts (`gir === false` AND `scramble` is `"yes"` or `"no"`) and renders a different card layout. When on **Tee Shot**, the list keeps the current behaviour and shows all recorded plays.
+## Size Changes
 
-If the user is on the Scramble tab and no scramble attempts exist for this hole, show: *"No scramble attempts recorded for this hole yet."*
+| Element | Current | New (~75%) |
+|---|---|---|
+| **NumberStepper** +/- buttons | `w-14 h-14` (56px) | `w-11 h-11` (44px) |
+| NumberStepper +/- icons | `w-6 h-6` | `w-5 h-5` |
+| NumberStepper value box | `w-24 h-16` | `w-20 h-12` |
+| NumberStepper value font | `text-4xl` | `text-3xl` |
+| NumberStepper gap | `gap-4` | `gap-3` |
+| **ToggleButton** (Yes/No, Pitch/Chip/Bunker) | `h-12` | `h-9` |
+| **ShotDirectionSelector** circles | `w-12 h-12` | `w-9 h-9` |
+| ShotDirectionSelector icons | `w-5 h-5` | `w-4 h-4` |
+| ShotDirectionSelector gap | `gap-3` | `gap-2` |
+| **Club select buttons** (Tee/Approach/Scramble) | `h-14` | `h-11` |
+| **Club drawer grid buttons** | `h-14` | `h-11` |
+| **Section vertical spacing** | `space-y-8` | `space-y-6` |
+| **Section internal spacing** | `space-y-3` | `space-y-2` |
+| **Hole info card padding** | `p-6` mb-6 | `p-4` mb-4 |
+| Hole/Par numbers | `text-5xl` | `text-4xl` |
+| Yards number | `text-3xl` | `text-2xl` |
+| **Prev/Next nav buttons** | `h-14` mt-8 mb-6 | `h-11` mt-5 mb-4 |
+| Header padding | `pt-8 pb-6` | `pt-6 pb-4` |
 
-## Scramble Card Layout
-
-Each scramble row shows:
-
-```text
-[ Date ]                                  [ Score  Label ]
-🏌  Club: Sand Wedge     📍 From: Left     ⛳ Type: Bunker
-✅ Up & Down: Yes
-```
-
-Fields per row (sourced from `HolePlay`):
-- **Date** — `playedAt` (existing format)
-- **Score / label** — same colored score + label as today
-- **Club** — `scrambleClub` (new field, see below). Falls back to "—" if not recorded.
-- **From** — `girDirection` capitalized (Left / Right / Short / Long)
-- **Type** — `scrambleShotType` capitalized (Pitch / Chip / Bunker), "—" if missing
-- **Up & Down** — Green check + "Yes" when `scramble === "yes"`, red X + "No" when `"no"`
-
-## Data Layer
-
-`hole_stats` already stores `scramble_club` and `scramble_shot_type` (confirmed in schema). `useHoleHistory` currently doesn't expose them, so:
-
-1. Add `scrambleClub` and `scrambleShotType` to the `HolePlay` interface.
-2. Extend the `select(...)` in `useHoleHistory.ts` to include `scramble_club, scramble_shot_type`.
-3. Map them in the returned object (same for par-3 and longer holes — no special remap needed).
+Labels stay at `text-sm` (already small and important for legibility). Border radii stay the same so the visual style is preserved — just more compact.
 
 ## Files Changed
 
 | File | Change |
-|------|--------|
-| `src/hooks/useHoleHistory.ts` | Add `scrambleClub` + `scrambleShotType` to `HolePlay` and select/map them |
-| `src/components/HoleDetail.tsx` | Lift active tab into state; render either the existing tee-shot list or the new scramble list based on active tab; add empty state for scramble |
+|---|---|
+| `src/pages/Round.tsx` | Apply size tokens above to `NumberStepper`, `ToggleButton`, `ShotDirectionSelector`, club buttons, hole-info card, header, and nav buttons |
+| `src/pages/EditRound.tsx` | Same edits, mirrored to maintain parity |
+| `src/components/ClubSelectorDrawer.tsx` | Shrink grid buttons from `h-14` → `h-11` |
 
 ## Technical Notes
-
-- No DB migration needed — fields already exist on `hole_stats`.
-- Reuse `getScoreColor` / `getScoreLabel` helpers already in `HoleDetail.tsx`.
-- Use `lucide-react` icons already in use (`Check`, `X`, `MapPin`, `Flag` or similar) for the scramble row to stay visually consistent.
-- Keep the section title as "Recent Rounds" on both tabs; only the row contents change.
+- Pure Tailwind class swaps — no logic changes.
+- Smallest touch target after the change is **36px** (`h-9`) for the Yes/No toggles and direction circles. This is below Apple's 44px guideline; if you'd prefer to keep all touch targets at `h-11` (44px) we can bump those up. Going as small as `h-9` is what's needed to actually hit a true ~25% reduction across the board.
+- No changes to data flow, validation, or auto-save behavior.
+- Mobile viewport (390px) was used as the design reference.
 
