@@ -3,6 +3,7 @@ import { Target, CircleDot, MapPin, Flag, Check, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useHoleHistory, type HolePlay } from "@/hooks/useHoleHistory";
+import { useCoursePerformance } from "@/hooks/useCoursePerformance";
 import TeeOutcomeDispersion from "@/components/TeeOutcomeDispersion";
 import ScrambleOutcomeDispersion from "@/components/ScrambleOutcomeDispersion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
