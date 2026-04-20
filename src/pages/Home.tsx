@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useStreakTrackers } from "@/hooks/useStreakTrackers";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -290,24 +291,32 @@ const Home = () => {
 
         {/* Streak Tracker Tiles */}
         <div className="grid grid-cols-3 gap-2 mb-6">
-          <Card className="p-3 text-center">
-            <ShieldCheck className="w-7 h-7 mx-auto mb-2 text-accent" />
-            <p className="text-2xl font-bold text-foreground">{streaksLoading ? "–" : threePutt.current}</p>
-            <p className="text-[11px] font-medium text-muted-foreground mt-1 leading-tight">Holes since last 3-putt</p>
-            <p className="text-[10px] text-muted-foreground/70 mt-1">Longest: {streaksLoading ? "–" : threePutt.longest}</p>
-          </Card>
-          <Card className="p-3 text-center">
-            <ShieldAlert className="w-7 h-7 mx-auto mb-2 text-accent" />
-            <p className="text-2xl font-bold text-foreground">{streaksLoading ? "–" : doubleBogey.current}</p>
-            <p className="text-[11px] font-medium text-muted-foreground mt-1 leading-tight">Holes since last double bogey+</p>
-            <p className="text-[10px] text-muted-foreground/70 mt-1">Longest: {streaksLoading ? "–" : doubleBogey.longest}</p>
-          </Card>
-          <Card className="p-3 text-center">
-            <AlertTriangle className="w-7 h-7 mx-auto mb-2 text-accent" />
-            <p className="text-2xl font-bold text-foreground">{streaksLoading ? "–" : penalty.current}</p>
-            <p className="text-[11px] font-medium text-muted-foreground mt-1 leading-tight">Holes since last penalty</p>
-            <p className="text-[10px] text-muted-foreground/70 mt-1">Longest: {streaksLoading ? "–" : penalty.longest}</p>
-          </Card>
+          {([
+            { icon: ShieldCheck, label: "Holes since last 3-putt", data: threePutt },
+            { icon: ShieldAlert, label: "Holes since last double bogey+", data: doubleBogey },
+            { icon: AlertTriangle, label: "Holes since last penalty", data: penalty },
+          ] as const).map(({ icon: Icon, label, data }, idx) => {
+            const { current, longest } = data;
+            const hasRecord = longest > 0;
+            const isRecord = hasRecord && current >= longest;
+            const pct = hasRecord ? Math.min(100, (current / longest) * 100) : 0;
+            return (
+              <Card key={idx} className="p-3 text-center flex flex-col">
+                <Icon className={`w-7 h-7 mx-auto mb-2 ${isRecord ? "text-primary" : "text-accent"}`} />
+                <p className="text-2xl font-bold text-foreground">{streaksLoading ? "–" : current}</p>
+                <p className="text-[11px] font-medium text-muted-foreground mt-1 leading-tight">{label}</p>
+                {!streaksLoading && hasRecord && (
+                  <Progress
+                    value={pct}
+                    className={`h-1.5 mt-2 ${isRecord ? "[&>div]:bg-primary" : "[&>div]:bg-accent"}`}
+                  />
+                )}
+                <p className={`text-[10px] mt-1 ${isRecord ? "text-primary font-semibold" : "text-muted-foreground/70"}`}>
+                  {streaksLoading ? "–" : isRecord ? "🏆 New record!" : `Longest: ${longest}`}
+                </p>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Recent Rounds - Collapsible */}
