@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import ClubSelectorDrawer from "@/components/ClubSelectorDrawer";
 import RoundSummaryModal from "@/components/RoundSummaryModal";
+import HoleInsightsSheet from "@/components/HoleInsightsSheet";
 
 type FirDirection = 'hit' | 'left' | 'right' | 'short' | 'penalty' | null;
 type GirDirection = 'hit' | 'left' | 'right' | 'long' | 'short' | null;
