@@ -1,55 +1,55 @@
 
 
-# Add Scramble % Tab to Hole Detail
+# Add Scramble-Specific Recent Rounds View
 
 ## Overview
-On the Courses page, when viewing an individual hole, add a tabbed view so users can toggle between two visual analyses:
-1. **Tee Shot** (existing) — Avg score by tee shot outcome
-2. **Scramble** (new) — Up-and-down % by missed-green location
-
-Both use the same green/fairway image overlay pattern, so misses left / right / short / long show the user's scramble success rate from that side of the green.
+On the individual hole detail page (Courses → Hole), make the "Recent Rounds" list context-aware so it matches whichever dispersion tab is active:
+- **Tee Shot tab** → existing card (date, score, tee club, hit/miss direction)
+- **Scramble tab** → new card showing scramble-specific data (club, miss direction, score, shot type, up & down result)
 
 ## Behavior
 
-A scramble attempt = a hole where GIR was missed (`gir = false`) and the user recorded a `scramble` value of `"yes"` or `"no"`. Holes with `scramble = null` (no attempt logged) are excluded.
+The "Recent Rounds" section listens to the active tab in `HoleDetail.tsx`. When the user toggles to **Scramble**, the list filters to plays that were actual scramble attempts (`gir === false` AND `scramble` is `"yes"` or `"no"`) and renders a different card layout. When on **Tee Shot**, the list keeps the current behaviour and shows all recorded plays.
 
-Up-and-down % per direction = `count(scramble === "yes") / count(scramble in ["yes","no"]) * 100`, grouped by `gir_direction` (`left`, `right`, `short`, `long`). For par 3s, this works the same way (tee shot = approach shot, already mapped in the hook). Penalty holes are excluded from scramble stats.
+If the user is on the Scramble tab and no scramble attempts exist for this hole, show: *"No scramble attempts recorded for this hole yet."*
 
-Color thresholds for the % label (matches existing visual language):
-- ≥ 60% → green
-- 40–59% → yellow
-- 20–39% → orange
-- < 20% → red
-- No data for that direction → label hidden
+## Scramble Card Layout
 
-If no scramble attempts exist for the hole at all → show a centered empty-state message: "No scramble attempts recorded for this hole yet."
-
-## UI
-
-Inside `HoleDetail.tsx`, replace the single `TeeOutcomeDispersion` block with a shadcn `Tabs` component:
+Each scramble row shows:
 
 ```text
-[ Tee Shot ] [ Scramble ]
-─────────────────────────
-   <green/fairway image with overlay labels>
+[ Date ]                                  [ Score  Label ]
+🏌  Club: Sand Wedge     📍 From: Left     ⛳ Type: Bunker
+✅ Up & Down: Yes
 ```
 
-Tabs sit directly under the summary card, above "Recent Rounds". Default tab is **Tee Shot**.
+Fields per row (sourced from `HolePlay`):
+- **Date** — `playedAt` (existing format)
+- **Score / label** — same colored score + label as today
+- **Club** — `scrambleClub` (new field, see below). Falls back to "—" if not recorded.
+- **From** — `girDirection` capitalized (Left / Right / Short / Long)
+- **Type** — `scrambleShotType` capitalized (Pitch / Chip / Bunker), "—" if missing
+- **Up & Down** — Green check + "Yes" when `scramble === "yes"`, red X + "No" when `"no"`
 
-The new Scramble overlay always uses `green-dispersion.png` (since scrambling happens around the green) regardless of par. Labels show `"65%"` style values plus a small `"U&D"` sublabel, positioned at the same left/right/short/long anchors used by `TeeOutcomeDispersion`.
+## Data Layer
+
+`hole_stats` already stores `scramble_club` and `scramble_shot_type` (confirmed in schema). `useHoleHistory` currently doesn't expose them, so:
+
+1. Add `scrambleClub` and `scrambleShotType` to the `HolePlay` interface.
+2. Extend the `select(...)` in `useHoleHistory.ts` to include `scramble_club, scramble_shot_type`.
+3. Map them in the returned object (same for par-3 and longer holes — no special remap needed).
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/hooks/useHoleHistory.ts` | Add `gir`, `girDirection`, `scramble` fields to `HolePlay` (already partly selected; just expose them, including for par-4/5 from `gir`/`gir_direction`) |
-| `src/components/ScrambleOutcomeDispersion.tsx` | **NEW** — mirrors `TeeOutcomeDispersion` structure but groups by `girDirection` and computes U&D % from `scramble` field; always uses green image |
-| `src/components/HoleDetail.tsx` | Wrap the dispersion section in `Tabs` with two `TabsContent` panels (Tee Shot, Scramble) |
+| `src/hooks/useHoleHistory.ts` | Add `scrambleClub` + `scrambleShotType` to `HolePlay` and select/map them |
+| `src/components/HoleDetail.tsx` | Lift active tab into state; render either the existing tee-shot list or the new scramble list based on active tab; add empty state for scramble |
 
 ## Technical Notes
 
-- No DB schema or migrations needed — `hole_stats.scramble`, `gir`, and `gir_direction` already exist.
-- `useHoleHistory` already selects `gir` and `gir_direction`; we just need to expose them on the `HolePlay` type and stop overwriting them with par-3 logic for the scramble case (par 3 misses still map cleanly because `gir`/`gir_direction` is recorded for par 3s too).
-- New component reuses the `DispersionLabel` visual style (black pill, colored value, tiny uppercase sublabel).
-- `Tabs` component is already in the project (`@/components/ui/tabs`).
+- No DB migration needed — fields already exist on `hole_stats`.
+- Reuse `getScoreColor` / `getScoreLabel` helpers already in `HoleDetail.tsx`.
+- Use `lucide-react` icons already in use (`Check`, `X`, `MapPin`, `Flag` or similar) for the scramble row to stay visually consistent.
+- Keep the section title as "Recent Rounds" on both tabs; only the row contents change.
 
