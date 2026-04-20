@@ -49,7 +49,7 @@ const ClubSelectorDrawer = ({
                   type="button"
                   onClick={() => handleSelect(club.name)}
                   className={cn(
-                    "h-14 rounded-xl font-medium transition-all flex items-center justify-center",
+                    "h-11 rounded-xl font-medium transition-all flex items-center justify-center",
                     isSelected
                       ? "bg-primary/20 text-yellow-500 border-2 border-primary dark:bg-[hsl(var(--round-accent))]/20 dark:text-yellow-400 dark:border-[hsl(var(--round-accent))]"
                       : "bg-muted text-foreground border border-border dark:bg-[hsl(var(--round-input))] dark:border-[hsl(var(--round-border))] hover:bg-muted/80 dark:hover:bg-[hsl(var(--round-input))]/80"
