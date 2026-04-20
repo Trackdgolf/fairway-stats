@@ -1,27 +1,36 @@
 
 
-# Add "Holes Since Last Penalty" Streak Tile
+# Add Progress Indicator to Streak Tiles
 
 ## Overview
-Add a third streak tracker tile to the Home page, alongside the existing "3-putt" and "double bogey+" tiles, that tracks holes played since the user last recorded a penalty shot.
+Add a small visual progress bar to each streak tile on the Home page showing how close the current streak is to the user's longest (record) streak. This adds a "chasing your record" feel and makes the tiles more visually engaging.
 
-## Changes
+## Behavior
 
-### 1. `src/hooks/useStreakTrackers.ts`
-- Extend the query to also select `penalties` from `hole_stats`.
-- Add a third `calcStreak` calculation: a hole is a "bad event" when `penalties != null && penalties > 0`. Holes with `penalties == null` are skipped.
-- Return a new `penalty: { current, longest }` object alongside `threePutt` and `doubleBogey`.
-- Update the `StreakData` interface and the default fallback values.
+- **Progress %** = `current / longest * 100` (capped at 100%).
+- **When `longest === 0`**: hide the bar entirely (no record yet, nothing to chase).
+- **When `current >= longest && longest > 0`**: show the bar at 100% with a celebratory accent color (using the brand vibrant green / `text-primary`) and replace "Longest: X" with "🏆 New record!" text.
+- **Otherwise**: bar fills proportionally in the standard accent color.
 
-### 2. `src/pages/Home.tsx`
-- Change the streak tile grid from `grid-cols-2` to `grid-cols-3` so all three tiles fit on one line.
-- Add a third `Card` for "Holes since last penalty" using the `AlertTriangle` icon (imported from `lucide-react`) to differentiate it from the existing shield icons.
-- Tighten internal padding/text sizes slightly if needed so three cards read cleanly on narrow mobile widths (the existing labels are already short; `text-xs` labels and `text-3xl` numbers should still fit).
+## UI Details
+
+Add a thin (`h-1.5`) rounded progress bar between the current streak number and the "Longest:" label inside each card. Use the existing shadcn `Progress` component (`@/components/ui/progress`) which already supports a `value` prop.
+
+Layout per tile (top → bottom):
+1. Icon
+2. Large current number
+3. Label ("Holes since last 3-putt", etc.)
+4. **NEW: Thin progress bar** (hidden when `longest === 0`)
+5. "Longest: X" text — or "🏆 New record!" when at/above longest
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/hooks/useStreakTrackers.ts` | Add `penalties` to query + third streak calculation |
-| `src/pages/Home.tsx` | Grid → 3 columns, render third tile with `AlertTriangle` icon |
+| `src/pages/Home.tsx` | Import `Progress` from `@/components/ui/progress`; add a small progress bar + record-state logic to each of the 3 streak `Card`s |
+
+## Technical Notes
+- No data layer changes — `useStreakTrackers` already returns both `current` and `longest`.
+- `Progress` component is already available in the project (`src/components/ui/progress.tsx`).
+- A small helper inline (e.g., `const pct = longest > 0 ? Math.min(100, (current / longest) * 100) : 0`) keeps the JSX readable without a new component.
 
