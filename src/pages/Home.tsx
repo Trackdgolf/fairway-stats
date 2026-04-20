@@ -78,6 +78,27 @@ const formatScoreVsPar = (totalScore: number | null, holeStats: Array<{ par: num
   return `${difference}`;
 };
 
+const getStreakColor = (pct: number, hasRecord: boolean, isRecord: boolean) => {
+  if (!hasRecord) {
+    return { iconClass: "text-muted-foreground", barClass: "", ringClass: "", recordTextClass: "text-muted-foreground/70" };
+  }
+  if (isRecord) {
+    return {
+      iconClass: "text-gold",
+      barClass: "[&>div]:bg-gold",
+      ringClass: "ring-gold/50",
+      recordTextClass: "text-gold",
+    };
+  }
+  if (pct <= 30) {
+    return { iconClass: "text-destructive", barClass: "[&>div]:bg-destructive", ringClass: "", recordTextClass: "text-muted-foreground/70" };
+  }
+  if (pct <= 60) {
+    return { iconClass: "text-orange-500", barClass: "[&>div]:bg-orange-500", ringClass: "", recordTextClass: "text-muted-foreground/70" };
+  }
+  return { iconClass: "text-success", barClass: "[&>div]:bg-success", ringClass: "", recordTextClass: "text-muted-foreground/70" };
+};
+
 const Home = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
