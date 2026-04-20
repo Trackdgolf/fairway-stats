@@ -1,104 +1,71 @@
 
-
-# Course Insights Drawer on Score Entry
+# Restore the left-side SCORE ENTRY tab in the Insights drawer
 
 ## Overview
-Add a small pull-tab on the right edge of the score entry pages (`Round.tsx` and `EditRound.tsx`) that opens a side drawer showing the **same hole-specific insights** the user already gets in `Courses → Course → Hole`: avg score / vs par / personal SI, the Tee Shot dispersion overlay, the Scramble U&D dispersion overlay, and recent rounds. This lets players reference their own history (best aim, worst miss) without leaving the round they're playing.
+Fix the hole insights drawer so golfers always have a clear way to return to score entry. The issue is that the current drawer styling hides all direct button children inside the sheet, which unintentionally hides the custom left-edge `SCORE ENTRY` close tab as well.
 
-Premium-gated, since Courses analytics is premium-only.
+The fix is to make the drawer explicitly support a hidden default close button while keeping the custom left-side close tab visible and tappable.
 
-## UX
+## What to build
 
-- A small vertical tab fixed to the right side of the screen, vertically centered, labeled "Insights" with a chevron icon. Always visible while entering scores.
-- Tapping it opens a right-side `Sheet` (`@/components/ui/sheet`, side="right") covering most of the screen.
-- The sheet content shows insights for the **current hole** (`currentHoleIndex + 1`), and updates automatically as the user navigates between holes (Prev / Next).
-- Header inside the sheet: "Hole {n} · Par {par}" + close button.
-- If the user has no prior rounds at this course / hole: friendly empty state ("Play this hole at least once to unlock insights").
-- If user is not premium: locked state inside the sheet with a "Unlock Premium" button that opens the existing `PaywallModal`.
+### 1) Update the shared Sheet component to support hiding only the default X button
+Add a small optional prop to `src/components/ui/sheet.tsx`, such as `hideCloseButton?: boolean`, on `SheetContent`.
 
-## Layout
+Behavior:
+- Default stays exactly the same everywhere else in the app.
+- When `hideCloseButton` is `true`, the built-in top-right X is not rendered.
+- No generic CSS selector like `[&>button]:hidden` should be used.
 
-```text
-┌────────────── Score Entry ──────────────┐
-│  Hole 5 · Par 4 · 412 yds            ┃◀ │ ← pull-tab (right edge)
-│                                       ┃  │
-│  Score  [-] 4 [+]                     ┃  │
-│  FIR / GIR ...                        ┃  │
-│  ...                                  ┃  │
-└──────────────────────────────────────────┘
+This avoids accidentally hiding custom button content inside the drawer.
 
-When opened (right sheet):
-┌──────────────────── Insights ─────────────┐
-│  Hole 5 · Par 4                       [✕] │
-│  ┌─────────────────────────────────────┐  │
-│  │ Avg 4.6   +0.6 vs par   SI 3        │  │
-│  └─────────────────────────────────────┘  │
-│  [ Tee Shot ] [ Scramble ]                │
-│  <dispersion image with overlays>         │
-│  Recent Rounds (filtered by tab)          │
-└────────────────────────────────────────────┘
-```
+### 2) Fix `HoleInsightsSheet.tsx` to use the new close-button behavior
+Update `src/components/HoleInsightsSheet.tsx` so the right-side insights drawer:
+- passes `hideCloseButton`
+- removes the brittle `[&>button]:hidden` class
+- keeps the custom `SheetClose asChild` left-edge pull-tab visible
 
-## Reuse Strategy
+The left tab should remain:
+- fixed on the left edge
+- vertically centered
+- labeled `SCORE ENTRY`
+- styled to mirror the right-side `INSIGHTS` tab
+- the primary dismissal control for the drawer
 
-The bulk of the UI already exists in `HoleDetail.tsx` (summary card, tabs, `TeeOutcomeDispersion`, `ScrambleOutcomeDispersion`, recent rounds list). To avoid duplication, extract the body of `HoleDetail` (everything below the page header / nav row) into a shared subcomponent **`HoleInsightsContent`** that takes:
+### 3) Keep the score-entry flow feeling like one continuous screen
+Maintain the current UX where:
+- right tab opens insights
+- left tab closes insights
+- closing the drawer does not navigate away or reset input
+- the golfer returns directly to the same hole entry state
 
-```ts
-{
-  courseId: string;
-  holeNumber: number;
-  par: number;
-  avgScore?: number;        // optional — only used by Courses page
-  avgOverPar?: number;
-  personalStrokeIndex?: number;
-  showSummary?: boolean;    // hide summary stats if hole hasn't been played yet
-}
-```
+This matches the intended “extension of the score entry screen” behavior.
 
-`HoleDetail.tsx` keeps its existing wrapper (back button, prev/next nav, title) and renders `<HoleInsightsContent />` inside. The new sheet on Round/EditRound also renders `<HoleInsightsContent />`, but with no prev/next (the user already has those on the score entry page itself).
-
-When the player has no rounds at this course/hole, `useHoleHistory` returns empty → `HoleInsightsContent` shows: "No data for this hole yet — play it once to see insights."
-
-## Files Changed
+## Files to change
 
 | File | Change |
 |---|---|
-| `src/components/HoleInsightsContent.tsx` | **New.** Extract body of `HoleDetail.tsx` (summary + tabs + dispersions + recent rounds). Compute summary stats locally from `useHoleHistory` data when not passed in. |
-| `src/components/HoleDetail.tsx` | Refactor to render header/nav + `<HoleInsightsContent />`. No behavior change. |
-| `src/components/HoleInsightsSheet.tsx` | **New.** Right-side `Sheet` containing the pull-tab trigger and `<HoleInsightsContent />`. Handles premium gate + `PaywallModal`. Props: `courseId`, `holeNumber`, `par`. |
-| `src/pages/Round.tsx` | Mount `<HoleInsightsSheet courseId={course.id?.toString()} holeNumber={currentHoleIndex+1} par={currentHole?.par} />` once inside the page wrapper. |
-| `src/pages/EditRound.tsx` | Mirror the same mount for parity. Use the round's `course_id` and the active hole number / par. |
+| `src/components/ui/sheet.tsx` | Add optional `hideCloseButton` prop to `SheetContent` and conditionally render the built-in X close button |
+| `src/components/HoleInsightsSheet.tsx` | Remove `[&>button]:hidden`, use `hideCloseButton`, keep custom left-edge `SCORE ENTRY` close tab visible |
 
-## Pull-Tab Component
+## Technical details
+- Root cause: `SheetContent` currently renders the default close button as a direct child, and `HoleInsightsSheet` uses `[&>button]:hidden`, which hides both the default close button and the custom `SheetClose asChild` button.
+- Safer pattern: control the default X in the `SheetContent` component itself instead of hiding all child buttons with CSS.
+- No database or backend changes.
+- No changes needed in `Round.tsx` or `EditRound.tsx` unless spacing needs a tiny adjustment after restoring the left tab.
 
-Inside `HoleInsightsSheet.tsx`:
+## Expected result
+On the score entry pages:
+- user taps the right `INSIGHTS` tab
+- insights sheet opens
+- user sees a left `SCORE ENTRY` tab immediately
+- tapping that tab closes the sheet and returns them to score entry on the same hole
 
-```tsx
-<SheetTrigger asChild>
-  <button
-    aria-label="View hole insights"
-    className="fixed right-0 top-1/2 -translate-y-1/2 z-30
-               bg-primary text-primary-foreground
-               rounded-l-lg shadow-lg
-               px-2 py-3 flex flex-col items-center gap-1
-               writing-mode-vertical"
-  >
-    <ChevronLeft className="w-4 h-4" />
-    <span className="text-[11px] font-semibold tracking-wide [writing-mode:vertical-rl] rotate-180">
-      INSIGHTS
-    </span>
-  </button>
-</SheetTrigger>
-<SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-  ...
-</SheetContent>
-```
-
-## Technical Notes
-
-- Premium check: reuse `usePremiumStatus()`. Non-premium → sheet body shows the same lock card pattern used in `Courses.tsx` (Crown icon + "View Premium Options" → `PaywallModal`).
-- `courseId` for `useHoleHistory` comes from `course.id?.toString()` on Round.tsx (same value used at round insert) and from the loaded round's `course_id` on EditRound.tsx. If `courseId` is missing, the trigger is hidden.
-- The sheet sits above the score-entry content (`z-30` for tab, default sheet z for the panel). Bottom nav is not present on Round/EditRound, so no overlap concern.
-- No DB or schema changes. Pure UI + reuse of existing hooks (`useHoleHistory`, `usePremiumStatus`).
-- Mobile-first; tested target viewport 390px.
-
+## QA
+Verify on mobile viewport:
+1. Open a round on `/round`
+2. Tap `INSIGHTS`
+3. Confirm the left `SCORE ENTRY` tab is visible
+4. Tap `SCORE ENTRY`
+5. Confirm the drawer closes and score entry remains intact
+6. Repeat on `EditRound`
+7. Confirm other sheets in the app still show their normal top-right X
