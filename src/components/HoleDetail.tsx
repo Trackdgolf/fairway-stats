@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { useHoleHistory } from "@/hooks/useHoleHistory";
 import type { HolePerformance } from "@/hooks/useCoursePerformance";
 import TeeOutcomeDispersion from "@/components/TeeOutcomeDispersion";
+import ScrambleOutcomeDispersion from "@/components/ScrambleOutcomeDispersion";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface HoleDetailProps {
   courseId: string;
@@ -93,9 +95,20 @@ const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
         </CardContent>
       </Card>
 
-      {/* Tee shot outcome dispersion */}
+      {/* Dispersion analytics tabs */}
       {history && history.length > 0 && (
-        <TeeOutcomeDispersion history={history} par={hole.par} />
+        <Tabs defaultValue="tee" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="tee">Tee Shot</TabsTrigger>
+            <TabsTrigger value="scramble">Scramble</TabsTrigger>
+          </TabsList>
+          <TabsContent value="tee" className="mt-4">
+            <TeeOutcomeDispersion history={history} par={hole.par} />
+          </TabsContent>
+          <TabsContent value="scramble" className="mt-4">
+            <ScrambleOutcomeDispersion history={history} />
+          </TabsContent>
+        </Tabs>
       )}
 
       {/* Recent plays */}
