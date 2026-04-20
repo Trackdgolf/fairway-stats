@@ -301,7 +301,7 @@ const Home = () => {
             const isRecord = hasRecord && current >= longest;
             const pct = hasRecord ? Math.min(100, (current / longest) * 100) : 0;
             return (
-              <Card key={idx} className="p-3 text-center flex flex-col">
+              <Card key={idx} className={`p-3 text-center flex flex-col ${isRecord ? "animate-pulse ring-2 ring-primary/40" : ""}`}>
                 <Icon className={`w-7 h-7 mx-auto mb-2 ${isRecord ? "text-primary" : "text-accent"}`} />
                 <p className="text-2xl font-bold text-foreground">{streaksLoading ? "–" : current}</p>
                 <p className="text-[11px] font-medium text-muted-foreground mt-1 leading-tight">{label}</p>
