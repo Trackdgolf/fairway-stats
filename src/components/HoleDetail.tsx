@@ -1,8 +1,9 @@
-import { ChevronLeft, Target, CircleDot } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, Target, CircleDot, MapPin, Flag, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useHoleHistory } from "@/hooks/useHoleHistory";
+import { useHoleHistory, type HolePlay } from "@/hooks/useHoleHistory";
 import type { HolePerformance } from "@/hooks/useCoursePerformance";
 import TeeOutcomeDispersion from "@/components/TeeOutcomeDispersion";
 import ScrambleOutcomeDispersion from "@/components/ScrambleOutcomeDispersion";
@@ -50,8 +51,15 @@ const getTeeResult = (fir: boolean | null, firDirection: string | null, par: num
   return { label: "Missed", color: "text-muted-foreground" };
 };
 
+const cap = (s: string | null) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "—");
+
 const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
   const { data: history, isLoading } = useHoleHistory(courseId, hole.holeNumber);
+  const [activeTab, setActiveTab] = useState<"tee" | "scramble">("tee");
+
+  const scrambleAttempts: HolePlay[] = (history || []).filter(
+    (p) => p.gir === false && (p.scramble === "yes" || p.scramble === "no")
+  );
 
   // Get yardage from most recent play
   const yardage = history?.find(h => h.yardage != null)?.yardage;
@@ -97,7 +105,7 @@ const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
 
       {/* Dispersion analytics tabs */}
       {history && history.length > 0 && (
-        <Tabs defaultValue="tee" className="w-full">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "tee" | "scramble")} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="tee">Tee Shot</TabsTrigger>
             <TabsTrigger value="scramble">Scramble</TabsTrigger>
@@ -118,16 +126,57 @@ const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
           </div>
-        ) : !history?.length ? (
+        ) : activeTab === "tee" ? (
+          !history?.length ? (
+            <Card>
+              <CardContent className="p-6 text-center text-muted-foreground text-sm">
+                No hole data available yet.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {history.slice(0, 5).map((play, i) => {
+                const teeResult = getTeeResult(play.fir, play.firDirection, play.par);
+                return (
+                  <Card key={i}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm text-muted-foreground">{formatDate(play.playedAt)}</p>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-lg font-bold ${getScoreColor(play.score, play.par)}`}>
+                            {play.score}
+                          </span>
+                          <span className={`text-xs font-medium ${getScoreColor(play.score, play.par)}`}>
+                            {getScoreLabel(play.score, play.par)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-1.5">
+                          <CircleDot className="w-3.5 h-3.5 text-muted-foreground" />
+                          <span>{play.teeClub || "—"}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Target className="w-3.5 h-3.5 text-muted-foreground" />
+                          <span className={teeResult.color}>{teeResult.label}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )
+        ) : !scrambleAttempts.length ? (
           <Card>
             <CardContent className="p-6 text-center text-muted-foreground text-sm">
-              No hole data available yet.
+              No scramble attempts recorded for this hole yet.
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-2">
-            {history.slice(0, 5).map((play, i) => {
-              const teeResult = getTeeResult(play.fir, play.firDirection, play.par);
+            {scrambleAttempts.slice(0, 5).map((play, i) => {
+              const madeUp = play.scramble === "yes";
               return (
                 <Card key={i}>
                   <CardContent className="p-4">
@@ -142,14 +191,28 @@ const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
                       <div className="flex items-center gap-1.5">
                         <CircleDot className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span>{play.teeClub || "—"}</span>
+                        <span>{play.scrambleClub || "—"}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Target className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span className={teeResult.color}>{teeResult.label}</span>
+                        <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span>From {cap(play.girDirection)}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Flag className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span>{cap(play.scrambleShotType)}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {madeUp ? (
+                          <Check className="w-3.5 h-3.5 text-green-500" />
+                        ) : (
+                          <X className="w-3.5 h-3.5 text-red-500" />
+                        )}
+                        <span className={madeUp ? "text-green-500 font-medium" : "text-red-500 font-medium"}>
+                          U&D: {madeUp ? "Yes" : "No"}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
