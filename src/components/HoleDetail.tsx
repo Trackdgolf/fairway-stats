@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, Target, CircleDot, MapPin, Flag, Check, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Target, CircleDot, MapPin, Flag, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 interface HoleDetailProps {
   courseId: string;
   hole: HolePerformance;
+  allHoles?: HolePerformance[];
+  onNavigate?: (holeNumber: number) => void;
   onBack: () => void;
 }
 
@@ -53,7 +55,7 @@ const getTeeResult = (fir: boolean | null, firDirection: string | null, par: num
 
 const cap = (s: string | null) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "—");
 
-const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
+const HoleDetail = ({ courseId, hole, allHoles, onNavigate, onBack }: HoleDetailProps) => {
   const { data: history, isLoading } = useHoleHistory(courseId, hole.holeNumber);
   const [activeTab, setActiveTab] = useState<"tee" | "scramble">("tee");
 
@@ -64,19 +66,48 @@ const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
   // Get yardage from most recent play
   const yardage = history?.find(h => h.yardage != null)?.yardage;
 
+  // Prev/next hole navigation (sorted by hole number)
+  const sortedHoles = (allHoles || []).slice().sort((a, b) => a.holeNumber - b.holeNumber);
+  const currentIdx = sortedHoles.findIndex(h => h.holeNumber === hole.holeNumber);
+  const prevHole = currentIdx > 0 ? sortedHoles[currentIdx - 1] : null;
+  const nextHole = currentIdx >= 0 && currentIdx < sortedHoles.length - 1 ? sortedHoles[currentIdx + 1] : null;
+  const canNavigate = !!onNavigate && sortedHoles.length > 0;
+
   return (
     <div className="space-y-4 pt-4">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={onBack} className="text-foreground">
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" onClick={onBack} className="text-foreground shrink-0">
           <ChevronLeft className="w-5 h-5" />
         </Button>
-        <div>
+        <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-bold text-foreground">Hole {hole.holeNumber}</h1>
           <p className="text-sm text-muted-foreground">
             Par {hole.par}{yardage ? ` · ${yardage} yards` : ''}
           </p>
         </div>
+        {canNavigate && (
+          <div className="flex items-center gap-1 shrink-0">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => prevHole && onNavigate!(prevHole.holeNumber)}
+              disabled={!prevHole}
+              aria-label="Previous hole"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => nextHole && onNavigate!(nextHole.holeNumber)}
+              disabled={!nextHole}
+              aria-label="Next hole"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Summary card */}

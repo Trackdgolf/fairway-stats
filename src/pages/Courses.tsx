@@ -148,6 +148,8 @@ const Courses = () => {
           <HoleDetail
             courseId={selectedCourse.courseId}
             hole={selectedCourse.holes.find(h => h.holeNumber === selectedHole)!}
+            allHoles={selectedCourse.holes}
+            onNavigate={(holeNum) => setSelectedHole(holeNum)}
             onBack={() => setSelectedHole(null)}
           />
         ) : selectedCourse ? (
