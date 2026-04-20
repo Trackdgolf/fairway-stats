@@ -42,7 +42,7 @@ export const useHoleHistory = (courseId: string | null, holeNumber: number | nul
 
       const { data: holeStats, error: hsError } = await supabase
         .from("hole_stats")
-        .select("round_id, score, par, tee_club, fir, fir_direction, approach_club, gir, gir_direction, yardage")
+        .select("round_id, score, par, tee_club, fir, fir_direction, approach_club, gir, gir_direction, yardage, scramble")
         .in("round_id", roundIds)
         .eq("hole_number", holeNumber!);
 
