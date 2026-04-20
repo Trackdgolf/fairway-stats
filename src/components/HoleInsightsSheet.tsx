@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ChevronLeft, Crown } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ChevronLeft, ChevronRight, Crown } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
@@ -36,11 +36,22 @@ const HoleInsightsSheet = ({ courseId, holeNumber, par }: HoleInsightsSheetProps
           </button>
         </SheetTrigger>
         <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto p-0">
-          <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
-            <h2 className="text-lg font-semibold text-foreground">
-              Hole {holeNumber} · Par {par}
-            </h2>
-            <p className="text-xs text-muted-foreground">Your personal history at this hole</p>
+          <div className="sticky top-0 z-10 bg-background border-b px-4 py-3 flex items-center gap-3 pr-12">
+            <SheetClose asChild>
+              <button
+                aria-label="Close insights"
+                className="flex items-center gap-1 text-sm font-medium text-foreground hover:text-muted-foreground transition-colors -ml-1 px-1 py-1"
+              >
+                <ChevronRight className="w-5 h-5" />
+                <span>Back</span>
+              </button>
+            </SheetClose>
+            <div className="flex-1 min-w-0 text-right">
+              <h2 className="text-base font-semibold text-foreground leading-tight">
+                Hole {holeNumber} · Par {par}
+              </h2>
+              <p className="text-[11px] text-muted-foreground leading-tight">Your history at this hole</p>
+            </div>
           </div>
 
           <div className="px-6 py-4">

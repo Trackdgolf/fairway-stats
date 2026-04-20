@@ -3,6 +3,7 @@ import { Target, CircleDot, MapPin, Flag, Check, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useHoleHistory, type HolePlay } from "@/hooks/useHoleHistory";
+import { useCoursePerformance } from "@/hooks/useCoursePerformance";
 import TeeOutcomeDispersion from "@/components/TeeOutcomeDispersion";
 import ScrambleOutcomeDispersion from "@/components/ScrambleOutcomeDispersion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -67,6 +68,7 @@ const HoleInsightsContent = ({
   showSummary = true,
 }: HoleInsightsContentProps) => {
   const { data: history, isLoading } = useHoleHistory(courseId, holeNumber);
+  const { data: courses } = useCoursePerformance();
   const [activeTab, setActiveTab] = useState<"tee" | "scramble">("tee");
 
   const scrambleAttempts: HolePlay[] = (history || []).filter(
@@ -83,6 +85,13 @@ const HoleInsightsContent = ({
       avgOverPar: avg - par,
     };
   }, [history, par]);
+
+  // Resolve personal SI from course performance data when not passed in
+  const resolvedSI = useMemo(() => {
+    if (personalStrokeIndex != null) return personalStrokeIndex;
+    const course = courses?.find((c) => c.courseId === courseId);
+    return course?.holes.find((h) => h.holeNumber === holeNumber)?.personalStrokeIndex;
+  }, [personalStrokeIndex, courses, courseId, holeNumber]);
 
   const summaryAvg = avgScore ?? computed?.avgScore;
   const summaryOver = avgOverPar ?? computed?.avgOverPar;
@@ -116,9 +125,9 @@ const HoleInsightsContent = ({
               </div>
               <div className="flex flex-col items-center">
                 <p className="text-xs text-muted-foreground mb-1">Personal SI</p>
-                {personalStrokeIndex != null ? (
+                {resolvedSI != null ? (
                   <Badge className="w-7 h-7 rounded-full flex items-center justify-center p-0 text-xs">
-                    {personalStrokeIndex}
+                    {resolvedSI}
                   </Badge>
                 ) : (
                   <span className="text-xl font-bold text-muted-foreground">—</span>
