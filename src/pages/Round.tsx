@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import ClubSelectorDrawer from "@/components/ClubSelectorDrawer";
 import RoundSummaryModal from "@/components/RoundSummaryModal";
+import HoleInsightsSheet from "@/components/HoleInsightsSheet";
 
 type FirDirection = 'hit' | 'left' | 'right' | 'short' | 'penalty' | null;
 type GirDirection = 'hit' | 'left' | 'right' | 'long' | 'short' | null;
@@ -404,6 +405,11 @@ const Round = () => {
 
   return (
     <div className="min-h-screen bg-background dark:bg-[hsl(var(--round-bg))] pb-24" style={{ paddingBottom: 'calc(6rem + var(--safe-area-inset-bottom, 0px))' }}>
+      <HoleInsightsSheet
+        courseId={course.id?.toString()}
+        holeNumber={currentHoleIndex + 1}
+        par={currentHole?.par}
+      />
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-6 pb-4">
