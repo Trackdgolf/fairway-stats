@@ -51,8 +51,15 @@ const getTeeResult = (fir: boolean | null, firDirection: string | null, par: num
   return { label: "Missed", color: "text-muted-foreground" };
 };
 
+const cap = (s: string | null) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "—");
+
 const HoleDetail = ({ courseId, hole, onBack }: HoleDetailProps) => {
   const { data: history, isLoading } = useHoleHistory(courseId, hole.holeNumber);
+  const [activeTab, setActiveTab] = useState<"tee" | "scramble">("tee");
+
+  const scrambleAttempts: HolePlay[] = (history || []).filter(
+    (p) => p.gir === false && (p.scramble === "yes" || p.scramble === "no")
+  );
 
   // Get yardage from most recent play
   const yardage = history?.find(h => h.yardage != null)?.yardage;
