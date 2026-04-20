@@ -81,27 +81,27 @@ const NumberStepper = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <label className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
         {label}
       </label>
-      <div className="flex items-center justify-center gap-4">
+      <div className="flex items-center justify-center gap-3">
         <button
           type="button"
           onClick={handleDecrement}
-          className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 dark:bg-[hsl(var(--round-accent))] dark:hover:bg-[hsl(var(--round-accent-hover))] text-white dark:text-primary-foreground flex items-center justify-center transition-colors shadow-lg"
+          className="w-11 h-11 rounded-full bg-primary hover:bg-primary/90 dark:bg-[hsl(var(--round-accent))] dark:hover:bg-[hsl(var(--round-accent-hover))] text-white dark:text-primary-foreground flex items-center justify-center transition-colors shadow-lg"
         >
-          <Minus className="w-6 h-6" />
+          <Minus className="w-5 h-5" />
         </button>
-        <div className="w-24 h-16 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-2xl flex items-center justify-center">
-          <span className="text-4xl font-bold text-foreground">{value || 0}</span>
+        <div className="w-20 h-12 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-2xl flex items-center justify-center">
+          <span className="text-3xl font-bold text-foreground">{value || 0}</span>
         </div>
         <button
           type="button"
           onClick={handleIncrement}
-          className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 dark:bg-[hsl(var(--round-accent))] dark:hover:bg-[hsl(var(--round-accent-hover))] text-white dark:text-primary-foreground flex items-center justify-center transition-colors shadow-lg"
+          className="w-11 h-11 rounded-full bg-primary hover:bg-primary/90 dark:bg-[hsl(var(--round-accent))] dark:hover:bg-[hsl(var(--round-accent-hover))] text-white dark:text-primary-foreground flex items-center justify-center transition-colors shadow-lg"
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-5 h-5" />
         </button>
       </div>
     </div>
@@ -125,7 +125,7 @@ const ToggleButton = ({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex-1 h-12 rounded-xl font-medium transition-all",
+        "flex-1 h-9 rounded-xl font-medium transition-all",
         selected 
           ? "bg-primary/20 text-yellow-500 border-2 border-primary dark:bg-[hsl(var(--round-accent))]/20 dark:text-yellow-400 dark:border-[hsl(var(--round-accent))]" 
           : "bg-muted text-muted-foreground border border-border dark:bg-[hsl(var(--round-input))] dark:border-[hsl(var(--round-border))]",
@@ -148,7 +148,7 @@ const ShotDirectionSelector = <T extends string | null>({
   onSelect: (value: T) => void;
 }) => {
   return (
-    <div className="flex justify-center gap-3 mt-3">
+    <div className="flex justify-center gap-2 mt-2">
       {options.map((option) => {
         const Icon = option.icon;
         const isSelected = selectedValue === option.value;
@@ -158,14 +158,14 @@ const ShotDirectionSelector = <T extends string | null>({
               type="button"
               onClick={() => onSelect(option.value)}
               className={cn(
-                "w-12 h-12 rounded-full flex items-center justify-center transition-all",
+                "w-9 h-9 rounded-full flex items-center justify-center transition-all",
                 isSelected
                   ? "bg-primary text-primary-foreground border-2 border-primary dark:bg-[hsl(var(--round-accent))] dark:border-[hsl(var(--round-accent))]"
                   : "bg-muted text-muted-foreground border border-border dark:bg-[hsl(var(--round-input))] dark:border-[hsl(var(--round-border))] hover:bg-muted/80 dark:hover:bg-[hsl(var(--round-input))]/80"
               )}
               title={option.label}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-4 h-4" />
             </button>
             <span className="text-[10px] text-muted-foreground">{option.label}</span>
           </div>
@@ -406,7 +406,7 @@ const Round = () => {
     <div className="min-h-screen bg-background dark:bg-[hsl(var(--round-bg))] pb-24" style={{ paddingBottom: 'calc(6rem + var(--safe-area-inset-bottom, 0px))' }}>
       <div className="max-w-md mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 pt-8 pb-6">
+        <div className="flex items-center justify-between px-4 pt-6 pb-4">
           <button
             onClick={() => setShowExitDialog(true)}
             className="p-2 -ml-2 text-foreground hover:text-muted-foreground transition-colors"
@@ -427,26 +427,26 @@ const Round = () => {
         </div>
 
         {/* Hole Info & Progress */}
-        <div className="px-4 mb-6">
-          <div className="bg-card dark:bg-[hsl(var(--round-card))] rounded-2xl p-6 border border-border shadow-sm">
-            <div className="flex items-center justify-around mb-6">
+        <div className="px-4 mb-4">
+          <div className="bg-card dark:bg-[hsl(var(--round-card))] rounded-2xl p-4 border border-border shadow-sm">
+            <div className="flex items-center justify-around mb-4">
               <div className="text-center">
                 <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Hole</div>
-                <div className="text-5xl font-bold text-foreground">
+                <div className="text-4xl font-bold text-foreground">
                   {currentHoleIndex + 1}
                 </div>
               </div>
-              <div className="w-px h-16 bg-border dark:bg-[hsl(var(--round-border))]" />
+              <div className="w-px h-12 bg-border dark:bg-[hsl(var(--round-border))]" />
               <div className="text-center">
                 <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Par</div>
-                <div className="text-5xl font-bold text-foreground">
+                <div className="text-4xl font-bold text-foreground">
                   {currentHole?.par}
                 </div>
               </div>
-              <div className="w-px h-16 bg-border dark:bg-[hsl(var(--round-border))]" />
+              <div className="w-px h-12 bg-border dark:bg-[hsl(var(--round-border))]" />
               <div className="text-center">
                 <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Yards</div>
-                <div className="text-3xl font-semibold text-foreground">
+                <div className="text-2xl font-semibold text-foreground">
                   {currentHole?.length_meters}
                 </div>
               </div>
@@ -470,7 +470,7 @@ const Round = () => {
         </div>
 
         {/* Stats Entry */}
-        <div className="px-4 space-y-8">
+        <div className="px-4 space-y-6">
           {/* Score */}
           <NumberStepper
             label="Score"
@@ -567,7 +567,7 @@ const Round = () => {
               <button
                 type="button"
                 onClick={() => setScrambleClubDrawerOpen(true)}
-                className="w-full h-14 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
+                className="w-full h-11 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
               >
                 <span className={currentStats?.scrambleClub ? "text-foreground" : "text-muted-foreground"}>
                   {currentStats?.scrambleClub || "Select Club"}
@@ -641,7 +641,7 @@ const Round = () => {
               <button
                 type="button"
                 onClick={() => setTeeClubDrawerOpen(true)}
-                className="w-full h-14 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
+                className="w-full h-11 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
               >
                 <span className={currentStats?.teeClub ? "text-foreground" : "text-muted-foreground"}>
                   {currentStats?.teeClub || "Select Club"}
@@ -690,7 +690,7 @@ const Round = () => {
               <button
                 type="button"
                 onClick={() => setApproachClubDrawerOpen(true)}
-                className="w-full h-14 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
+                className="w-full h-11 bg-muted dark:bg-[hsl(var(--round-input))] border border-border dark:border-[hsl(var(--round-border))] rounded-xl text-foreground flex items-center justify-between px-4"
               >
                 <span className={currentStats?.approachClub ? "text-foreground" : "text-muted-foreground"}>
                   {currentStats?.approachClub || "Select Club"}
@@ -720,11 +720,11 @@ const Round = () => {
         </div>
 
         {/* Navigation */}
-        <div className="px-4 mt-8 mb-6 flex gap-3">
+        <div className="px-4 mt-5 mb-4 flex gap-3">
           <button
             onClick={() => setCurrentHoleIndex(Math.max(0, currentHoleIndex - 1))}
             disabled={currentHoleIndex === 0}
-            className="flex-1 h-14 rounded-xl bg-card dark:bg-[hsl(var(--round-card))] border border-border dark:border-[hsl(var(--round-border))] text-foreground font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:bg-muted dark:hover:bg-[hsl(var(--round-input))] flex items-center justify-center gap-2"
+            className="flex-1 h-11 rounded-xl bg-card dark:bg-[hsl(var(--round-card))] border border-border dark:border-[hsl(var(--round-border))] text-foreground font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:bg-muted dark:hover:bg-[hsl(var(--round-input))] flex items-center justify-center gap-2"
           >
             <ChevronLeft className="w-5 h-5" />
             Previous
@@ -738,7 +738,7 @@ const Round = () => {
               }
             }}
             disabled={isSaving}
-            className="flex-1 h-14 rounded-xl bg-primary hover:bg-primary/90 dark:bg-[hsl(var(--round-accent))] dark:hover:bg-[hsl(var(--round-accent-hover))] text-white font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90 dark:bg-[hsl(var(--round-accent))] dark:hover:bg-[hsl(var(--round-accent-hover))] text-white font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isSaving ? "Saving..." : currentHoleIndex === totalHoles - 1 ? "Finish Round" : "Next"}
             {currentHoleIndex !== totalHoles - 1 && !isSaving && <ChevronRight className="w-5 h-5" />}
