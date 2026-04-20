@@ -10,6 +10,9 @@ export interface HolePlay {
   fir: boolean | null;
   firDirection: string | null;
   yardage: number | null;
+  gir: boolean | null;
+  girDirection: string | null;
+  scramble: string | null;
 }
 
 export const useHoleHistory = (courseId: string | null, holeNumber: number | null) => {
@@ -60,6 +63,9 @@ export const useHoleHistory = (courseId: string | null, holeNumber: number | nul
             fir: isPar3 ? hs.gir : hs.fir,
             firDirection: isPar3 ? hs.gir_direction : hs.fir_direction,
             yardage: hs.yardage ?? null,
+            gir: hs.gir ?? null,
+            girDirection: hs.gir_direction ?? null,
+            scramble: hs.scramble ?? null,
           };
         })
         .sort((a, b) => new Date(b.playedAt).getTime() - new Date(a.playedAt).getTime());
