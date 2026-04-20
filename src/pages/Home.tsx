@@ -292,26 +292,47 @@ const Home = () => {
         {/* Streak Tracker Tiles */}
         <div className="grid grid-cols-3 gap-2 mb-6">
           {([
-            { icon: ShieldCheck, label: "Holes since last 3-putt", data: threePutt },
-            { icon: ShieldAlert, label: "Holes since last double bogey+", data: doubleBogey },
-            { icon: AlertTriangle, label: "Holes since last penalty", data: penalty },
-          ] as const).map(({ icon: Icon, label, data }, idx) => {
+            {
+              icon: ShieldCheck,
+              label: "Holes since last 3-putt",
+              data: threePutt,
+              iconClass: "text-success",
+              barClass: "[&>div]:bg-success",
+              ringClass: "ring-success/40",
+              recordTextClass: "text-success",
+            },
+            {
+              icon: ShieldAlert,
+              label: "Holes since last double bogey+",
+              data: doubleBogey,
+              iconClass: "text-warning",
+              barClass: "[&>div]:bg-warning",
+              ringClass: "ring-warning/40",
+              recordTextClass: "text-warning",
+            },
+            {
+              icon: AlertTriangle,
+              label: "Holes since last penalty",
+              data: penalty,
+              iconClass: "text-destructive",
+              barClass: "[&>div]:bg-destructive",
+              ringClass: "ring-destructive/40",
+              recordTextClass: "text-destructive",
+            },
+          ] as const).map(({ icon: Icon, label, data, iconClass, barClass, ringClass, recordTextClass }, idx) => {
             const { current, longest } = data;
             const hasRecord = longest > 0;
             const isRecord = hasRecord && current >= longest;
             const pct = hasRecord ? Math.min(100, (current / longest) * 100) : 0;
             return (
-              <Card key={idx} className={`p-3 text-center flex flex-col ${isRecord ? "animate-pulse ring-2 ring-primary/40" : ""}`}>
-                <Icon className={`w-7 h-7 mx-auto mb-2 ${isRecord ? "text-primary" : "text-accent"}`} />
+              <Card key={idx} className={`p-3 text-center flex flex-col ${isRecord ? `animate-pulse ring-2 ${ringClass}` : ""}`}>
+                <Icon className={`w-7 h-7 mx-auto mb-2 ${iconClass}`} />
                 <p className="text-2xl font-bold text-foreground">{streaksLoading ? "–" : current}</p>
                 <p className="text-[11px] font-medium text-muted-foreground mt-1 leading-tight">{label}</p>
                 {!streaksLoading && hasRecord && (
-                  <Progress
-                    value={pct}
-                    className={`h-1.5 mt-2 ${isRecord ? "[&>div]:bg-primary" : "[&>div]:bg-accent"}`}
-                  />
+                  <Progress value={pct} className={`h-1.5 mt-2 ${barClass}`} />
                 )}
-                <p className={`text-[10px] mt-1 ${isRecord ? "text-primary font-semibold" : "text-muted-foreground/70"}`}>
+                <p className={`text-[10px] mt-1 ${isRecord ? `${recordTextClass} font-semibold` : "text-muted-foreground/70"}`}>
                   {streaksLoading ? "–" : isRecord ? "🏆 New record!" : `Longest: ${longest}`}
                 </p>
               </Card>
