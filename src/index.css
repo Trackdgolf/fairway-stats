@@ -42,6 +42,9 @@ All colors MUST be HSL.
     --destructive: 354 70% 54%; /* #DC3545 */
     --destructive-foreground: 0 0% 100%;
 
+    --gold: 45 90% 55%;
+    --gold-foreground: 40 30% 15%;
+
     --border: 210 14% 93%; /* #E9ECEF */
     --input: 210 14% 93%;
     --ring: 153 41% 30%;
