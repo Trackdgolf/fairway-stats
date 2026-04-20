@@ -125,9 +125,9 @@ const HoleInsightsContent = ({
               </div>
               <div className="flex flex-col items-center">
                 <p className="text-xs text-muted-foreground mb-1">Personal SI</p>
-                {personalStrokeIndex != null ? (
+                {resolvedSI != null ? (
                   <Badge className="w-7 h-7 rounded-full flex items-center justify-center p-0 text-xs">
-                    {personalStrokeIndex}
+                    {resolvedSI}
                   </Badge>
                 ) : (
                   <span className="text-xl font-bold text-muted-foreground">—</span>
