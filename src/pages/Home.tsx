@@ -292,38 +292,15 @@ const Home = () => {
         {/* Streak Tracker Tiles */}
         <div className="grid grid-cols-3 gap-2 mb-6">
           {([
-            {
-              icon: ShieldCheck,
-              label: "Holes since last 3-putt",
-              data: threePutt,
-              iconClass: "text-success",
-              barClass: "[&>div]:bg-success",
-              ringClass: "ring-success/40",
-              recordTextClass: "text-success",
-            },
-            {
-              icon: ShieldAlert,
-              label: "Holes since last double bogey+",
-              data: doubleBogey,
-              iconClass: "text-warning",
-              barClass: "[&>div]:bg-warning",
-              ringClass: "ring-warning/40",
-              recordTextClass: "text-warning",
-            },
-            {
-              icon: AlertTriangle,
-              label: "Holes since last penalty",
-              data: penalty,
-              iconClass: "text-destructive",
-              barClass: "[&>div]:bg-destructive",
-              ringClass: "ring-destructive/40",
-              recordTextClass: "text-destructive",
-            },
-          ] as const).map(({ icon: Icon, label, data, iconClass, barClass, ringClass, recordTextClass }, idx) => {
+            { icon: ShieldCheck, label: "Holes since last 3-putt", data: threePutt },
+            { icon: ShieldAlert, label: "Holes since last double bogey+", data: doubleBogey },
+            { icon: AlertTriangle, label: "Holes since last penalty", data: penalty },
+          ] as const).map(({ icon: Icon, label, data }, idx) => {
             const { current, longest } = data;
             const hasRecord = longest > 0;
             const isRecord = hasRecord && current >= longest;
             const pct = hasRecord ? Math.min(100, (current / longest) * 100) : 0;
+            const { iconClass, barClass, ringClass, recordTextClass } = getStreakColor(pct, hasRecord, isRecord);
             return (
               <Card key={idx} className={`p-3 text-center flex flex-col ${isRecord ? `animate-pulse ring-2 ${ringClass}` : ""}`}>
                 <Icon className={`w-7 h-7 mx-auto mb-2 ${iconClass}`} />
