@@ -1,8 +1,9 @@
-import { ChevronLeft, Target, CircleDot } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, Target, CircleDot, MapPin, Flag, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useHoleHistory } from "@/hooks/useHoleHistory";
+import { useHoleHistory, type HolePlay } from "@/hooks/useHoleHistory";
 import type { HolePerformance } from "@/hooks/useCoursePerformance";
 import TeeOutcomeDispersion from "@/components/TeeOutcomeDispersion";
 import ScrambleOutcomeDispersion from "@/components/ScrambleOutcomeDispersion";
