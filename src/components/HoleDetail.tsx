@@ -12,6 +12,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 interface HoleDetailProps {
   courseId: string;
   hole: HolePerformance;
+  allHoles?: HolePerformance[];
+  onNavigate?: (holeNumber: number) => void;
   onBack: () => void;
 }
 
