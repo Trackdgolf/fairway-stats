@@ -50,8 +50,8 @@ export const useStreakTrackers = (): StreakData => {
       });
 
       const penalty = calcStreak(allHoles, (h) => {
-        if (h.penalties == null) return null;
-        return h.penalties > 0;
+        // Treat null/missing penalties as 0 (no penalty recorded)
+        return (h.penalties ?? 0) > 0;
       });
 
       return { threePutt, doubleBogey, penalty };
