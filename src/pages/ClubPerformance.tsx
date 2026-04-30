@@ -138,10 +138,11 @@ const ClubPerformance = () => {
           <>
             {/* Tab Navigation */}
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="mb-4">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="teeShots">Tee Shots</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="teeShots">Tee</TabsTrigger>
                 <TabsTrigger value="approach">Approach</TabsTrigger>
                 <TabsTrigger value="scramble">Scramble</TabsTrigger>
+                <TabsTrigger value="putting">Putting</TabsTrigger>
               </TabsList>
             </Tabs>
 
