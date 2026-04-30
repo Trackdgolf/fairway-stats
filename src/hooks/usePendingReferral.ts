@@ -36,15 +36,11 @@ export const usePendingReferral = () => {
 
     const applyReferral = async () => {
       try {
-        // Re-validate influencer
-        const { data: influencer } = await supabase
-          .from('influencers')
-          .select('id')
-          .eq('code', pending)
-          .eq('is_active', true)
-          .maybeSingle();
+        // Re-validate influencer via secure RPC (returns only the id)
+        const { data: influencerId } = await supabase
+          .rpc('get_influencer_id_by_code', { _code: pending });
 
-        if (!influencer) {
+        if (!influencerId) {
           clearPendingReferral();
           toast.info('Referral code expired');
           return;
@@ -52,7 +48,7 @@ export const usePendingReferral = () => {
 
         const { error } = await supabase.from('referrals').insert({
           user_id: user.id,
-          influencer_id: influencer.id,
+          influencer_id: influencerId,
           code: pending,
           status: 'claimed',
         });
