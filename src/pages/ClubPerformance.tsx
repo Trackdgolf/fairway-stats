@@ -148,11 +148,11 @@ const ClubPerformance = () => {
 
             {/* Shot Count */}
             <p className="text-sm text-muted-foreground text-center mb-4">
-              {isLoading ? "Loading..." : shotCount > 0 ? `Based on ${shotCount} ${shotType}` : `No ${shotType} recorded yet`}
+              {(activeTab === "putting" ? puttingLoading : isLoading) ? "Loading..." : shotCount > 0 ? `Based on ${shotCount} ${shotType}` : `No ${shotType} recorded yet`}
             </p>
 
             {/* Club Filter + Time Range - for teeShots and approach */}
-            {activeTab !== "scramble" && (
+            {activeTab !== "scramble" && activeTab !== "putting" && (
               <div className="flex gap-2 mb-6">
                 <Button
                   variant={selectedClub === "all" ? "default" : "outline"}
