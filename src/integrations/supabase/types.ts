@@ -467,6 +467,7 @@ export type Database = {
       }
     }
     Functions: {
+      get_influencer_id_by_code: { Args: { _code: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

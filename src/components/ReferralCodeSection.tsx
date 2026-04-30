@@ -52,13 +52,9 @@ const ReferralCodeSection = () => {
     setSubmitting(true);
 
     try {
-      // 1. Validate influencer
-      const { data: influencer, error: lookupError } = await supabase
-        .from("influencers")
-        .select("id")
-        .eq("code", normalized)
-        .eq("is_active", true)
-        .maybeSingle();
+      // 1. Validate influencer via secure RPC (returns only id)
+      const { data: influencerId, error: lookupError } = await supabase
+        .rpc("get_influencer_id_by_code", { _code: normalized });
 
       if (lookupError) {
         toast.error("Something went wrong. Please try again.");
@@ -66,7 +62,7 @@ const ReferralCodeSection = () => {
         return;
       }
 
-      if (!influencer) {
+      if (!influencerId) {
         toast.error("Invalid referral code");
         setSubmitting(false);
         return;
@@ -75,7 +71,7 @@ const ReferralCodeSection = () => {
       // 2. Insert referral
       const { error: insertError } = await supabase.from("referrals").insert({
         user_id: user.id,
-        influencer_id: influencer.id,
+        influencer_id: influencerId,
         code: normalized,
         status: "claimed",
       });
