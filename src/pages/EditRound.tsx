@@ -309,6 +309,26 @@ const EditRound = () => {
         if (error) throw error;
       }
 
+      // Replace putt_details for this round (delete then insert complete rows)
+      await supabase.from("putt_details").delete().eq("round_id", roundId);
+      const puttRows = holeStats.flatMap((hole) => {
+        if (!hole.trackPutts || !hole.puttDetails) return [];
+        return hole.puttDetails
+          .map((d, pIdx) => ({ d, pIdx }))
+          .filter(({ d }) => d.distance && d.outcome)
+          .map(({ d, pIdx }) => ({
+            round_id: roundId,
+            hole_number: hole.hole_number,
+            putt_index: pIdx + 1,
+            distance_bucket: d.distance!,
+            outcome: d.outcome!,
+          }));
+      });
+      if (puttRows.length > 0) {
+        const { error: puttErr } = await supabase.from("putt_details").insert(puttRows);
+        if (puttErr) console.error("Error saving putt details:", puttErr);
+      }
+
       // Update total score in rounds table
       const totalScore = holeStats.reduce((sum, stat) => sum + (stat.score || 0), 0);
       await supabase
@@ -319,6 +339,8 @@ const EditRound = () => {
       // Invalidate queries to refresh stats
       queryClient.invalidateQueries({ queryKey: ["completed-rounds"] });
       queryClient.invalidateQueries({ queryKey: ["round-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["putt-details", roundId] });
+      queryClient.invalidateQueries({ queryKey: ["putting-stats"] });
 
       toast({
         title: "Round updated",
