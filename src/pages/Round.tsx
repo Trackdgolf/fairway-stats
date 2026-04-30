@@ -623,13 +623,40 @@ const Round = () => {
 
           {/* Putts */}
           {preferences.putts && (
-            <NumberStepper
-              label="Putts"
-              value={currentStats?.putts}
-              onChange={(val) => updateHoleStats({ putts: val })}
-              min={0}
-              max={10}
-            />
+            <div className="space-y-2">
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <NumberStepper
+                    label="Putts"
+                    value={currentStats?.putts}
+                    onChange={(val) => updateHoleStats({ putts: val })}
+                    min={0}
+                    max={10}
+                  />
+                </div>
+                {(currentStats?.putts ?? 0) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => updateHoleStats({ trackPutts: !currentStats?.trackPutts })}
+                    className={cn(
+                      "h-11 px-3 rounded-xl text-xs font-medium transition-all whitespace-nowrap",
+                      currentStats?.trackPutts
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground border border-border dark:bg-[hsl(var(--round-input))] dark:border-[hsl(var(--round-border))]"
+                    )}
+                  >
+                    {currentStats?.trackPutts ? "Tracking" : "Track each putt"}
+                  </button>
+                )}
+              </div>
+              {currentStats?.trackPutts && (currentStats?.putts ?? 0) > 0 && (
+                <PuttDetailEntry
+                  putts={currentStats.putts || 0}
+                  details={currentStats.puttDetails || []}
+                  onChange={(details) => updateHoleStats({ puttDetails: details })}
+                />
+              )}
+            </div>
           )}
 
           {/* Penalty Shots */}
