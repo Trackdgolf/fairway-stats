@@ -10,10 +10,10 @@ export interface PuttDetail {
 }
 
 const DISTANCE_BUCKETS: { value: PuttDistanceBucket; label: string }[] = [
-  { value: '0-3', label: "0–3" },
-  { value: '4-8', label: "4–8" },
-  { value: '9-14', label: "9–14" },
-  { value: '15+', label: "15+" },
+  { value: '0-3', label: "0–3 ft" },
+  { value: '4-8', label: "4–8 ft" },
+  { value: '9-14', label: "9–14 ft" },
+  { value: '15+', label: "15+ ft" },
 ];
 
 const OUTCOMES: { value: PuttOutcome; label: string }[] = [
