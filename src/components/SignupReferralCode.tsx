@@ -24,14 +24,10 @@ const SignupReferralCode = () => {
 
     setLoading(true);
     try {
-      const { data: influencer } = await supabase
-        .from('influencers')
-        .select('id')
-        .eq('code', normalized)
-        .eq('is_active', true)
-        .maybeSingle();
+      const { data: influencerId } = await supabase
+        .rpc('get_influencer_id_by_code', { _code: normalized });
 
-      if (!influencer) {
+      if (!influencerId) {
         setError('Invalid referral code');
         setLoading(false);
         return;
