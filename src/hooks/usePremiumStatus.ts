@@ -4,7 +4,6 @@ import { useRevenueCat } from '@/hooks/useRevenueCat';
 export type PremiumStatus = 'loading' | 'active' | 'inactive';
 
 export const usePremiumStatus = () => {
-  const forcePremium = import.meta.env.VITE_FORCE_PREMIUM === 'true';
   const { isPremium: isDbPremium, loading: dbLoading } = useSubscription();
   const { isPremium: isRcPremium, loading: rcLoading, isNative, isInitialized } = useRevenueCat();
 
@@ -12,7 +11,7 @@ export const usePremiumStatus = () => {
   // This prevents showing 'inactive' while RevenueCat is still initializing
   const nativeLoading = rcLoading || !isInitialized;
   const loading = isNative ? nativeLoading : dbLoading;
-  const isPremium = forcePremium || (isNative ? isRcPremium : isDbPremium);
+  const isPremium = isNative ? isRcPremium : isDbPremium;
 
   // Derive explicit status
   const status: PremiumStatus = loading 
