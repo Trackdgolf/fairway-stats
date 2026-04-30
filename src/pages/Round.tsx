@@ -40,6 +40,8 @@ interface HoleStats {
   approachClub: string;
   scrambleClub: string;
   scrambleShotType: ScrambleShotType;
+  puttDetails?: PuttDetail[];
+  trackPutts?: boolean;
 }
 
 const FIR_DIRECTIONS: { icon: typeof Circle; value: FirDirection; label: string }[] = [
