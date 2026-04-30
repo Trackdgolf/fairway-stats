@@ -6,9 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Hardcoded demo account credentials - only this specific account can be created
+// Hardcoded demo email - password is read from a secure environment secret
 const DEMO_EMAIL = 'review@trackdgolf.app';
-const DEMO_PASSWORD = 'TrackdReview2026!';
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -39,10 +39,19 @@ serve(async (req) => {
       );
     }
 
+    const demoPassword = Deno.env.get('DEMO_ACCOUNT_PASSWORD');
+    if (!demoPassword) {
+      console.error('DEMO_ACCOUNT_PASSWORD secret is not configured');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Demo account is not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Create the demo user with email pre-confirmed
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: DEMO_EMAIL,
-      password: DEMO_PASSWORD,
+      password: demoPassword,
       email_confirm: true,
     });
 
