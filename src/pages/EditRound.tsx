@@ -43,6 +43,8 @@ interface HoleStats {
   scramble_shot_type: ScrambleShotType;
   yardage: number | null;
   penalties: number | null;
+  puttDetails?: PuttDetail[];
+  trackPutts?: boolean;
 }
 
 const FIR_DIRECTIONS: { icon: typeof Circle; value: FirDirection; label: string }[] = [
