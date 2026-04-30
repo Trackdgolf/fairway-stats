@@ -353,6 +353,26 @@ const Round = () => {
 
       if (statsError) throw statsError;
 
+      // Insert per-putt details (only fully-completed entries)
+      const puttRows = holeStats.flatMap((stat, idx) => {
+        if (!stat.trackPutts || !stat.puttDetails) return [];
+        return stat.puttDetails
+          .map((d, pIdx) => ({ d, pIdx }))
+          .filter(({ d }) => d.distance && d.outcome)
+          .map(({ d, pIdx }) => ({
+            round_id: roundData.id,
+            hole_number: idx + 1,
+            putt_index: pIdx + 1,
+            distance_bucket: d.distance!,
+            outcome: d.outcome!,
+          }));
+      });
+
+      if (puttRows.length > 0) {
+        const { error: puttErr } = await supabase.from('putt_details').insert(puttRows);
+        if (puttErr) console.error('Error saving putt details:', puttErr);
+      }
+
       // Delete in-progress round after successful save
       await deleteInProgressRound();
 
