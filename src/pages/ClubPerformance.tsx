@@ -14,13 +14,15 @@ import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
 import ScrambleClubList from "@/components/ScrambleClubList";
 import ClubDistances from "@/components/ClubDistances";
+import PuttingPerformance from "@/components/PuttingPerformance";
 import { PaywallModal } from "@/components/PaywallModal";
 import { useDispersionStats } from "@/hooks/useDispersionStats";
+import { usePuttingStats } from "@/hooks/usePuttingStats";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 type TopView = "dispersion" | "distances";
-type TabType = "teeShots" | "approach" | "scramble";
+type TabType = "teeShots" | "approach" | "scramble" | "putting";
 type ScrambleShotTypeFilter = "all" | "pitch" | "chip" | "bunker";
 
 const SCRAMBLE_SHOT_TYPES: { value: ScrambleShotTypeFilter; label: string }[] = [
