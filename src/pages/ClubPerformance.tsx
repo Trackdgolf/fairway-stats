@@ -228,6 +228,27 @@ const ClubPerformance = () => {
               </div>
             )}
 
+            {/* Putting Time Range */}
+            {activeTab === "putting" && (
+              <div className="flex justify-end mb-6">
+                <Select
+                  value={timeRange}
+                  onValueChange={(value) => setTimeRange(value as TimeRange)}
+                >
+                  <SelectTrigger className="w-[140px] h-9">
+                    <SelectValue placeholder="Time Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+                      <SelectItem key={range} value={range}>
+                        {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Content */}
             {activeTab === "teeShots" && (
               <div className="bg-card rounded-xl p-4 shadow-sm">
