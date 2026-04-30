@@ -233,11 +233,40 @@ const EditRound = () => {
     enabled: !!roundId,
   });
 
+  // Fetch existing putt details
+  const { data: fetchedPuttDetails } = useQuery({
+    queryKey: ["putt-details", roundId],
+    queryFn: async () => {
+      if (!roundId) return [];
+      const { data, error } = await supabase
+        .from("putt_details")
+        .select("hole_number, putt_index, distance_bucket, outcome")
+        .eq("round_id", roundId)
+        .order("putt_index", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!roundId,
+  });
+
   useEffect(() => {
-    if (fetchedHoleStats) {
-      setHoleStats(fetchedHoleStats);
-    }
-  }, [fetchedHoleStats]);
+    if (!fetchedHoleStats) return;
+    const byHole = new Map<number, PuttDetail[]>();
+    (fetchedPuttDetails || []).forEach((p) => {
+      const arr = byHole.get(p.hole_number) || [];
+      arr[p.putt_index - 1] = {
+        distance: p.distance_bucket as PuttDetail['distance'],
+        outcome: p.outcome as PuttDetail['outcome'],
+      };
+      byHole.set(p.hole_number, arr);
+    });
+    setHoleStats(fetchedHoleStats.map((h) => {
+      const details = byHole.get(h.hole_number);
+      return details && details.length > 0
+        ? { ...h, puttDetails: details, trackPutts: true }
+        : h;
+    }));
+  }, [fetchedHoleStats, fetchedPuttDetails]);
 
   const currentHole = holeStats[currentHoleIndex];
   const totalHoles = holeStats.length;
