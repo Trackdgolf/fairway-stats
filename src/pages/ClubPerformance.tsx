@@ -277,6 +277,10 @@ const ClubPerformance = () => {
             {activeTab === "scramble" && (
               <ScrambleClubList clubs={scrambleStats.clubs} />
             )}
+
+            {activeTab === "putting" && (
+              <PuttingPerformance stats={puttingStats} isLoading={puttingLoading} />
+            )}
           </>
         )}
 
