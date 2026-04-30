@@ -11,14 +11,22 @@ export const usePremiumStatus = () => {
   // This prevents showing 'inactive' while RevenueCat is still initializing
   const nativeLoading = rcLoading || !isInitialized;
   const loading = isNative ? nativeLoading : dbLoading;
-  const isPremium = isNative ? isRcPremium : isDbPremium;
+
+  // Dev-only bypass: set VITE_FORCE_PREMIUM=true in .env to unlock premium locally.
+  // This is ignored in production builds.
+  const forcePremium =
+    import.meta.env.DEV && import.meta.env.VITE_FORCE_PREMIUM === 'true';
+
+  const isPremium = forcePremium || (isNative ? isRcPremium : isDbPremium);
 
   // Derive explicit status
-  const status: PremiumStatus = loading 
-    ? 'loading' 
-    : isPremium 
-      ? 'active' 
-      : 'inactive';
+  const status: PremiumStatus = forcePremium
+    ? 'active'
+    : loading
+      ? 'loading'
+      : isPremium
+        ? 'active'
+        : 'inactive';
 
   return { isPremium, loading, status };
 };
