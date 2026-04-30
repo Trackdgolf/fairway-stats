@@ -98,6 +98,7 @@ const ClubPerformance = () => {
   const getShotInfo = () => {
     if (activeTab === "teeShots") return { count: teeDispersion.total, type: "tee shots" };
     if (activeTab === "approach") return { count: approachDispersion.total, type: "approach shots" };
+    if (activeTab === "putting") return { count: puttingStats?.total || 0, type: "putts" };
     return { count: scrambleStats.total, type: "scramble attempts" };
   };
   const { count: shotCount, type: shotType } = getShotInfo();
