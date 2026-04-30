@@ -45,6 +45,7 @@ const ClubPerformance = () => {
 
   const { clubs: bagClubs, stockYardages, updateStockYardage } = useUserPreferences();
   const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType, timeRange);
+  const { data: puttingStats, isLoading: puttingLoading } = usePuttingStats(timeRange);
 
   // Sort clubs by bag order, only include clubs with data - MUST be before early returns
   const sortedTeeClubs = useMemo(() => {
