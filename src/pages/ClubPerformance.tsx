@@ -14,13 +14,15 @@ import FairwayDispersion from "@/components/FairwayDispersion";
 import GreenDispersion from "@/components/GreenDispersion";
 import ScrambleClubList from "@/components/ScrambleClubList";
 import ClubDistances from "@/components/ClubDistances";
+import PuttingPerformance from "@/components/PuttingPerformance";
 import { PaywallModal } from "@/components/PaywallModal";
 import { useDispersionStats } from "@/hooks/useDispersionStats";
+import { usePuttingStats } from "@/hooks/usePuttingStats";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 type TopView = "dispersion" | "distances";
-type TabType = "teeShots" | "approach" | "scramble";
+type TabType = "teeShots" | "approach" | "scramble" | "putting";
 type ScrambleShotTypeFilter = "all" | "pitch" | "chip" | "bunker";
 
 const SCRAMBLE_SHOT_TYPES: { value: ScrambleShotTypeFilter; label: string }[] = [
@@ -43,6 +45,7 @@ const ClubPerformance = () => {
 
   const { clubs: bagClubs, stockYardages, updateStockYardage } = useUserPreferences();
   const { data: stats, isLoading } = useDispersionStats(selectedTeeClub, selectedApproachClub, selectedScrambleShotType, timeRange);
+  const { data: puttingStats, isLoading: puttingLoading } = usePuttingStats(timeRange);
 
   // Sort clubs by bag order, only include clubs with data - MUST be before early returns
   const sortedTeeClubs = useMemo(() => {
@@ -95,6 +98,7 @@ const ClubPerformance = () => {
   const getShotInfo = () => {
     if (activeTab === "teeShots") return { count: teeDispersion.total, type: "tee shots" };
     if (activeTab === "approach") return { count: approachDispersion.total, type: "approach shots" };
+    if (activeTab === "putting") return { count: puttingStats?.total || 0, type: "putts" };
     return { count: scrambleStats.total, type: "scramble attempts" };
   };
   const { count: shotCount, type: shotType } = getShotInfo();
@@ -134,20 +138,21 @@ const ClubPerformance = () => {
           <>
             {/* Tab Navigation */}
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="mb-4">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="teeShots">Tee Shots</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="teeShots">Tee</TabsTrigger>
                 <TabsTrigger value="approach">Approach</TabsTrigger>
                 <TabsTrigger value="scramble">Scramble</TabsTrigger>
+                <TabsTrigger value="putting">Putting</TabsTrigger>
               </TabsList>
             </Tabs>
 
             {/* Shot Count */}
             <p className="text-sm text-muted-foreground text-center mb-4">
-              {isLoading ? "Loading..." : shotCount > 0 ? `Based on ${shotCount} ${shotType}` : `No ${shotType} recorded yet`}
+              {(activeTab === "putting" ? puttingLoading : isLoading) ? "Loading..." : shotCount > 0 ? `Based on ${shotCount} ${shotType}` : `No ${shotType} recorded yet`}
             </p>
 
             {/* Club Filter + Time Range - for teeShots and approach */}
-            {activeTab !== "scramble" && (
+            {activeTab !== "scramble" && activeTab !== "putting" && (
               <div className="flex gap-2 mb-6">
                 <Button
                   variant={selectedClub === "all" ? "default" : "outline"}
@@ -223,6 +228,27 @@ const ClubPerformance = () => {
               </div>
             )}
 
+            {/* Putting Time Range */}
+            {activeTab === "putting" && (
+              <div className="flex justify-end mb-6">
+                <Select
+                  value={timeRange}
+                  onValueChange={(value) => setTimeRange(value as TimeRange)}
+                >
+                  <SelectTrigger className="w-[140px] h-9">
+                    <SelectValue placeholder="Time Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(["LAST", "3M", "6M", "1Y", "MAX"] as TimeRange[]).map((range) => (
+                      <SelectItem key={range} value={range}>
+                        {range === "LAST" ? "Last Round" : range === "MAX" ? "All Time" : range}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Content */}
             {activeTab === "teeShots" && (
               <div className="bg-card rounded-xl p-4 shadow-sm">
@@ -250,6 +276,10 @@ const ClubPerformance = () => {
 
             {activeTab === "scramble" && (
               <ScrambleClubList clubs={scrambleStats.clubs} />
+            )}
+
+            {activeTab === "putting" && (
+              <PuttingPerformance stats={puttingStats} isLoading={puttingLoading} />
             )}
           </>
         )}

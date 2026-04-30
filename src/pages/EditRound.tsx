@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import ClubSelectorDrawer from "@/components/ClubSelectorDrawer";
 import HoleInsightsSheet from "@/components/HoleInsightsSheet";
+import PuttDetailEntry, { type PuttDetail } from "@/components/PuttDetailEntry";
 
 type FirDirection = 'hit' | 'left' | 'right' | 'short' | null;
 type GirDirection = 'hit' | 'left' | 'right' | 'long' | 'short' | null;
@@ -42,6 +43,8 @@ interface HoleStats {
   scramble_shot_type: ScrambleShotType;
   yardage: number | null;
   penalties: number | null;
+  puttDetails?: PuttDetail[];
+  trackPutts?: boolean;
 }
 
 const FIR_DIRECTIONS: { icon: typeof Circle; value: FirDirection; label: string }[] = [
@@ -230,11 +233,40 @@ const EditRound = () => {
     enabled: !!roundId,
   });
 
+  // Fetch existing putt details
+  const { data: fetchedPuttDetails } = useQuery({
+    queryKey: ["putt-details", roundId],
+    queryFn: async () => {
+      if (!roundId) return [];
+      const { data, error } = await supabase
+        .from("putt_details")
+        .select("hole_number, putt_index, distance_bucket, outcome")
+        .eq("round_id", roundId)
+        .order("putt_index", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!roundId,
+  });
+
   useEffect(() => {
-    if (fetchedHoleStats) {
-      setHoleStats(fetchedHoleStats);
-    }
-  }, [fetchedHoleStats]);
+    if (!fetchedHoleStats) return;
+    const byHole = new Map<number, PuttDetail[]>();
+    (fetchedPuttDetails || []).forEach((p) => {
+      const arr = byHole.get(p.hole_number) || [];
+      arr[p.putt_index - 1] = {
+        distance: p.distance_bucket as PuttDetail['distance'],
+        outcome: p.outcome as PuttDetail['outcome'],
+      };
+      byHole.set(p.hole_number, arr);
+    });
+    setHoleStats(fetchedHoleStats.map((h) => {
+      const details = byHole.get(h.hole_number);
+      return details && details.length > 0
+        ? { ...h, puttDetails: details, trackPutts: true }
+        : h;
+    }));
+  }, [fetchedHoleStats, fetchedPuttDetails]);
 
   const currentHole = holeStats[currentHoleIndex];
   const totalHoles = holeStats.length;
@@ -277,6 +309,26 @@ const EditRound = () => {
         if (error) throw error;
       }
 
+      // Replace putt_details for this round (delete then insert complete rows)
+      await supabase.from("putt_details").delete().eq("round_id", roundId);
+      const puttRows = holeStats.flatMap((hole) => {
+        if (!hole.trackPutts || !hole.puttDetails) return [];
+        return hole.puttDetails
+          .map((d, pIdx) => ({ d, pIdx }))
+          .filter(({ d }) => d.distance && d.outcome)
+          .map(({ d, pIdx }) => ({
+            round_id: roundId,
+            hole_number: hole.hole_number,
+            putt_index: pIdx + 1,
+            distance_bucket: d.distance!,
+            outcome: d.outcome!,
+          }));
+      });
+      if (puttRows.length > 0) {
+        const { error: puttErr } = await supabase.from("putt_details").insert(puttRows);
+        if (puttErr) console.error("Error saving putt details:", puttErr);
+      }
+
       // Update total score in rounds table
       const totalScore = holeStats.reduce((sum, stat) => sum + (stat.score || 0), 0);
       await supabase
@@ -287,6 +339,8 @@ const EditRound = () => {
       // Invalidate queries to refresh stats
       queryClient.invalidateQueries({ queryKey: ["completed-rounds"] });
       queryClient.invalidateQueries({ queryKey: ["round-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["putt-details", roundId] });
+      queryClient.invalidateQueries({ queryKey: ["putting-stats"] });
 
       toast({
         title: "Round updated",
@@ -570,13 +624,40 @@ const EditRound = () => {
 
           {/* Putts */}
           {preferences.putts && (
-            <NumberStepper
-              label="Putts"
-              value={currentHole?.putts}
-              onChange={(val) => updateHoleStats({ putts: val })}
-              min={0}
-              max={10}
-            />
+            <div className="space-y-2">
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <NumberStepper
+                    label="Putts"
+                    value={currentHole?.putts}
+                    onChange={(val) => updateHoleStats({ putts: val })}
+                    min={0}
+                    max={10}
+                  />
+                </div>
+                {(currentHole?.putts ?? 0) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => updateHoleStats({ trackPutts: !currentHole?.trackPutts })}
+                    className={cn(
+                      "h-11 px-3 rounded-xl text-xs font-medium transition-all whitespace-nowrap",
+                      currentHole?.trackPutts
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground border border-border dark:bg-[hsl(var(--round-input))] dark:border-[hsl(var(--round-border))]"
+                    )}
+                  >
+                    {currentHole?.trackPutts ? "Tracking" : "Track each putt"}
+                  </button>
+                )}
+              </div>
+              {currentHole?.trackPutts && (currentHole?.putts ?? 0) > 0 && (
+                <PuttDetailEntry
+                  putts={currentHole.putts || 0}
+                  details={currentHole.puttDetails || []}
+                  onChange={(details) => updateHoleStats({ puttDetails: details })}
+                />
+              )}
+            </div>
           )}
 
           {/* Penalty Shots */}

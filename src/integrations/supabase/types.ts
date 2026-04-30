@@ -250,6 +250,36 @@ export type Database = {
         }
         Relationships: []
       }
+      putt_details: {
+        Row: {
+          created_at: string
+          distance_bucket: string
+          hole_number: number
+          id: string
+          outcome: string
+          putt_index: number
+          round_id: string
+        }
+        Insert: {
+          created_at?: string
+          distance_bucket: string
+          hole_number: number
+          id?: string
+          outcome: string
+          putt_index: number
+          round_id: string
+        }
+        Update: {
+          created_at?: string
+          distance_bucket?: string
+          hole_number?: number
+          id?: string
+          outcome?: string
+          putt_index?: number
+          round_id?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           claimed_at: string
