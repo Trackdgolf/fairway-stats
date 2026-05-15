@@ -7,54 +7,49 @@ const corsHeaders = {
 };
 
 interface SubscribeRequest {
-  email: string;
   source?: string;
-  user_id?: string;
 }
 
 serve(async (req: Request): Promise<Response> => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const resendSegmentId = Deno.env.get("RESEND_SEGMENT_ID");
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Parse request body
-    const { email, source = "app", user_id }: SubscribeRequest = await req.json();
-
-    if (!email || typeof email !== "string") {
+    // Require authenticated caller — derive identity from JWT, never trust client-supplied email/user_id
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: "Email is required" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    // Validate email length
-    if (email.length > 255) {
+    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claims, error: claimsError } = await supabaseUser.auth.getClaims(token);
+    if (claimsError || !claims?.claims?.sub || !claims.claims.email) {
       return new Response(
-        JSON.stringify({ error: "Email too long" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid email format" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
+    const userId = claims.claims.sub as string;
+    const userEmail = claims.claims.email as string;
+    const normalizedEmail = userEmail.toLowerCase().trim();
 
-    // Validate source field
-    const validSources = ["app", "web", "landing-page", "app-settings"];
+    const { source = "app" }: SubscribeRequest = await req.json().catch(() => ({}));
+
+    const validSources = ["app", "web", "landing-page", "app-settings", "app-signup"];
     if (source && !validSources.includes(source)) {
       return new Response(
         JSON.stringify({ error: "Invalid source value" }),
@@ -62,23 +57,11 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Validate user_id format if provided
-    if (user_id) {
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(user_id)) {
-        return new Response(
-          JSON.stringify({ error: "Invalid user_id format" }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      }
-    }
-
-    const normalizedEmail = email.toLowerCase().trim();
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const maskedEmail = normalizedEmail.substring(0, 2) + '***@' + normalizedEmail.split('@')[1];
     console.log(`Marketing subscribe request for: ${maskedEmail}, source: ${source}`);
 
-    // Check if record exists
     const { data: existingRecord, error: selectError } = await supabase
       .from("marketing_subscribers")
       .select("*")
@@ -92,26 +75,24 @@ serve(async (req: Request): Promise<Response> => {
 
     let dbResult;
     if (existingRecord) {
-      // Update existing record - re-subscribe
       dbResult = await supabase
         .from("marketing_subscribers")
         .update({
           opted_in_at: new Date().toISOString(),
           unsubscribed_at: null,
-          source: source,
-          user_id: user_id || existingRecord.user_id,
+          source,
+          user_id: userId,
         })
         .eq("email", normalizedEmail)
         .select()
         .single();
     } else {
-      // Insert new record
       dbResult = await supabase
         .from("marketing_subscribers")
         .insert({
           email: normalizedEmail,
-          source: source,
-          user_id: user_id || null,
+          source,
+          user_id: userId,
           opted_in_at: new Date().toISOString(),
         })
         .select()
@@ -123,12 +104,8 @@ serve(async (req: Request): Promise<Response> => {
       throw dbResult.error;
     }
 
-    console.log("Database record created/updated successfully");
-
-    // Sync with Resend using new Contacts API (global contacts + segments)
     if (resendApiKey && resendSegmentId) {
       try {
-        // Create or update contact globally and add to segment
         const resendResponse = await fetch("https://api.resend.com/contacts", {
           method: "POST",
           headers: {
@@ -141,31 +118,21 @@ serve(async (req: Request): Promise<Response> => {
             audience_id: resendSegmentId,
           }),
         });
-
         const resendData = await resendResponse.json();
-        
         if (resendResponse.ok) {
-          console.log("Resend contact created/updated:", resendData);
+          console.log("Resend contact created/updated");
         } else {
           console.error("Resend API error (non-fatal):", resendData);
         }
       } catch (resendError) {
-        // Log but don't fail - the DB record is the source of truth
         console.error("Resend API error (non-fatal):", resendError);
       }
-    } else {
-      console.log("RESEND_API_KEY or RESEND_SEGMENT_ID not configured, skipping Resend sync");
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "Successfully subscribed to marketing emails",
-        email: normalizedEmail 
-      }),
+      JSON.stringify({ success: true, message: "Successfully subscribed to marketing emails" }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
-
   } catch (error: unknown) {
     console.error("Error in marketing-subscribe:", error);
     return new Response(
