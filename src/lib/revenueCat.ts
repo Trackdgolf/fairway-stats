@@ -50,6 +50,20 @@ export const initializeRevenueCat = async (apiKey: string): Promise<void> => {
   }
 };
 
+// Get the CURRENT App User ID from the SDK (after logIn this is the Supabase user.id).
+// NOTE: customerInfo.originalAppUserId returns the *original* (often anonymous) ID and
+// must NOT be used to verify the currently logged-in identity.
+export const getCurrentAppUserId = async (): Promise<string | null> => {
+  if (!isNativePlatform()) return null;
+  try {
+    const { appUserID } = await Purchases.getAppUserID();
+    return appUserID ?? null;
+  } catch (error) {
+    console.error('RevenueCat: Failed to get current app user ID', error);
+    return null;
+  }
+};
+
 // Set the user ID for RevenueCat (should match your auth user ID)
 export const setRevenueCatUserId = async (userId: string): Promise<void> => {
   if (!isNativePlatform()) return;
