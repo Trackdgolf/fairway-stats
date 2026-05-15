@@ -10,6 +10,7 @@ import {
   setRevenueCatUserId,
   logOutRevenueCat,
   getCustomerInfo,
+  getCurrentAppUserId,
   getOfferings,
   purchasePackage,
   restorePurchases,
