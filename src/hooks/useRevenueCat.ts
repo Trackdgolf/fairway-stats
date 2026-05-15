@@ -242,24 +242,28 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
     setLoading(true);
     try {
       // CRITICAL: Verify identity is correct before purchase
-      // This prevents purchases under anonymous IDs
-      const currentInfo = await getCustomerInfo();
-      const currentRcUserId = currentInfo?.originalAppUserId;
-      
+      // This prevents purchases under anonymous IDs.
+      // Use getAppUserID() (current ID) — NOT customerInfo.originalAppUserId,
+      // which keeps returning the original anonymous ID even after logIn.
+      const currentRcUserId = await getCurrentAppUserId();
+
       console.log('RevenueCat: Pre-purchase identity check:', {
         supabaseUserId: user.id.substring(0, 8) + '...',
         rcAppUserId: currentRcUserId?.substring(0, 8) + '...',
         identityMatch: currentRcUserId === user.id,
       });
-      
+
       if (currentRcUserId !== user.id) {
         console.warn('RevenueCat: Identity mismatch detected, re-logging in before purchase');
         await setRevenueCatUserId(user.id);
-        
-        // Verify login succeeded
-        const verifyInfo = await getCustomerInfo();
-        if (verifyInfo?.originalAppUserId !== user.id) {
-          console.error('RevenueCat: Failed to set correct user identity before purchase');
+
+        // Verify login succeeded using the current App User ID
+        const verifyId = await getCurrentAppUserId();
+        if (verifyId !== user.id) {
+          console.error('RevenueCat: Failed to set correct user identity before purchase', {
+            expected: user.id.substring(0, 8) + '...',
+            actual: verifyId?.substring(0, 8) + '...',
+          });
           toast.error('Identity verification failed. Please restart the app and try again.');
           return false;
         }
