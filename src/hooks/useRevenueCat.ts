@@ -149,15 +149,17 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
         
         if (info) {
           logCustomerInfoDebug(info, 'startup-fetch');
-          
-          // Warn if appUserID doesn't match expected user
-          if (info.originalAppUserId !== user.id) {
+
+          // Warn if the CURRENT App User ID doesn't match the Supabase user.
+          // (originalAppUserId stays as the first/anonymous ID — don't use it for identity checks.)
+          const currentAppUserId = await getCurrentAppUserId();
+          if (currentAppUserId !== user.id) {
             console.warn('RevenueCat IDENTITY MISMATCH:', {
               expected: user.id.substring(0, 8) + '...',
-              actual: info.originalAppUserId?.substring(0, 8) + '...',
+              actual: currentAppUserId?.substring(0, 8) + '...',
             });
           }
-          
+
           setCustomerInfo(info);
           await syncSubscriptionToDatabase(info);
         }
