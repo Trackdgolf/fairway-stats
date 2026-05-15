@@ -112,23 +112,26 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   useEffect(() => {
     if (open && isNative) {
       const supabaseUserId = user?.id;
-      const rcAppUserId = customerInfo?.originalAppUserId;
-      const identityMatch = supabaseUserId === rcAppUserId;
-      
-      console.log('Paywall Identity Check:', {
-        supabaseUserId: supabaseUserId ? supabaseUserId.substring(0, 8) + '...' : 'none',
-        rcAppUserId: rcAppUserId ? rcAppUserId.substring(0, 8) + '...' : 'none',
-        identityMatch,
-        isAnonymous: rcAppUserId?.startsWith('$RCAnonymousID'),
-      });
-      
-      if (!identityMatch) {
-        console.warn('Paywall: IDENTITY MISMATCH - RevenueCat user does not match Supabase user');
-      }
-      
-      if (rcAppUserId?.startsWith('$RCAnonymousID')) {
-        console.warn('Paywall: User is anonymous in RevenueCat - purchases may not link correctly');
-      }
+      (async () => {
+        const { getCurrentAppUserId } = await import('@/lib/revenueCat');
+        const rcAppUserId = await getCurrentAppUserId();
+        const identityMatch = supabaseUserId === rcAppUserId;
+
+        console.log('Paywall Identity Check:', {
+          supabaseUserId: supabaseUserId ? supabaseUserId.substring(0, 8) + '...' : 'none',
+          rcAppUserId: rcAppUserId ? rcAppUserId.substring(0, 8) + '...' : 'none',
+          identityMatch,
+          isAnonymous: rcAppUserId?.startsWith('$RCAnonymousID'),
+        });
+
+        if (!identityMatch) {
+          console.warn('Paywall: IDENTITY MISMATCH - RevenueCat user does not match Supabase user');
+        }
+
+        if (rcAppUserId?.startsWith('$RCAnonymousID')) {
+          console.warn('Paywall: User is anonymous in RevenueCat - purchases may not link correctly');
+        }
+      })();
     }
   }, [open, isNative, user, customerInfo]);
 
