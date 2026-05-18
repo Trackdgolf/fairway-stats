@@ -70,7 +70,7 @@ const PuttingPerformance = ({ stats, isLoading }: PuttingPerformanceProps) => {
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     {BUCKET_LABELS[b.bucket]}
                   </span>
-                  <span className="text-xs text-muted-foreground">{b.total} putt{b.total === 1 ? '' : 's'}</span>
+                  <span className="text-xs text-muted-foreground">{b.total} attempt{b.total === 1 ? '' : 's'}</span>
                 </div>
                 <div className="text-2xl font-bold text-foreground">
                   {b.total > 0 ? `${b.makePercent}%` : '—'}
