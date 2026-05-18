@@ -77,16 +77,19 @@ const PuttingPerformance = ({ stats, isLoading }: PuttingPerformanceProps) => {
                 </div>
                 <p className="text-[10px] text-muted-foreground -mt-1">Make rate</p>
                 <OutcomeBar b={b} />
-                {b.total > 0 && (
-                  <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground pt-1">
-                    {b.holed > 0 && <span><span className="inline-block w-2 h-2 rounded-full bg-primary mr-1 align-middle" />Holed {b.holed}</span>}
-                    {b.short > 0 && <span>Short {b.short}</span>}
-                    {b.long > 0 && <span>Long {b.long}</span>}
-                    {b.left > 0 && <span>Left {b.left}</span>}
-                    {b.right > 0 && <span>Right {b.right}</span>}
-                    {b.lippedOut > 0 && <span><span className="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-1 align-middle" />Lip {b.lippedOut}</span>}
-                  </div>
-                )}
+                {b.total > 0 && (() => {
+                  const pctLabel = (n: number) => `${Math.round((n / b.total) * 100)}%`;
+                  return (
+                    <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground pt-1">
+                      {b.holed > 0 && <span><span className="inline-block w-2 h-2 rounded-full bg-primary mr-1 align-middle" />Holed {pctLabel(b.holed)}</span>}
+                      {b.short > 0 && <span>Short {pctLabel(b.short)}</span>}
+                      {b.long > 0 && <span>Long {pctLabel(b.long)}</span>}
+                      {b.left > 0 && <span>Left {pctLabel(b.left)}</span>}
+                      {b.right > 0 && <span>Right {pctLabel(b.right)}</span>}
+                      {b.lippedOut > 0 && <span><span className="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-1 align-middle" />Lip {pctLabel(b.lippedOut)}</span>}
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           ))}
