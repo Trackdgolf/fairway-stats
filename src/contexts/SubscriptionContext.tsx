@@ -85,7 +85,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     fetchSubscription();
   }, [fetchSubscription]);
 
-  const isPremium = subscription?.status === 'active' && subscription?.planType === 'premium';
+  // Dev-only bypass: set VITE_FORCE_PREMIUM=true in .env to unlock premium locally
+  const forcePremium = import.meta.env.DEV && import.meta.env.VITE_FORCE_PREMIUM === 'true';
+
+  const isPremium = forcePremium || (subscription?.status === 'active' && subscription?.planType === 'premium');
 
   return (
     <SubscriptionContext.Provider 
