@@ -342,7 +342,10 @@ export const useRevenueCat = (): UseRevenueCatReturn => {
     }
   }, [syncSubscriptionToDatabase]);
 
-  const isPremium = customerInfo ? hasActiveEntitlement(customerInfo) : false;
+  // Dev-only bypass: set VITE_FORCE_PREMIUM=true in .env to unlock premium locally
+  const forcePremium = import.meta.env.DEV && import.meta.env.VITE_FORCE_PREMIUM === 'true';
+
+  const isPremium = forcePremium || (customerInfo ? hasActiveEntitlement(customerInfo) : false);
 
   return {
     isNative,
