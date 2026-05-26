@@ -31,6 +31,7 @@ interface HoleData {
   scramble: 'yes' | 'no' | 'n/a' | null;
   putts: number | null;
   par?: number | null;
+  strokeIndex?: number | null;
 }
 
 interface RoundSummaryModalProps {
