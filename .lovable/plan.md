@@ -1,26 +1,32 @@
-## Problem
-The scorecard card uses `aspect-[9/16]`, which forces the card to be very tall (≈515px at carousel width). Combined with the modal's title, challenges section, dot indicators, and action buttons, the modal exceeds the 90vh cap and becomes scrollable. The other two cards size to content (~370px), which is why they fit.
 
-## Fix
-Stop forcing 9:16 on the scorecard. Instead size it like the other two cards (content-driven, comparable height) while still presenting as a portrait-oriented scorecard.
+## Goal
+Replace the "Putting green graphic — coming soon" placeholder in `src/components/PuttingPerformance.tsx` with a dynamic horizontal bar chart that shows outcome percentages (Holed, Short, Long, Left, Right, Lip out). By default it aggregates all putts; tapping a distance tile (0–3 ft, 4–8 ft, 9–14 ft, 15 ft+) filters the chart to that bucket. Tapping the active tile again (or an "All" pill) returns to the aggregate view.
 
-### Edits (single file: `src/components/RoundSummaryModal.tsx`)
+## UX
 
-1. **Scorecard wrapper**: remove `aspect-[9/16] flex flex-col` from the third `CarouselItem`'s outer div. Card height becomes content-driven like cards 1 and 2.
+- Card at top contains:
+  - Header row: title "Outcome breakdown" + small badge showing current scope ("All putts" or "4–8 ft") with total attempts count.
+  - Horizontal bar chart, one row per outcome, each row: label on left, filled bar (width = % of selected scope), percentage on right.
+  - Outcomes always rendered in fixed order: Holed, Lip out, Short, Long, Left, Right. Rows with 0% still render (greyed) so the chart doesn't jump in height.
+  - Empty state: if scope total is 0, show "No putts recorded in this range yet."
+- Distance tiles below become tappable:
+  - Active tile gets a primary ring/border + subtle bg tint.
+  - Tapping the active tile clears the filter (back to All).
+  - Add visual affordance: `cursor-pointer`, `aria-pressed`, keyboard activatable (button wrapper).
 
-2. **`ScorecardContent` tightened to fit a ~370–400px card** (matching siblings):
-   - Header block: keep logo `h-10`, drop the `text-base` course name to `text-sm`, tighten margins (`mb-1.5`, `mb-2`).
-   - Two-column body: replace per-row borders + `py-[3px]` with a denser `leading-tight text-[11px]` table; rows use `py-0` and a single divider every row via `divide-y divide-white/10`.
-   - Reduce header label row to `text-[9px]`.
-   - Out/In totals row: `text-[10px]`, `py-0.5`.
-   - Footer Total row: shrink padding (`mt-2 pt-2`), keep big Total number at `text-2xl` (down from `text-3xl`).
-   - Outer padding: `p-3` (was `p-4`).
+## Technical details
 
-3. **No layout containers depending on `h-full`** — drop `flex-1 min-h-0` from the columns wrapper; let it size naturally.
+File: `src/components/PuttingPerformance.tsx`
 
-### Why this fixes the scroll
-With no aspect ratio lock and compact typography, the scorecard card collapses to roughly the same height as the dark/light cards (~360–390px). The modal's existing `max-h-[90vh] overflow-y-auto` will then have no overflow on a 390×803 viewport.
+1. Add `const [selectedBucket, setSelectedBucket] = useState<PuttDistanceBucket | null>(null);`
+2. Derive `activeStats`:
+   - If `selectedBucket` is null → aggregate across `stats.buckets` (sum totals + each outcome).
+   - Else → the matching bucket from `stats.buckets`.
+3. New `OutcomeBreakdown` subcomponent renders the 6 outcome rows using Tailwind divs (no recharts needed — keeps bundle light and matches existing OutcomeBar styling). Colors reuse existing tokens: `bg-primary` (Holed), `bg-yellow-500` (Lip out), `bg-muted-foreground/60..30` (Short/Long/Left/Right).
+4. Replace the placeholder Card body with the chart. Keep the same Card wrapper for visual consistency.
+5. Wrap each bucket tile in a `<button type="button">` with `onClick={() => setSelectedBucket(prev => prev === b.bucket ? null : b.bucket)}` and `aria-pressed={selectedBucket === b.bucket}`. Add ring styling when active.
+6. No changes to `usePuttingStats` — all data already available.
 
-### Out of scope
-- No changes to the other two cards.
-- No changes to data, hooks, share logic, or carousel wiring.
+## Out of scope
+- No backend / hook changes.
+- No new dependency (no Recharts) — simple div-based bars match current style.

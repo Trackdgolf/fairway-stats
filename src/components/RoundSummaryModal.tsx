@@ -237,109 +237,6 @@ const ShareableCardContent = ({
   </div>
 );
 
-// --- Vertical Scorecard Card ---
-const ScorecardContent = ({
-  courseName,
-  dateStr,
-  holeStats,
-  totalScore,
-  totalPar,
-  scoreVsParStr,
-  scoreVsParColor,
-}: {
-  courseName: string;
-  dateStr: string;
-  holeStats: HoleData[];
-  totalScore: number;
-  totalPar: number;
-  scoreVsParStr: string;
-  scoreVsParColor: string;
-}) => {
-  const front = holeStats.slice(0, 9);
-  const back = holeStats.slice(9, 18);
-  const sum = (arr: HoleData[], key: 'score' | 'par') =>
-    arr.reduce((s, h) => s + (h[key] || 0), 0);
-  const outPar = sum(front, 'par');
-  const outScore = sum(front, 'score');
-  const inPar = sum(back, 'par');
-  const inScore = sum(back, 'score');
-
-  const scoreCellClass = (score: number | null, par: number | null) => {
-    if (score == null || par == null) return "text-white/70";
-    const d = score - par;
-    if (d <= -2) return "text-yellow-300 font-bold";
-    if (d === -1) return "text-emerald-200 font-bold";
-    if (d === 0) return "text-white font-semibold";
-    if (d === 1) return "text-white/80";
-    return "text-red-200";
-  };
-
-  const renderNine = (holes: HoleData[], startIdx: number, label: string, par: number, score: number) => (
-    <div className="flex-1">
-      <div className="text-[9px] uppercase tracking-wider text-white/70 font-semibold text-center mb-0.5">
-        {label}
-      </div>
-      <div className="grid grid-cols-3 gap-x-1 text-[9px] uppercase tracking-wider text-white/60 pb-0.5 border-b border-white/20">
-        <div className="text-center">Hole</div>
-        <div className="text-center">Par</div>
-        <div className="text-center">Score</div>
-      </div>
-      <div className="divide-y divide-white/10">
-        {holes.map((h, i) => (
-          <div key={i} className="grid grid-cols-3 gap-x-1 text-[11px] leading-tight py-0.5">
-            <div className="text-center text-white/80 font-medium">{startIdx + i}</div>
-            <div className="text-center text-white/80">{h.par ?? "—"}</div>
-            <div className={`text-center ${scoreCellClass(h.score, h.par ?? null)}`}>
-              {h.score ?? "—"}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-3 gap-x-1 text-[10px] py-0.5 mt-0.5 bg-white/10 rounded">
-        <div className="text-center text-white/80 font-bold">
-          {label === "Front 9" ? "OUT" : "IN"}
-        </div>
-        <div className="text-center text-white/90 font-semibold">{par}</div>
-        <div className="text-center text-white font-bold">{score}</div>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="p-3">
-      <div className="flex justify-center mb-1.5">
-        <img src={logoLight} alt="TRACKD" className="h-10 object-contain" />
-      </div>
-      <div className="text-center mb-2">
-        <h2 className="text-sm font-bold tracking-tight truncate">{courseName}</h2>
-        <p className="text-[10px] text-white/70">{dateStr}</p>
-      </div>
-
-      <div className="flex gap-3">
-        {renderNine(front, 1, "Front 9", outPar, outScore)}
-        {renderNine(back, 10, "Back 9", inPar, inScore)}
-      </div>
-
-      <div className="mt-2 pt-2 border-t border-white/20">
-        <div className="grid grid-cols-3 gap-x-2 items-center">
-          <div className="text-center">
-            <div className="text-[9px] uppercase tracking-wider text-white/60">Par</div>
-            <div className="text-base font-bold">{totalPar}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-[9px] uppercase tracking-wider text-white/60">Total</div>
-            <div className="text-2xl font-extrabold tracking-tight">{totalScore}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-[9px] uppercase tracking-wider text-white/60">vs Par</div>
-            <div className={`text-base font-bold ${scoreVsParColor}`}>{scoreVsParStr}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const RoundSummaryModal = ({
   open,
   onClose,
@@ -351,7 +248,6 @@ const RoundSummaryModal = ({
 }: RoundSummaryModalProps) => {
   const lightCardRef = useRef<HTMLDivElement>(null);
   const darkCardRef = useRef<HTMLDivElement>(null);
-  const scorecardRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -407,7 +303,7 @@ const RoundSummaryModal = ({
     : new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
   const handleShare = async () => {
-    const cardRef = activeIndex === 0 ? lightCardRef : activeIndex === 1 ? darkCardRef : scorecardRef;
+    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
     if (!cardRef.current) return;
     setIsSharing(true);
 
@@ -448,7 +344,7 @@ const RoundSummaryModal = ({
   };
 
   const handleSaveImage = async () => {
-    const cardRef = activeIndex === 0 ? lightCardRef : activeIndex === 1 ? darkCardRef : scorecardRef;
+    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
     if (!cardRef.current) return;
     setIsSharing(true);
     try {
@@ -470,7 +366,7 @@ const RoundSummaryModal = ({
   };
 
   const handleInstagramShare = async () => {
-    const cardRef = activeIndex === 0 ? lightCardRef : activeIndex === 1 ? darkCardRef : scorecardRef;
+    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
     if (!cardRef.current) return;
     setIsSharing(true);
     try {
@@ -570,33 +466,13 @@ const RoundSummaryModal = ({
                   />
                 </div>
               </CarouselItem>
-
-              <CarouselItem>
-                <div
-                  ref={scorecardRef}
-                  className="rounded-2xl overflow-hidden text-white"
-                  style={{
-                    background: "linear-gradient(145deg, hsl(158 47% 18%), hsl(153 41% 30%), hsl(152 39% 41%))",
-                  }}
-                >
-                  <ScorecardContent
-                    courseName={courseName}
-                    dateStr={dateStr}
-                    holeStats={holeStats}
-                    totalScore={totalScore}
-                    totalPar={totalPar}
-                    scoreVsParStr={scoreVsParStr}
-                    scoreVsParColor={scoreVsParColor}
-                  />
-                </div>
-              </CarouselItem>
             </CarouselContent>
           </Carousel>
         </div>
 
         {/* Dot indicators */}
         <div className="flex justify-center gap-2 mt-1">
-          {[0, 1, 2].map((i) => (
+          {[0, 1].map((i) => (
             <div
               key={i}
               className={`w-2 h-2 rounded-full transition-colors ${

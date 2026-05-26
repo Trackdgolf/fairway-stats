@@ -32,7 +32,6 @@ export type Database = {
           scramble: string | null
           scramble_club: string | null
           scramble_shot_type: string | null
-          stroke_index: number | null
           tee_club: string | null
           yardage: number | null
         }
@@ -53,7 +52,6 @@ export type Database = {
           scramble?: string | null
           scramble_club?: string | null
           scramble_shot_type?: string | null
-          stroke_index?: number | null
           tee_club?: string | null
           yardage?: number | null
         }
@@ -74,7 +72,6 @@ export type Database = {
           scramble?: string | null
           scramble_club?: string | null
           scramble_shot_type?: string | null
-          stroke_index?: number | null
           tee_club?: string | null
           yardage?: number | null
         }
