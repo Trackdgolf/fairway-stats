@@ -237,6 +237,110 @@ const ShareableCardContent = ({
   </div>
 );
 
+// --- Vertical Scorecard Card ---
+const ScorecardContent = ({
+  courseName,
+  dateStr,
+  holeStats,
+  totalScore,
+  totalPar,
+  scoreVsParStr,
+  scoreVsParColor,
+}: {
+  courseName: string;
+  dateStr: string;
+  holeStats: HoleData[];
+  totalScore: number;
+  totalPar: number;
+  scoreVsParStr: string;
+  scoreVsParColor: string;
+}) => {
+  const front = holeStats.slice(0, 9);
+  const back = holeStats.slice(9, 18);
+  const sum = (arr: HoleData[], key: 'score' | 'par') =>
+    arr.reduce((s, h) => s + (h[key] || 0), 0);
+  const outPar = sum(front, 'par');
+  const outScore = sum(front, 'score');
+  const inPar = sum(back, 'par');
+  const inScore = sum(back, 'score');
+
+  const scoreCellClass = (score: number | null, par: number | null) => {
+    if (score == null || par == null) return "text-white/70";
+    const d = score - par;
+    if (d <= -2) return "text-yellow-300 font-bold";
+    if (d === -1) return "text-emerald-200 font-bold";
+    if (d === 0) return "text-white font-semibold";
+    if (d === 1) return "text-white/80";
+    return "text-red-200";
+  };
+
+  const renderNine = (holes: HoleData[], startIdx: number, label: string, par: number, score: number) => (
+    <div className="flex-1">
+      <div className="text-[10px] uppercase tracking-wider text-white/70 font-semibold text-center mb-1">
+        {label}
+      </div>
+      <div className="grid grid-cols-3 gap-x-1 text-[10px] uppercase tracking-wider text-white/60 pb-1 border-b border-white/20">
+        <div className="text-center">Hole</div>
+        <div className="text-center">Par</div>
+        <div className="text-center">Score</div>
+      </div>
+      {holes.map((h, i) => (
+        <div
+          key={i}
+          className="grid grid-cols-3 gap-x-1 text-xs py-[3px] border-b border-white/10"
+        >
+          <div className="text-center text-white/80 font-medium">{startIdx + i}</div>
+          <div className="text-center text-white/80">{h.par ?? "—"}</div>
+          <div className={`text-center ${scoreCellClass(h.score, h.par ?? null)}`}>
+            {h.score ?? "—"}
+          </div>
+        </div>
+      ))}
+      <div className="grid grid-cols-3 gap-x-1 text-[11px] py-1 mt-0.5 bg-white/10 rounded">
+        <div className="text-center text-white/80 font-bold">
+          {label === "Front 9" ? "OUT" : "IN"}
+        </div>
+        <div className="text-center text-white/90 font-semibold">{par}</div>
+        <div className="text-center text-white font-bold">{score}</div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="p-4 flex flex-col h-full">
+      <div className="flex justify-center mb-2">
+        <img src={logoLight} alt="TRACKD" className="h-10 object-contain" />
+      </div>
+      <div className="text-center mb-3">
+        <h2 className="text-base font-bold tracking-tight truncate">{courseName}</h2>
+        <p className="text-[11px] text-white/70">{dateStr}</p>
+      </div>
+
+      <div className="flex gap-3 flex-1 min-h-0">
+        {renderNine(front, 1, "Front 9", outPar, outScore)}
+        {renderNine(back, 10, "Back 9", inPar, inScore)}
+      </div>
+
+      <div className="mt-3 pt-3 border-t border-white/20">
+        <div className="grid grid-cols-3 gap-x-2 items-center">
+          <div className="text-center">
+            <div className="text-[9px] uppercase tracking-wider text-white/60">Par</div>
+            <div className="text-lg font-bold">{totalPar}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-[9px] uppercase tracking-wider text-white/60">Total</div>
+            <div className="text-3xl font-extrabold tracking-tight">{totalScore}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-[9px] uppercase tracking-wider text-white/60">vs Par</div>
+            <div className={`text-lg font-bold ${scoreVsParColor}`}>{scoreVsParStr}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RoundSummaryModal = ({
   open,
   onClose,
