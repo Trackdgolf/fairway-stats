@@ -592,7 +592,7 @@ const RoundSummaryModal = ({
               <CarouselItem>
                 <div
                   ref={scorecardRef}
-                  className="rounded-2xl overflow-hidden"
+                  className="rounded-2xl overflow-hidden w-full max-w-full"
                   style={{
                     background: "linear-gradient(145deg, hsl(158 47% 18%), hsl(153 41% 30%), hsl(152 39% 41%))",
                   }}
