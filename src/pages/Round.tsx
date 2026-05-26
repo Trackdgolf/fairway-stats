@@ -343,6 +343,7 @@ const Round = () => {
           scramble_club: stat.scrambleClub || null,
           scramble_shot_type: stat.scrambleShotType || null,
           yardage: course.holes?.[idx]?.length_meters || null,
+          stroke_index: course.holes?.[idx]?.stroke_index ?? null,
           penalties: stat.penalties || null,
         };
       });
