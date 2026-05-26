@@ -114,7 +114,7 @@ const Home = () => {
   const [summaryData, setSummaryData] = useState<{
     courseName: string;
     totalScore: number | null;
-    holeStats: Array<{ score: number | null; fir: boolean | null; gir: boolean | null; scramble: 'yes' | 'no' | 'n/a' | null; putts: number | null; par: number | null }>;
+    holeStats: Array<{ score: number | null; fir: boolean | null; gir: boolean | null; scramble: 'yes' | 'no' | 'n/a' | null; putts: number | null; par: number | null; strokeIndex: number | null }>;
     roundId: string;
   } | null>(null);
   const [loadingShareId, setLoadingShareId] = useState<string | null>(null);
