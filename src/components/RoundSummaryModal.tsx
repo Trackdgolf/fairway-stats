@@ -274,78 +274,87 @@ const ScorecardSlide = ({
   const sum = (arr: HoleData[], key: 'score' | 'par') =>
     arr.reduce((s, h) => s + ((h[key] as number | null) ?? 0), 0);
 
+  const totalPar = sum(holes, 'par');
+  const totalScoreSum = sum(holes, 'score');
+
   const Nine = ({ rows, label }: { rows: HoleData[]; label: string }) => {
     if (rows.length === 0) return null;
     const startIdx = label === "Out" ? 1 : 10;
     const parTotal = sum(rows, 'par');
     const scoreTotal = sum(rows, 'score');
-    const cols = `20px repeat(${rows.length}, minmax(0,1fr)) 26px`;
+    // 4 sub-columns per row: Hole | Par | SI | Score
+    const rowCls = "grid grid-cols-[1.4fr_1fr_1fr_1.4fr] items-center gap-[2px] tabular-nums";
     return (
-      <div className="mb-1.5 last:mb-0">
-        {/* Hole + SI header */}
-        <div
-          className="grid gap-[1px] mb-[1px]"
-          style={{ gridTemplateColumns: cols }}
-        >
-          <div className="text-[8px] uppercase tracking-wider text-white/60 self-center">Hole</div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[9px] uppercase tracking-wider text-white/70 font-semibold mb-1 px-0.5">
+          {label === "Out" ? "Front 9" : "Back 9"}
+        </div>
+        {/* Header */}
+        <div className={`${rowCls} text-[8px] uppercase tracking-wider text-white/50 mb-[2px] px-0.5`}>
+          <div>Hole</div>
+          <div className="text-center">Par</div>
+          <div className="text-center">SI</div>
+          <div className="text-center">Score</div>
+        </div>
+        {/* Hole rows */}
+        <div className="space-y-[2px]">
           {rows.map((h, i) => (
-            <div
-              key={i}
-              className="text-center bg-white/5 rounded py-[1px] leading-tight tabular-nums"
-            >
-              <div className="text-[10px] font-semibold text-white">{startIdx + i}</div>
-              <div className="text-[7px] text-white/50">{h.strokeIndex ?? '–'}</div>
+            <div key={i} className={`${rowCls} text-[10px] bg-white/5 rounded px-0.5 py-[2px]`}>
+              <div className="text-white font-semibold">{startIdx + i}</div>
+              <div className="text-center text-white/80">{h.par ?? '–'}</div>
+              <div className="text-center text-white/50 text-[9px]">{h.strokeIndex ?? '–'}</div>
+              <div className={`text-center rounded py-[1px] ${scoreCellClass(h.score, h.par)}`}>
+                {h.score ?? '–'}
+              </div>
             </div>
           ))}
-          <div className="text-center text-[8px] uppercase tracking-wider text-white/70 self-center">{label}</div>
         </div>
-        {/* Par row */}
-        <div
-          className="grid gap-[1px] text-[9px] mb-[1px] tabular-nums"
-          style={{ gridTemplateColumns: cols }}
-        >
-          <div className="text-white/60 self-center">Par</div>
-          {rows.map((h, i) => (
-            <div key={i} className="text-center text-white/80 bg-white/5 rounded py-[2px]">{h.par ?? '–'}</div>
-          ))}
-          <div className="text-center text-white/90 bg-white/10 rounded py-[2px] font-semibold">{parTotal || '–'}</div>
-        </div>
-        {/* Score row */}
-        <div
-          className="grid gap-[1px] text-[10px] tabular-nums"
-          style={{ gridTemplateColumns: cols }}
-        >
-          <div className="text-white/80 self-center">Score</div>
-          {rows.map((h, i) => (
-            <div key={i} className={`text-center rounded py-[3px] ${scoreCellClass(h.score, h.par)}`}>
-              {h.score ?? '–'}
-            </div>
-          ))}
-          <div className="text-center bg-white/15 text-white rounded py-[3px] font-bold">{scoreTotal || '–'}</div>
+        {/* Out/In total */}
+        <div className={`${rowCls} text-[10px] bg-white/15 rounded px-0.5 py-[3px] mt-[3px] font-bold`}>
+          <div className="text-white uppercase tracking-wider text-[9px]">{label}</div>
+          <div className="text-center text-white/90">{parTotal || '–'}</div>
+          <div className="text-center text-white/40">–</div>
+          <div className="text-center text-white">{scoreTotal || '–'}</div>
         </div>
       </div>
     );
   };
 
+  const totalDiff = totalScoreSum - totalPar;
+  const totalDiffStr = totalScoreSum === 0 ? "" : totalDiff === 0 ? "E" : totalDiff > 0 ? `+${totalDiff}` : `${totalDiff}`;
+
   return (
-    <div className="px-3 py-4 text-white">
-      <div className="flex justify-center mb-2">
-        <img src={logo} alt="TRACKD" className="h-9 object-contain" />
+    <div className="px-3 py-3 text-white">
+      <div className="flex justify-center mb-1.5">
+        <img src={logo} alt="TRACKD" className="h-8 object-contain" />
       </div>
-      <div className="text-center mb-3">
-        <h2 className="text-base font-bold tracking-tight truncate px-2">{courseName}</h2>
+      <div className="text-center mb-2">
+        <h2 className="text-sm font-bold tracking-tight truncate px-2">{courseName}</h2>
         <p className="text-[10px] text-white/70 mt-0.5">{dateStr}</p>
-        <div className="mt-1.5 flex items-center justify-center gap-2">
+        <div className="mt-1 flex items-center justify-center gap-2">
           <span className="text-2xl font-extrabold leading-none">{totalScore}</span>
           <span className={`text-xs font-semibold ${scoreVsParColor}`}>{scoreVsParStr}</span>
         </div>
       </div>
-      <Nine rows={front} label="Out" />
-      {!isNine && <Nine rows={back} label="In" />}
-      <p className="text-center text-[8px] text-white/40 mt-2 tracking-wide">Small number = Stroke Index</p>
+      <div className="flex gap-2.5">
+        <Nine rows={front} label="Out" />
+        {!isNine && <Nine rows={back} label="In" />}
+      </div>
+      {/* Total row */}
+      {!isNine && (
+        <div className="grid grid-cols-[1fr_auto_auto] items-center gap-3 bg-white/10 rounded mt-2 px-3 py-1.5 tabular-nums">
+          <div className="text-[10px] uppercase tracking-wider text-white/80 font-semibold">Total</div>
+          <div className="text-[10px] text-white/70">Par {totalPar}</div>
+          <div className="text-sm font-bold text-white">
+            {totalScoreSum} <span className={`text-[10px] font-semibold ${scoreVsParColor}`}>{totalDiffStr}</span>
+          </div>
+        </div>
+      )}
+      <p className="text-center text-[8px] text-white/40 mt-1.5 tracking-wide">SI = Stroke Index</p>
     </div>
   );
 };
+
 
 
 const RoundSummaryModal = ({
@@ -541,7 +550,7 @@ const RoundSummaryModal = ({
               api?.on("select", () => setActiveIndex(api.selectedScrollSnap()));
             }}
           >
-            <CarouselContent>
+            <CarouselContent className="items-start">
               <CarouselItem>
                 <div
                   ref={lightCardRef}
