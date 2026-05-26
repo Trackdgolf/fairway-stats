@@ -493,7 +493,7 @@ const RoundSummaryModal = ({
 
         {/* Dot indicators */}
         <div className="flex justify-center gap-2 mt-1">
-          {[0, 1].map((i) => (
+          {[0, 1, 2].map((i) => (
             <div
               key={i}
               className={`w-2 h-2 rounded-full transition-colors ${
