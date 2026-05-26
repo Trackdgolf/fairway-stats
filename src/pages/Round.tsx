@@ -845,6 +845,7 @@ const Round = () => {
           scramble: stat.scramble,
           putts: stat.putts,
           par: course.holes?.[idx]?.par,
+          strokeIndex: course.holes?.[idx]?.stroke_index ?? null,
         }))}
       />
     </div>
