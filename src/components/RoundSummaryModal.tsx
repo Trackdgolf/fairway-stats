@@ -405,7 +405,7 @@ const RoundSummaryModal = ({
     : new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
   const handleShare = async () => {
-    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
+    const cardRef = activeIndex === 0 ? lightCardRef : activeIndex === 1 ? darkCardRef : scorecardRef;
     if (!cardRef.current) return;
     setIsSharing(true);
 
@@ -446,7 +446,7 @@ const RoundSummaryModal = ({
   };
 
   const handleSaveImage = async () => {
-    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
+    const cardRef = activeIndex === 0 ? lightCardRef : activeIndex === 1 ? darkCardRef : scorecardRef;
     if (!cardRef.current) return;
     setIsSharing(true);
     try {
@@ -468,7 +468,7 @@ const RoundSummaryModal = ({
   };
 
   const handleInstagramShare = async () => {
-    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
+    const cardRef = activeIndex === 0 ? lightCardRef : activeIndex === 1 ? darkCardRef : scorecardRef;
     if (!cardRef.current) return;
     setIsSharing(true);
     try {
