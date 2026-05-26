@@ -268,29 +268,35 @@ const ScorecardSlide = ({
   holeStats: HoleData[];
 }) => {
   const holes = holeStats.slice(0, 18);
-  const isNine = holes.length <= 9;
   const front = holes.slice(0, 9);
   const back = holes.slice(9, 18);
+  const hasBack = back.length > 0;
   const sum = (arr: HoleData[], key: 'score' | 'par') =>
     arr.reduce((s, h) => s + ((h[key] as number | null) ?? 0), 0);
 
   const totalPar = sum(holes, 'par');
   const totalScoreSum = sum(holes, 'score');
+  const totalDiff = totalScoreSum - totalPar;
+  const totalDiffStr = totalScoreSum === 0
+    ? ""
+    : totalDiff === 0 ? "E" : totalDiff > 0 ? `+${totalDiff}` : `${totalDiff}`;
 
-  const Nine = ({ rows, label }: { rows: HoleData[]; label: string }) => {
+  // 4 columns: Hole | Par | SI | Score — use minmax(0,1fr) so columns can shrink
+  const rowCls =
+    "grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-1 tabular-nums";
+
+  const Section = ({ rows, label, startIdx }: { rows: HoleData[]; label: string; startIdx: number }) => {
     if (rows.length === 0) return null;
-    const startIdx = label === "Out" ? 1 : 10;
+    const totalLabel = label === "Front 9" ? "OUT" : "IN";
     const parTotal = sum(rows, 'par');
     const scoreTotal = sum(rows, 'score');
-    // 4 sub-columns per row: Hole | Par | SI | Score
-    const rowCls = "grid grid-cols-[1.4fr_1fr_1fr_1.4fr] items-center gap-[2px] tabular-nums";
     return (
-      <div className="flex-1 min-w-0">
-        <div className="text-[9px] uppercase tracking-wider text-white/70 font-semibold mb-1 px-0.5">
-          {label === "Out" ? "Front 9" : "Back 9"}
+      <div className="w-full min-w-0">
+        <div className="text-[10px] uppercase tracking-wider text-white/70 font-semibold mb-1 px-1">
+          {label}
         </div>
-        {/* Header */}
-        <div className={`${rowCls} text-[8px] uppercase tracking-wider text-white/50 mb-[2px] px-0.5`}>
+        {/* Column headers */}
+        <div className={`${rowCls} text-[9px] uppercase tracking-wider text-white/50 mb-1 px-2`}>
           <div>Hole</div>
           <div className="text-center">Par</div>
           <div className="text-center">SI</div>
@@ -299,19 +305,19 @@ const ScorecardSlide = ({
         {/* Hole rows */}
         <div className="space-y-[2px]">
           {rows.map((h, i) => (
-            <div key={i} className={`${rowCls} text-[10px] bg-white/5 rounded px-0.5 py-[2px]`}>
+            <div key={i} className={`${rowCls} text-[11px] bg-white/5 rounded px-2 py-[3px]`}>
               <div className="text-white font-semibold">{startIdx + i}</div>
               <div className="text-center text-white/80">{h.par ?? '–'}</div>
-              <div className="text-center text-white/50 text-[9px]">{h.strokeIndex ?? '–'}</div>
+              <div className="text-center text-white/60">{h.strokeIndex ?? '–'}</div>
               <div className={`text-center rounded py-[1px] ${scoreCellClass(h.score, h.par)}`}>
                 {h.score ?? '–'}
               </div>
             </div>
           ))}
         </div>
-        {/* Out/In total */}
-        <div className={`${rowCls} text-[10px] bg-white/15 rounded px-0.5 py-[3px] mt-[3px] font-bold`}>
-          <div className="text-white uppercase tracking-wider text-[9px]">{label}</div>
+        {/* OUT / IN totals */}
+        <div className={`${rowCls} text-[11px] bg-white/15 rounded px-2 py-[4px] mt-[3px] font-bold`}>
+          <div className="text-white uppercase tracking-wider text-[10px]">{totalLabel}</div>
           <div className="text-center text-white/90">{parTotal || '–'}</div>
           <div className="text-center text-white/40">–</div>
           <div className="text-center text-white">{scoreTotal || '–'}</div>
@@ -320,36 +326,37 @@ const ScorecardSlide = ({
     );
   };
 
-  const totalDiff = totalScoreSum - totalPar;
-  const totalDiffStr = totalScoreSum === 0 ? "" : totalDiff === 0 ? "E" : totalDiff > 0 ? `+${totalDiff}` : `${totalDiff}`;
-
   return (
-    <div className="px-3 py-3 text-white">
+    <div className="px-3 py-3 text-white w-full max-w-full overflow-hidden">
       <div className="flex justify-center mb-1.5">
         <img src={logo} alt="TRACKD" className="h-8 object-contain" />
       </div>
-      <div className="text-center mb-2">
-        <h2 className="text-sm font-bold tracking-tight truncate px-2">{courseName}</h2>
+      <div className="text-center mb-2 px-2">
+        <h2 className="text-sm font-bold leading-tight break-words">{courseName}</h2>
         <p className="text-[10px] text-white/70 mt-0.5">{dateStr}</p>
         <div className="mt-1 flex items-center justify-center gap-2">
           <span className="text-2xl font-extrabold leading-none">{totalScore}</span>
           <span className={`text-xs font-semibold ${scoreVsParColor}`}>{scoreVsParStr}</span>
         </div>
       </div>
-      <div className="flex gap-2.5">
-        <Nine rows={front} label="Out" />
-        {!isNine && <Nine rows={back} label="In" />}
-      </div>
-      {/* Total row */}
-      {!isNine && (
-        <div className="grid grid-cols-[1fr_auto_auto] items-center gap-3 bg-white/10 rounded mt-2 px-3 py-1.5 tabular-nums">
-          <div className="text-[10px] uppercase tracking-wider text-white/80 font-semibold">Total</div>
-          <div className="text-[10px] text-white/70">Par {totalPar}</div>
+
+      <Section rows={front} label="Front 9" startIdx={1} />
+      {hasBack && (
+        <div className="mt-2">
+          <Section rows={back} label="Back 9" startIdx={10} />
+        </div>
+      )}
+
+      {hasBack && (
+        <div className="grid grid-cols-[1fr_auto_auto] items-center gap-3 bg-white/15 rounded mt-2 px-3 py-1.5 tabular-nums">
+          <div className="text-[10px] uppercase tracking-wider text-white font-semibold">Total</div>
+          <div className="text-[10px] text-white/80">Par {totalPar}</div>
           <div className="text-sm font-bold text-white">
             {totalScoreSum} <span className={`text-[10px] font-semibold ${scoreVsParColor}`}>{totalDiffStr}</span>
           </div>
         </div>
       )}
+
       <p className="text-center text-[8px] text-white/40 mt-1.5 tracking-wide">SI = Stroke Index</p>
     </div>
   );
