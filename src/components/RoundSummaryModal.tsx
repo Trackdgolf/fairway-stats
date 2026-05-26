@@ -276,27 +276,26 @@ const ScorecardContent = ({
 
   const renderNine = (holes: HoleData[], startIdx: number, label: string, par: number, score: number) => (
     <div className="flex-1">
-      <div className="text-[10px] uppercase tracking-wider text-white/70 font-semibold text-center mb-1">
+      <div className="text-[9px] uppercase tracking-wider text-white/70 font-semibold text-center mb-0.5">
         {label}
       </div>
-      <div className="grid grid-cols-3 gap-x-1 text-[10px] uppercase tracking-wider text-white/60 pb-1 border-b border-white/20">
+      <div className="grid grid-cols-3 gap-x-1 text-[9px] uppercase tracking-wider text-white/60 pb-0.5 border-b border-white/20">
         <div className="text-center">Hole</div>
         <div className="text-center">Par</div>
         <div className="text-center">Score</div>
       </div>
-      {holes.map((h, i) => (
-        <div
-          key={i}
-          className="grid grid-cols-3 gap-x-1 text-xs py-[3px] border-b border-white/10"
-        >
-          <div className="text-center text-white/80 font-medium">{startIdx + i}</div>
-          <div className="text-center text-white/80">{h.par ?? "—"}</div>
-          <div className={`text-center ${scoreCellClass(h.score, h.par ?? null)}`}>
-            {h.score ?? "—"}
+      <div className="divide-y divide-white/10">
+        {holes.map((h, i) => (
+          <div key={i} className="grid grid-cols-3 gap-x-1 text-[11px] leading-tight py-0.5">
+            <div className="text-center text-white/80 font-medium">{startIdx + i}</div>
+            <div className="text-center text-white/80">{h.par ?? "—"}</div>
+            <div className={`text-center ${scoreCellClass(h.score, h.par ?? null)}`}>
+              {h.score ?? "—"}
+            </div>
           </div>
-        </div>
-      ))}
-      <div className="grid grid-cols-3 gap-x-1 text-[11px] py-1 mt-0.5 bg-white/10 rounded">
+        ))}
+      </div>
+      <div className="grid grid-cols-3 gap-x-1 text-[10px] py-0.5 mt-0.5 bg-white/10 rounded">
         <div className="text-center text-white/80 font-bold">
           {label === "Front 9" ? "OUT" : "IN"}
         </div>
@@ -307,33 +306,33 @@ const ScorecardContent = ({
   );
 
   return (
-    <div className="p-4 flex flex-col h-full">
-      <div className="flex justify-center mb-2">
+    <div className="p-3">
+      <div className="flex justify-center mb-1.5">
         <img src={logoLight} alt="TRACKD" className="h-10 object-contain" />
       </div>
-      <div className="text-center mb-3">
-        <h2 className="text-base font-bold tracking-tight truncate">{courseName}</h2>
-        <p className="text-[11px] text-white/70">{dateStr}</p>
+      <div className="text-center mb-2">
+        <h2 className="text-sm font-bold tracking-tight truncate">{courseName}</h2>
+        <p className="text-[10px] text-white/70">{dateStr}</p>
       </div>
 
-      <div className="flex gap-3 flex-1 min-h-0">
+      <div className="flex gap-3">
         {renderNine(front, 1, "Front 9", outPar, outScore)}
         {renderNine(back, 10, "Back 9", inPar, inScore)}
       </div>
 
-      <div className="mt-3 pt-3 border-t border-white/20">
+      <div className="mt-2 pt-2 border-t border-white/20">
         <div className="grid grid-cols-3 gap-x-2 items-center">
           <div className="text-center">
             <div className="text-[9px] uppercase tracking-wider text-white/60">Par</div>
-            <div className="text-lg font-bold">{totalPar}</div>
+            <div className="text-base font-bold">{totalPar}</div>
           </div>
           <div className="text-center">
             <div className="text-[9px] uppercase tracking-wider text-white/60">Total</div>
-            <div className="text-3xl font-extrabold tracking-tight">{totalScore}</div>
+            <div className="text-2xl font-extrabold tracking-tight">{totalScore}</div>
           </div>
           <div className="text-center">
             <div className="text-[9px] uppercase tracking-wider text-white/60">vs Par</div>
-            <div className={`text-lg font-bold ${scoreVsParColor}`}>{scoreVsParStr}</div>
+            <div className={`text-base font-bold ${scoreVsParColor}`}>{scoreVsParStr}</div>
           </div>
         </div>
       </div>
@@ -575,7 +574,7 @@ const RoundSummaryModal = ({
               <CarouselItem>
                 <div
                   ref={scorecardRef}
-                  className="rounded-2xl overflow-hidden aspect-[9/16] flex flex-col text-white"
+                  className="rounded-2xl overflow-hidden text-white"
                   style={{
                     background: "linear-gradient(145deg, hsl(158 47% 18%), hsl(153 41% 30%), hsl(152 39% 41%))",
                   }}
