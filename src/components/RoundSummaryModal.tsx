@@ -279,59 +279,70 @@ const ScorecardSlide = ({
     const startIdx = label === "Out" ? 1 : 10;
     const parTotal = sum(rows, 'par');
     const scoreTotal = sum(rows, 'score');
+    const cols = `20px repeat(${rows.length}, minmax(0,1fr)) 26px`;
     return (
-      <div className="mb-2.5 last:mb-0">
-        <div className="grid gap-[2px] text-[9px] uppercase tracking-wider text-white/60 mb-1"
-          style={{ gridTemplateColumns: `28px repeat(${rows.length}, minmax(0,1fr)) 32px` }}>
-          <div>Hole</div>
-          {rows.map((_, i) => <div key={i} className="text-center">{startIdx + i}</div>)}
-          <div className="text-center">{label}</div>
-        </div>
-        <div className="grid gap-[2px] text-[10px] mb-[2px]"
-          style={{ gridTemplateColumns: `28px repeat(${rows.length}, minmax(0,1fr)) 32px` }}>
-          <div className="text-white/60">Par</div>
+      <div className="mb-1.5 last:mb-0">
+        {/* Hole + SI header */}
+        <div
+          className="grid gap-[1px] mb-[1px]"
+          style={{ gridTemplateColumns: cols }}
+        >
+          <div className="text-[8px] uppercase tracking-wider text-white/60 self-center">Hole</div>
           {rows.map((h, i) => (
-            <div key={i} className="text-center text-white/80 bg-white/5 rounded py-[3px]">{h.par ?? '–'}</div>
+            <div
+              key={i}
+              className="text-center bg-white/5 rounded py-[1px] leading-tight tabular-nums"
+            >
+              <div className="text-[10px] font-semibold text-white">{startIdx + i}</div>
+              <div className="text-[7px] text-white/50">{h.strokeIndex ?? '–'}</div>
+            </div>
           ))}
-          <div className="text-center text-white/80 bg-white/10 rounded py-[3px] font-semibold">{parTotal || '–'}</div>
+          <div className="text-center text-[8px] uppercase tracking-wider text-white/70 self-center">{label}</div>
         </div>
-        <div className="grid gap-[2px] text-[10px] mb-[2px]"
-          style={{ gridTemplateColumns: `28px repeat(${rows.length}, minmax(0,1fr)) 32px` }}>
-          <div className="text-white/60">SI</div>
+        {/* Par row */}
+        <div
+          className="grid gap-[1px] text-[9px] mb-[1px] tabular-nums"
+          style={{ gridTemplateColumns: cols }}
+        >
+          <div className="text-white/60 self-center">Par</div>
           {rows.map((h, i) => (
-            <div key={i} className="text-center text-white/60 py-[3px]">{h.strokeIndex ?? '–'}</div>
+            <div key={i} className="text-center text-white/80 bg-white/5 rounded py-[2px]">{h.par ?? '–'}</div>
           ))}
-          <div className="text-center text-white/40 py-[3px]">–</div>
+          <div className="text-center text-white/90 bg-white/10 rounded py-[2px] font-semibold">{parTotal || '–'}</div>
         </div>
-        <div className="grid gap-[2px] text-[11px]"
-          style={{ gridTemplateColumns: `28px repeat(${rows.length}, minmax(0,1fr)) 32px` }}>
+        {/* Score row */}
+        <div
+          className="grid gap-[1px] text-[10px] tabular-nums"
+          style={{ gridTemplateColumns: cols }}
+        >
           <div className="text-white/80 self-center">Score</div>
           {rows.map((h, i) => (
-            <div key={i} className={`text-center rounded py-[4px] ${scoreCellClass(h.score, h.par)}`}>
+            <div key={i} className={`text-center rounded py-[3px] ${scoreCellClass(h.score, h.par)}`}>
               {h.score ?? '–'}
             </div>
           ))}
-          <div className="text-center bg-white/15 text-white rounded py-[4px] font-bold">{scoreTotal || '–'}</div>
+          <div className="text-center bg-white/15 text-white rounded py-[3px] font-bold">{scoreTotal || '–'}</div>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="p-5 text-white">
-      <div className="flex justify-center mb-3">
-        <img src={logo} alt="TRACKD" className="h-12 object-contain" />
+    <div className="px-3 py-4 text-white">
+      <div className="flex justify-center mb-2">
+        <img src={logo} alt="TRACKD" className="h-9 object-contain" />
       </div>
-      <div className="text-center mb-4">
-        <h2 className="text-lg font-bold tracking-tight">{courseName}</h2>
-        <p className="text-xs text-white/70 mt-0.5">{dateStr}</p>
-        <div className="mt-2 flex items-center justify-center gap-2">
-          <span className="text-3xl font-extrabold leading-none">{totalScore}</span>
-          <span className={`text-sm font-semibold ${scoreVsParColor}`}>{scoreVsParStr}</span>
+      <div className="text-center mb-3">
+        <h2 className="text-base font-bold tracking-tight truncate px-2">{courseName}</h2>
+        <p className="text-[10px] text-white/70 mt-0.5">{dateStr}</p>
+        <div className="mt-1.5 flex items-center justify-center gap-2">
+          <span className="text-2xl font-extrabold leading-none">{totalScore}</span>
+          <span className={`text-xs font-semibold ${scoreVsParColor}`}>{scoreVsParStr}</span>
         </div>
       </div>
       <Nine rows={front} label="Out" />
       {!isNine && <Nine rows={back} label="In" />}
+      <p className="text-center text-[8px] text-white/40 mt-2 tracking-wide">Small number = Stroke Index</p>
     </div>
   );
 };
