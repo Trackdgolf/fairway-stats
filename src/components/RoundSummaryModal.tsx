@@ -238,6 +238,111 @@ const ShareableCardContent = ({
   </div>
 );
 
+const ScorecardCardContent = ({
+  logo,
+  textColor,
+  subtextColor,
+  rowBg,
+  borderColor,
+  courseName,
+  dateStr,
+  holeStats,
+}: {
+  logo: string;
+  textColor: string;
+  subtextColor: string;
+  rowBg: string;
+  borderColor: string;
+  courseName: string;
+  dateStr: string;
+  holeStats: HoleData[];
+}) => {
+  const padded: HoleData[] = Array.from({ length: 18 }, (_, i) =>
+    holeStats[i] ?? { score: null, fir: null, gir: null, scramble: null, putts: null, par: null, strokeIndex: null }
+  );
+  const front = padded.slice(0, 9);
+  const back = padded.slice(9, 18);
+
+  const sumScore = (hs: HoleData[]) =>
+    hs.reduce((s, h) => s + (h.score ?? 0), 0);
+  const sumPar = (hs: HoleData[]) =>
+    hs.reduce((s, h) => s + (h.par ?? 0), 0);
+
+  const scoreColor = (score: number | null, par: number | null) => {
+    if (score == null || par == null) return textColor;
+    const diff = score - par;
+    if (diff <= -1) return "text-yellow-300";
+    if (diff === 0) return textColor;
+    if (diff === 1) return "text-orange-300";
+    return "text-red-300";
+  };
+
+  const NineTable = ({ rows, label, startIdx }: { rows: HoleData[]; label: string; startIdx: number }) => (
+    <div className="flex-1 min-w-0">
+      <div className={`grid grid-cols-4 gap-0 text-[9px] uppercase tracking-wider ${subtextColor} pb-1 border-b ${borderColor}`}>
+        <div className="text-left font-semibold">H</div>
+        <div className="text-center font-semibold">SI</div>
+        <div className="text-center font-semibold">Par</div>
+        <div className="text-right font-semibold">Sc</div>
+      </div>
+      {rows.map((h, i) => (
+        <div
+          key={i}
+          className={`grid grid-cols-4 gap-0 text-[11px] py-[3px] leading-tight ${
+            i % 2 === 1 ? rowBg : ""
+          }`}
+        >
+          <div className={`text-left font-semibold ${textColor}`}>{startIdx + i + 1}</div>
+          <div className={`text-center ${subtextColor}`}>{h.strokeIndex ?? "–"}</div>
+          <div className={`text-center ${textColor}`}>{h.par ?? "–"}</div>
+          <div className={`text-right font-bold ${scoreColor(h.score, h.par ?? null)}`}>
+            {h.score ?? "–"}
+          </div>
+        </div>
+      ))}
+      <div className={`grid grid-cols-4 gap-0 text-[11px] py-1 border-t ${borderColor} font-bold ${textColor}`}>
+        <div className="text-left col-span-2 uppercase tracking-wider text-[10px]">{label}</div>
+        <div className="text-center">{sumPar(rows) || "–"}</div>
+        <div className="text-right">{sumScore(rows) || "–"}</div>
+      </div>
+    </div>
+  );
+
+  const totalPar = sumPar(padded);
+  const totalScore = sumScore(padded);
+  const totalDiff = totalScore - totalPar;
+  const totalDiffStr = totalScore === 0 ? "" : totalDiff === 0 ? " (E)" : totalDiff > 0 ? ` (+${totalDiff})` : ` (${totalDiff})`;
+
+  return (
+    <div className={`p-5 ${textColor}`}>
+      <div className="flex items-center justify-between mb-2">
+        <img src={logo} alt="TRACKD" className="h-7 object-contain" />
+        <div className="text-right">
+          <div className="text-[10px] uppercase tracking-wider opacity-80">Scorecard</div>
+          <div className={`text-[10px] ${subtextColor}`}>{dateStr}</div>
+        </div>
+      </div>
+      <h2 className="text-base font-bold tracking-tight mb-3 truncate">{courseName}</h2>
+
+      <div className="flex gap-3">
+        <NineTable rows={front} label="Out" startIdx={0} />
+        <div className={`w-px ${borderColor.replace("border-", "bg-")} opacity-50`} />
+        <NineTable rows={back} label="In" startIdx={9} />
+      </div>
+
+      <div className={`mt-3 pt-2 border-t ${borderColor} flex items-baseline justify-between`}>
+        <div className="text-[11px] uppercase tracking-wider font-semibold">Total</div>
+        <div className="text-base font-extrabold">
+          {totalScore || "–"}
+          <span className={`text-xs font-semibold ${subtextColor} ml-1`}>
+            {totalPar ? `/ ${totalPar}` : ""}{totalDiffStr}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RoundSummaryModal = ({
   open,
   onClose,
