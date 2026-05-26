@@ -1,32 +1,56 @@
-
 ## Goal
-Replace the "Putting green graphic — coming soon" placeholder in `src/components/PuttingPerformance.tsx` with a dynamic horizontal bar chart that shows outcome percentages (Holed, Short, Long, Left, Right, Lip out). By default it aggregates all putts; tapping a distance tile (0–3 ft, 4–8 ft, 9–14 ft, 15 ft+) filters the chart to that bucket. Tapping the active tile again (or an "All" pill) returns to the aggregate view.
+Add a third shareable graphic to the Round Report carousel in `src/components/RoundSummaryModal.tsx`: a vertical scorecard that fits within a 9:16 mobile frame without scrolling, with branding consistent with the first (green gradient) card.
 
-## UX
+## Layout
 
-- Card at top contains:
-  - Header row: title "Outcome breakdown" + small badge showing current scope ("All putts" or "4–8 ft") with total attempts count.
-  - Horizontal bar chart, one row per outcome, each row: label on left, filled bar (width = % of selected scope), percentage on right.
-  - Outcomes always rendered in fixed order: Holed, Lip out, Short, Long, Left, Right. Rows with 0% still render (greyed) so the chart doesn't jump in height.
-  - Empty state: if scope total is 0, show "No putts recorded in this range yet."
-- Distance tiles below become tappable:
-  - Active tile gets a primary ring/border + subtle bg tint.
-  - Tapping the active tile clears the filter (back to All).
-  - Add visual affordance: `cursor-pointer`, `aria-pressed`, keyboard activatable (button wrapper).
+```text
+┌──────────────────────────────┐
+│         [TRACKD logo]        │
+│         Course Name          │
+│         26 May 2026          │
+│ ──────────────────────────── │
+│  FRONT 9         BACK 9      │
+│  H  Par Score  H  Par Score  │
+│  1   4   5    10   4   4     │
+│  2   3   3    11   5   6     │
+│  …            …              │
+│  9   4   5    18   4   5     │
+│  ──────       ──────         │
+│  OUT 36 42   IN  36 40       │
+│ ──────────────────────────── │
+│       TOTAL   72   82  +10   │
+└──────────────────────────────┘
+```
 
-## Technical details
+- Same green gradient + white text as the first (light) card.
+- TRACKD logo at top (smaller than first card to leave room), course name + date below.
+- Two columns side-by-side, each a 9-row mini table with H / Par / Score headers.
+- Sub-totals: OUT (front 9 par + score) and IN (back 9 par + score) at the foot of each column.
+- TOTAL row spans full width: total par, total score, score vs par with the same color scale used elsewhere.
+- Score cells use subtle pill backgrounds based on score-vs-par (eagle/birdie/par/bogey/+) — reuse semantic colors already used in the round entry pages where possible, or simple white/translucent pills if too noisy.
 
-File: `src/components/PuttingPerformance.tsx`
+## Sizing & no-scroll guarantee
 
-1. Add `const [selectedBucket, setSelectedBucket] = useState<PuttDistanceBucket | null>(null);`
-2. Derive `activeStats`:
-   - If `selectedBucket` is null → aggregate across `stats.buckets` (sum totals + each outcome).
-   - Else → the matching bucket from `stats.buckets`.
-3. New `OutcomeBreakdown` subcomponent renders the 6 outcome rows using Tailwind divs (no recharts needed — keeps bundle light and matches existing OutcomeBar styling). Colors reuse existing tokens: `bg-primary` (Holed), `bg-yellow-500` (Lip out), `bg-muted-foreground/60..30` (Short/Long/Left/Right).
-4. Replace the placeholder Card body with the chart. Keep the same Card wrapper for visual consistency.
-5. Wrap each bucket tile in a `<button type="button">` with `onClick={() => setSelectedBucket(prev => prev === b.bucket ? null : b.bucket)}` and `aria-pressed={selectedBucket === b.bucket}`. Add ring styling when active.
-6. No changes to `usePuttingStats` — all data already available.
+- Card wrapper uses `aspect-[9/16]` so it locks to mobile shape regardless of carousel width.
+- Inner content uses `h-full flex flex-col` with small, fixed paddings (`p-4`) and `text-[10px]`/`text-xs` for table rows so 9 rows + headers + totals comfortably fit.
+- Logo: `h-10` (vs `h-[4.5rem]` on card 1) to keep vertical budget tight.
+- Course name single-line with `truncate`; date `text-[11px]`.
+
+## Carousel integration
+
+- Add a third `<CarouselItem>` after the existing dark card.
+- Add a third `ref` (`scorecardRef`) and include it in `handleShare`/`handleSaveImage`/`handleInstagramShare` selection (`activeIndex === 0 ? light : activeIndex === 1 ? dark : scorecard`).
+- Dot indicators: change `[0, 1]` to `[0, 1, 2]`.
+
+## Data
+
+`holeStats` is already passed in as a 18-length array of `{ score, par, … }`. Compute:
+- `front = holeStats.slice(0, 9)`, `back = holeStats.slice(9, 18)`
+- `outPar`/`outScore`, `inPar`/`inScore`, plus existing `totalPar`/`totalScore`/`scoreVsParStr`/`scoreVsParColor`.
+- Handle missing par/score gracefully (`—`).
 
 ## Out of scope
-- No backend / hook changes.
-- No new dependency (no Recharts) — simple div-based bars match current style.
+
+- No changes to data fetching, hooks, or DB.
+- No new dependencies.
+- No changes to the existing two cards' visuals.

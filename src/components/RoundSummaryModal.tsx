@@ -248,6 +248,7 @@ const RoundSummaryModal = ({
 }: RoundSummaryModalProps) => {
   const lightCardRef = useRef<HTMLDivElement>(null);
   const darkCardRef = useRef<HTMLDivElement>(null);
+  const scorecardRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
