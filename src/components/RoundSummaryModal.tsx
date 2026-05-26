@@ -345,7 +345,7 @@ const RoundSummaryModal = ({
   };
 
   const handleSaveImage = async () => {
-    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
+    const cardRef = activeIndex === 0 ? lightCardRef : activeIndex === 1 ? darkCardRef : scorecardRef;
     if (!cardRef.current) return;
     setIsSharing(true);
     try {
