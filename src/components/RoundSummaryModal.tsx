@@ -568,13 +568,33 @@ const RoundSummaryModal = ({
                   />
                 </div>
               </CarouselItem>
+
+              <CarouselItem>
+                <div
+                  ref={scorecardRef}
+                  className="rounded-2xl overflow-hidden"
+                  style={{
+                    background: "linear-gradient(145deg, hsl(158 47% 18%), hsl(153 41% 30%), hsl(152 39% 41%))",
+                  }}
+                >
+                  <ScorecardSlide
+                    logo={logoLight}
+                    courseName={courseName}
+                    dateStr={dateStr}
+                    totalScore={totalScore}
+                    scoreVsParStr={scoreVsParStr}
+                    scoreVsParColor={scoreVsParColor}
+                    holeStats={holeStats}
+                  />
+                </div>
+              </CarouselItem>
             </CarouselContent>
           </Carousel>
         </div>
 
         {/* Dot indicators */}
         <div className="flex justify-center gap-2 mt-1">
-          {[0, 1].map((i) => (
+          {[0, 1, 2].map((i) => (
             <div
               key={i}
               className={`w-2 h-2 rounded-full transition-colors ${
@@ -583,6 +603,7 @@ const RoundSummaryModal = ({
             />
           ))}
         </div>
+
 
         {/* Action buttons */}
         <div className="flex gap-2 mt-1 px-4 pb-5">
