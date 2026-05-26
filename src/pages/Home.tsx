@@ -124,7 +124,7 @@ const Home = () => {
     try {
       const { data, error } = await supabase
         .from('hole_stats')
-        .select('score, par, fir, gir, scramble, putts')
+        .select('score, par, fir, gir, scramble, putts, stroke_index')
         .eq('round_id', round.id)
         .order('hole_number');
 
@@ -141,6 +141,7 @@ const Home = () => {
           scramble: h.scramble as 'yes' | 'no' | 'n/a' | null,
           putts: h.putts,
           par: h.par,
+          strokeIndex: (h as { stroke_index: number | null }).stroke_index ?? null,
         })),
       });
       setShowSummary(true);
