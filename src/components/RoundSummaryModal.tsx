@@ -530,7 +530,7 @@ const RoundSummaryModal = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="max-w-sm p-0 border-none bg-[#ededed] shadow-none rounded-2xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
+      <DialogContent className="max-w-sm p-0 border-none bg-[#ededed] shadow-none rounded-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden [&>button]:hidden">
         <DialogTitle className="sr-only">Round Report</DialogTitle>
 
         {/* Round Report Title */}
