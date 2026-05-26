@@ -1,58 +1,66 @@
-## Goal
+## Root cause of the scrolling
 
-Make the new Scorecard share-slide:
-1. Fit a mobile screen with **no horizontal or vertical scroll** so the user can screenshot it cleanly.
-2. Always show **Stroke Index (SI)** per hole — including when the modal is re-opened from Home for a previously played round.
+Two compounding issues:
 
----
+1. **Carousel forces all slides to the tallest slide's height.** Embla's slide container in `src/components/ui/carousel.tsx` is `flex` with default `align-items: stretch`. So when the scorecard slide grew, the original two share cards stretched to match it — that is why slides 1 and 2 now also scroll, even though their own content did not change.
 
-## 1. Stroke Index — make it always available
+2. **The horizontal 18-column scorecard is fundamentally too wide for a 390 px viewport** inside a `max-w-sm` (~384 px) dialog with side padding. Even with `minmax(0,1fr)` cells, the typography and per-cell padding leave the card taller than the visible area inside the dialog's `max-h-[90vh]`.
 
-The Golf Course API already returns `handicap` per hole, and `CourseSearch.tsx` already maps it into `course.holes[i].stroke_index`. Live rounds therefore have it. The reason the SI row shows `–` is that **historical rounds re-opened from Home read from the `hole_stats` table**, which has no `stroke_index` column.
+## Fix
 
-Fix by persisting it:
+### 1. Stop the carousel from equalising slide heights
 
-- Add column `stroke_index integer NULL` to `public.hole_stats` (migration).
-- In `Round.tsx` (and `EditRound.tsx` if it writes hole stats), include `stroke_index: course.holes?.[idx]?.stroke_index ?? null` in every `hole_stats` insert / upsert payload.
-- In `Home.tsx` `handleShareRound`, add `stroke_index` to the `.select(...)` and pass it through as `strokeIndex` on each `holeStats` entry.
-- Extend the `holeStats` type in `Home.tsx` (and the `cardProps` flow into `RoundSummaryModal`) so `strokeIndex?: number | null` is forwarded.
+Pass `className="items-start"` to the `<CarouselContent>` in `RoundSummaryModal.tsx`. This overrides the default flex stretch so each slide's height is independent. Result: slides 1 and 2 return to their original (non-scrolling) height regardless of how tall the scorecard slide is.
 
-No backfill is needed — older rounds simply continue to show `–` for SI. Any new or edited round will save it.
+### 2. Rebuild the Scorecard slide as a vertical, two-column layout
 
----
+Replace the horizontal 18-cell grid with a **two-column** layout — Front 9 on the left, Back 9 on the right. Each column is a narrow stack of 9 rows. Within a row we show 4 small fields side-by-side: `Hole | Par | SI | Score`. This is the user-suggested vertical direction and it removes all width pressure.
 
-## 2. Scorecard slide — fit mobile without scrolling
+Layout:
 
-Current layout uses 4 rows × (label + 9 hole cells + total) per nine, with row paddings and gaps that push the card wider than the carousel slot, and taller than the visible modal area. Rework for a tight, fixed, screenshot-friendly design:
+```text
++--------------------------+
+|       TRACKD logo        |
+|       Course name        |
+|      Date · 82 (+10)     |
++------------+-------------+
+| FRONT 9    |  BACK 9     |
+| H P SI Sc  |  H P SI Sc  |
+| 1 4  7  5  |  10 4  2  4 |
+| 2 5  3  6  |  11 3 11  3 |
+|  ...       |   ...       |
+| 9 4 15  4  |  18 5  6  6 |
+| OUT  36 42 |  IN   36 41 |
++------------+-------------+
+|       TOTAL  72  83      |
++--------------------------+
+```
 
-**Width**
-- Confirm grid uses `gridTemplateColumns: 22px repeat(9, minmax(0,1fr)) 30px` and `gap-[1px]` so cells shrink to fit the carousel slide width (no horizontal overflow on a 390 px viewport).
-- Reduce side padding on the slide from `p-5` to `px-3 py-4`.
-- Drop cell padding to `py-[2px]` and use `text-[9px]` for header/par/SI rows, `text-[10px]` for score row. Use `tabular-nums` so 2-digit values align.
+Implementation details for `ScorecardSlide` in `src/components/RoundSummaryModal.tsx`:
 
-**Height**
-- Tighten header block: smaller logo (`h-9`), `text-base` course name (single line, `truncate`), `text-[10px]` date, score `text-2xl`.
-- Collapse spacing between the two nines (`mb-1.5`) and remove bottom margin on the last nine.
-- Remove the standalone "SI" full row — instead put **SI as a tiny superscript inside each hole-header cell** (e.g. `7` with a small `· 5` underneath) so the scorecard goes from 4 rows per nine to 3. This is the key change that brings the card inside one mobile screen.
-- Keep the Score row color-coded (eagle/birdie/par/bogey/double+) exactly as today.
+- Header block kept compact: logo `h-8`, course name `text-sm` truncated, date `text-[10px]`, total score `text-2xl` with score-vs-par badge inline.
+- Two-column grid: `grid grid-cols-2 gap-3`. Each column renders a `Nine`:
+  - Column header row: 4 sub-cells `Hole · Par · SI · Score`, `text-[9px]` uppercase white/60.
+  - 9 hole rows: `grid grid-cols-[1.5fr_1fr_1fr_1.5fr]`, `text-[11px]`, `tabular-nums`, ~18 px tall each (`py-[2px]`). Score cell uses existing `scoreCellClass()` color coding.
+  - Footer row: `Out` / `In` label + Par total + Score total, `font-semibold`, subtle background.
+- Bottom strip: a single `Total` row spanning full width — total par vs total score, color-coded.
+- Footnote: `SI = Stroke Index`, tiny muted text.
+- Side padding `px-3 py-4`. Remove inter-row gaps wider than `gap-[2px]`.
+- For 9-hole rounds, render Front 9 column only (full width) — back column hidden.
 
-**Result**
-- Two nines stack vertically; total card height target ≈ 520 px so it fits inside `max-h-[90vh]` of the dialog (≈720 px on a 390×803 viewport) together with the title, challenges section, dots, and action buttons — no internal scroll needed.
-- html2canvas export of `scorecardRef` continues to work and now produces a clean, screenshot-ready image.
+### 3. Verify
 
----
+Target final scorecard card height ≈ 460–500 px. Dialog interior on a 390×803 viewport (`max-h-[90vh]` ≈ 723 px) holds: title (~40) + ChallengesSection (~140) + carousel (~500) + dots (~16) + buttons (~52) = ~750 px. To keep it safely under 723:
 
-## Technical notes
+- Drop `ChallengesSection`'s `px-4 pb-3` to `pb-2` and cap to 2 displayed challenges (it already slices to 5 — tighten to 3 in this modal context only if needed).
+- Reduce the outer dialog top padding `pt-5 pb-2` to `pt-4 pb-1`.
 
-- Migration:
-  ```sql
-  ALTER TABLE public.hole_stats ADD COLUMN IF NOT EXISTS stroke_index integer;
-  ```
-  No GRANT/policy changes needed (table already configured).
-- Files touched:
-  - `supabase/migrations/<new>.sql`
-  - `src/pages/Round.tsx` — include `stroke_index` in hole_stats writes.
-  - `src/pages/EditRound.tsx` — same, if it writes hole_stats.
-  - `src/pages/Home.tsx` — select + forward `stroke_index`.
-  - `src/components/RoundSummaryModal.tsx` — compact `ScorecardSlide` layout (SI inline in hole-number cell, tighter typography/padding).
-- No business-logic or analytics changes; this is presentation + one persisted field.
+If still tight, keep the dialog as `overflow-y-auto` as a safety net but the goal is the non-scroll fit at 390×803.
+
+## Files touched
+
+- `src/components/RoundSummaryModal.tsx`
+  - Add `items-start` to `<CarouselContent>`.
+  - Rewrite `ScorecardSlide` to the vertical two-column layout above.
+  - Minor padding tightening at the modal root.
+- No DB, no other components, no logic changes.
