@@ -31,9 +31,7 @@ interface HoleData {
   scramble: 'yes' | 'no' | 'n/a' | null;
   putts: number | null;
   par?: number | null;
-  strokeIndex?: number | null;
 }
-
 
 interface RoundSummaryModalProps {
   open: boolean;
@@ -239,131 +237,6 @@ const ShareableCardContent = ({
   </div>
 );
 
-// --- Scorecard slide ---
-const scoreCellClass = (score: number | null, par: number | null | undefined) => {
-  if (score == null || par == null) return "bg-white/10 text-white/60";
-  const diff = score - par;
-  if (diff <= -2) return "bg-yellow-400/90 text-gray-900 font-bold";
-  if (diff === -1) return "bg-green-400/90 text-gray-900 font-bold";
-  if (diff === 0) return "bg-white/15 text-white font-semibold";
-  if (diff === 1) return "bg-orange-400/80 text-gray-900 font-semibold";
-  return "bg-red-500/80 text-white font-bold";
-};
-
-const ScorecardSlide = ({
-  logo,
-  courseName,
-  dateStr,
-  totalScore,
-  scoreVsParStr,
-  scoreVsParColor,
-  holeStats,
-}: {
-  logo: string;
-  courseName: string;
-  dateStr: string;
-  totalScore: number;
-  scoreVsParStr: string;
-  scoreVsParColor: string;
-  holeStats: HoleData[];
-}) => {
-  const holes = holeStats.slice(0, 18);
-  const front = holes.slice(0, 9);
-  const back = holes.slice(9, 18);
-  const hasBack = back.length > 0;
-  const sum = (arr: HoleData[], key: 'score' | 'par') =>
-    arr.reduce((s, h) => s + ((h[key] as number | null) ?? 0), 0);
-
-  const totalPar = sum(holes, 'par');
-  const totalScoreSum = sum(holes, 'score');
-  const totalDiff = totalScoreSum - totalPar;
-  const totalDiffStr = totalScoreSum === 0
-    ? ""
-    : totalDiff === 0 ? "E" : totalDiff > 0 ? `+${totalDiff}` : `${totalDiff}`;
-
-  // 4 columns: Hole | Par | SI | Score — use minmax(0,1fr) so columns can shrink
-  const rowCls =
-    "grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)] items-center gap-1 tabular-nums";
-
-  const Section = ({ rows, label, startIdx }: { rows: HoleData[]; label: string; startIdx: number }) => {
-    if (rows.length === 0) return null;
-    const totalLabel = label === "Front 9" ? "OUT" : "IN";
-    const parTotal = sum(rows, 'par');
-    const scoreTotal = sum(rows, 'score');
-    return (
-      <div className="w-full min-w-0">
-        <div className="text-[10px] uppercase tracking-wider text-white/70 font-semibold mb-1 px-1">
-          {label}
-        </div>
-        {/* Column headers */}
-        <div className={`${rowCls} text-[9px] uppercase tracking-wider text-white/50 mb-1 px-2`}>
-          <div>Hole</div>
-          <div className="text-center">Par</div>
-          <div className="text-center">SI</div>
-          <div className="text-center">Score</div>
-        </div>
-        {/* Hole rows */}
-        <div className="space-y-[2px]">
-          {rows.map((h, i) => (
-            <div key={i} className={`${rowCls} text-[11px] bg-white/5 rounded px-2 py-[3px]`}>
-              <div className="text-white font-semibold">{startIdx + i}</div>
-              <div className="text-center text-white/80">{h.par ?? '–'}</div>
-              <div className="text-center text-white/60">{h.strokeIndex ?? '–'}</div>
-              <div className={`text-center rounded py-[1px] ${scoreCellClass(h.score, h.par)}`}>
-                {h.score ?? '–'}
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* OUT / IN totals */}
-        <div className={`${rowCls} text-[11px] bg-white/15 rounded px-2 py-[4px] mt-[3px] font-bold`}>
-          <div className="text-white uppercase tracking-wider text-[10px]">{totalLabel}</div>
-          <div className="text-center text-white/90">{parTotal || '–'}</div>
-          <div className="text-center text-white/40">–</div>
-          <div className="text-center text-white">{scoreTotal || '–'}</div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="px-3 py-3 text-white w-full max-w-full overflow-hidden">
-      <div className="flex justify-center mb-1.5">
-        <img src={logo} alt="TRACKD" className="h-8 object-contain" />
-      </div>
-      <div className="text-center mb-2 px-2">
-        <h2 className="text-sm font-bold leading-tight break-words">{courseName}</h2>
-        <p className="text-[10px] text-white/70 mt-0.5">{dateStr}</p>
-        <div className="mt-1 flex items-center justify-center gap-2">
-          <span className="text-2xl font-extrabold leading-none">{totalScore}</span>
-          <span className={`text-xs font-semibold ${scoreVsParColor}`}>{scoreVsParStr}</span>
-        </div>
-      </div>
-
-      <Section rows={front} label="Front 9" startIdx={1} />
-      {hasBack && (
-        <div className="mt-2">
-          <Section rows={back} label="Back 9" startIdx={10} />
-        </div>
-      )}
-
-      {hasBack && (
-        <div className="grid grid-cols-[1fr_auto_auto] items-center gap-3 bg-white/15 rounded mt-2 px-3 py-1.5 tabular-nums">
-          <div className="text-[10px] uppercase tracking-wider text-white font-semibold">Total</div>
-          <div className="text-[10px] text-white/80">Par {totalPar}</div>
-          <div className="text-sm font-bold text-white">
-            {totalScoreSum} <span className={`text-[10px] font-semibold ${scoreVsParColor}`}>{totalDiffStr}</span>
-          </div>
-        </div>
-      )}
-
-      <p className="text-center text-[8px] text-white/40 mt-1.5 tracking-wide">SI = Stroke Index</p>
-    </div>
-  );
-};
-
-
-
 const RoundSummaryModal = ({
   open,
   onClose,
@@ -375,8 +248,6 @@ const RoundSummaryModal = ({
 }: RoundSummaryModalProps) => {
   const lightCardRef = useRef<HTMLDivElement>(null);
   const darkCardRef = useRef<HTMLDivElement>(null);
-  const scorecardRef = useRef<HTMLDivElement>(null);
-
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -432,7 +303,7 @@ const RoundSummaryModal = ({
     : new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
   const handleShare = async () => {
-    const cardRef = activeIndex === 0 ? lightCardRef : activeIndex === 1 ? darkCardRef : scorecardRef;
+    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
     if (!cardRef.current) return;
     setIsSharing(true);
 
@@ -473,7 +344,7 @@ const RoundSummaryModal = ({
   };
 
   const handleSaveImage = async () => {
-    const cardRef = activeIndex === 0 ? lightCardRef : activeIndex === 1 ? darkCardRef : scorecardRef;
+    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
     if (!cardRef.current) return;
     setIsSharing(true);
     try {
@@ -495,7 +366,7 @@ const RoundSummaryModal = ({
   };
 
   const handleInstagramShare = async () => {
-    const cardRef = activeIndex === 0 ? lightCardRef : activeIndex === 1 ? darkCardRef : scorecardRef;
+    const cardRef = activeIndex === 0 ? lightCardRef : darkCardRef;
     if (!cardRef.current) return;
     setIsSharing(true);
     try {
@@ -537,7 +408,7 @@ const RoundSummaryModal = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="max-w-sm p-0 border-none bg-[#ededed] shadow-none rounded-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden [&>button]:hidden">
+      <DialogContent className="max-w-sm p-0 border-none bg-[#ededed] shadow-none rounded-2xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
         <DialogTitle className="sr-only">Round Report</DialogTitle>
 
         {/* Round Report Title */}
@@ -557,7 +428,7 @@ const RoundSummaryModal = ({
               api?.on("select", () => setActiveIndex(api.selectedScrollSnap()));
             }}
           >
-            <CarouselContent className="items-start">
+            <CarouselContent>
               <CarouselItem>
                 <div
                   ref={lightCardRef}
@@ -595,33 +466,13 @@ const RoundSummaryModal = ({
                   />
                 </div>
               </CarouselItem>
-
-              <CarouselItem>
-                <div
-                  ref={scorecardRef}
-                  className="rounded-2xl overflow-hidden w-full max-w-full"
-                  style={{
-                    background: "linear-gradient(145deg, hsl(158 47% 18%), hsl(153 41% 30%), hsl(152 39% 41%))",
-                  }}
-                >
-                  <ScorecardSlide
-                    logo={logoLight}
-                    courseName={courseName}
-                    dateStr={dateStr}
-                    totalScore={totalScore}
-                    scoreVsParStr={scoreVsParStr}
-                    scoreVsParColor={scoreVsParColor}
-                    holeStats={holeStats}
-                  />
-                </div>
-              </CarouselItem>
             </CarouselContent>
           </Carousel>
         </div>
 
         {/* Dot indicators */}
         <div className="flex justify-center gap-2 mt-1">
-          {[0, 1, 2].map((i) => (
+          {[0, 1].map((i) => (
             <div
               key={i}
               className={`w-2 h-2 rounded-full transition-colors ${
@@ -630,7 +481,6 @@ const RoundSummaryModal = ({
             />
           ))}
         </div>
-
 
         {/* Action buttons */}
         <div className="flex gap-2 mt-1 px-4 pb-5">

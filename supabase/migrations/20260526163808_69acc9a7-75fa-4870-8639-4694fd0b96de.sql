@@ -1,1 +1,0 @@
-ALTER TABLE public.hole_stats ADD COLUMN IF NOT EXISTS stroke_index integer;

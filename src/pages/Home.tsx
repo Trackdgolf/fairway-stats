@@ -114,7 +114,7 @@ const Home = () => {
   const [summaryData, setSummaryData] = useState<{
     courseName: string;
     totalScore: number | null;
-    holeStats: Array<{ score: number | null; fir: boolean | null; gir: boolean | null; scramble: 'yes' | 'no' | 'n/a' | null; putts: number | null; par: number | null; strokeIndex: number | null }>;
+    holeStats: Array<{ score: number | null; fir: boolean | null; gir: boolean | null; scramble: 'yes' | 'no' | 'n/a' | null; putts: number | null; par: number | null }>;
     roundId: string;
   } | null>(null);
   const [loadingShareId, setLoadingShareId] = useState<string | null>(null);
@@ -124,7 +124,7 @@ const Home = () => {
     try {
       const { data, error } = await supabase
         .from('hole_stats')
-        .select('score, par, fir, gir, scramble, putts, stroke_index')
+        .select('score, par, fir, gir, scramble, putts')
         .eq('round_id', round.id)
         .order('hole_number');
 
@@ -141,7 +141,6 @@ const Home = () => {
           scramble: h.scramble as 'yes' | 'no' | 'n/a' | null,
           putts: h.putts,
           par: h.par,
-          strokeIndex: (h as { stroke_index: number | null }).stroke_index ?? null,
         })),
       });
       setShowSummary(true);
