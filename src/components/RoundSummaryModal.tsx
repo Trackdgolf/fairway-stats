@@ -541,7 +541,7 @@ const RoundSummaryModal = ({
               api?.on("select", () => setActiveIndex(api.selectedScrollSnap()));
             }}
           >
-            <CarouselContent>
+            <CarouselContent className="items-start">
               <CarouselItem>
                 <div
                   ref={lightCardRef}
