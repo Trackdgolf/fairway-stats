@@ -239,6 +239,104 @@ const ShareableCardContent = ({
   </div>
 );
 
+// --- Scorecard slide ---
+const scoreCellClass = (score: number | null, par: number | null | undefined) => {
+  if (score == null || par == null) return "bg-white/10 text-white/60";
+  const diff = score - par;
+  if (diff <= -2) return "bg-yellow-400/90 text-gray-900 font-bold";
+  if (diff === -1) return "bg-green-400/90 text-gray-900 font-bold";
+  if (diff === 0) return "bg-white/15 text-white font-semibold";
+  if (diff === 1) return "bg-orange-400/80 text-gray-900 font-semibold";
+  return "bg-red-500/80 text-white font-bold";
+};
+
+const ScorecardSlide = ({
+  logo,
+  courseName,
+  dateStr,
+  totalScore,
+  scoreVsParStr,
+  scoreVsParColor,
+  holeStats,
+}: {
+  logo: string;
+  courseName: string;
+  dateStr: string;
+  totalScore: number;
+  scoreVsParStr: string;
+  scoreVsParColor: string;
+  holeStats: HoleData[];
+}) => {
+  const holes = holeStats.slice(0, 18);
+  const isNine = holes.length <= 9;
+  const front = holes.slice(0, 9);
+  const back = holes.slice(9, 18);
+  const sum = (arr: HoleData[], key: 'score' | 'par') =>
+    arr.reduce((s, h) => s + ((h[key] as number | null) ?? 0), 0);
+
+  const Nine = ({ rows, label }: { rows: HoleData[]; label: string }) => {
+    if (rows.length === 0) return null;
+    const startIdx = label === "Out" ? 1 : 10;
+    const parTotal = sum(rows, 'par');
+    const scoreTotal = sum(rows, 'score');
+    return (
+      <div className="mb-2.5 last:mb-0">
+        <div className="grid gap-[2px] text-[9px] uppercase tracking-wider text-white/60 mb-1"
+          style={{ gridTemplateColumns: `28px repeat(${rows.length}, minmax(0,1fr)) 32px` }}>
+          <div>Hole</div>
+          {rows.map((_, i) => <div key={i} className="text-center">{startIdx + i}</div>)}
+          <div className="text-center">{label}</div>
+        </div>
+        <div className="grid gap-[2px] text-[10px] mb-[2px]"
+          style={{ gridTemplateColumns: `28px repeat(${rows.length}, minmax(0,1fr)) 32px` }}>
+          <div className="text-white/60">Par</div>
+          {rows.map((h, i) => (
+            <div key={i} className="text-center text-white/80 bg-white/5 rounded py-[3px]">{h.par ?? '–'}</div>
+          ))}
+          <div className="text-center text-white/80 bg-white/10 rounded py-[3px] font-semibold">{parTotal || '–'}</div>
+        </div>
+        <div className="grid gap-[2px] text-[10px] mb-[2px]"
+          style={{ gridTemplateColumns: `28px repeat(${rows.length}, minmax(0,1fr)) 32px` }}>
+          <div className="text-white/60">SI</div>
+          {rows.map((h, i) => (
+            <div key={i} className="text-center text-white/60 py-[3px]">{h.strokeIndex ?? '–'}</div>
+          ))}
+          <div className="text-center text-white/40 py-[3px]">–</div>
+        </div>
+        <div className="grid gap-[2px] text-[11px]"
+          style={{ gridTemplateColumns: `28px repeat(${rows.length}, minmax(0,1fr)) 32px` }}>
+          <div className="text-white/80 self-center">Score</div>
+          {rows.map((h, i) => (
+            <div key={i} className={`text-center rounded py-[4px] ${scoreCellClass(h.score, h.par)}`}>
+              {h.score ?? '–'}
+            </div>
+          ))}
+          <div className="text-center bg-white/15 text-white rounded py-[4px] font-bold">{scoreTotal || '–'}</div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="p-5 text-white">
+      <div className="flex justify-center mb-3">
+        <img src={logo} alt="TRACKD" className="h-12 object-contain" />
+      </div>
+      <div className="text-center mb-4">
+        <h2 className="text-lg font-bold tracking-tight">{courseName}</h2>
+        <p className="text-xs text-white/70 mt-0.5">{dateStr}</p>
+        <div className="mt-2 flex items-center justify-center gap-2">
+          <span className="text-3xl font-extrabold leading-none">{totalScore}</span>
+          <span className={`text-sm font-semibold ${scoreVsParColor}`}>{scoreVsParStr}</span>
+        </div>
+      </div>
+      <Nine rows={front} label="Out" />
+      {!isNine && <Nine rows={back} label="In" />}
+    </div>
+  );
+};
+
+
 const RoundSummaryModal = ({
   open,
   onClose,
